@@ -1,0 +1,6 @@
+#!/bin/bash
+
+RETURN_PATH="$PWD"
+cd "$REPOSITORY_ROOT"/LiveLawyerApp
+npm install
+cd "$RETURN_PATH"
