@@ -15,7 +15,7 @@ export default function HomeScreen() {
         />
       }>
       <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Live Lawyer App test</ThemedText>
+        <ThemedText type="title">Live Lawyer App</ThemedText>
       </ThemedView>
       <ThemedView style={styles.stepContainer}>
         <ThemedText type="subtitle">It works!</ThemedText>
