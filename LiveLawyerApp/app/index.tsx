@@ -13,7 +13,7 @@ export default function Index() {
     >
       <Text style={{fontSize: 40, verticalAlign: 'bottom'}}>Hub{'\n\n\n'}</Text>
       <Button
-          title='CALL LAWYER'
+          title='PRESS ME TO CALL'
           onPress={() => {
             Alert.alert('You are now chatting with a lawyer!');
             setTimes(times + 1);
