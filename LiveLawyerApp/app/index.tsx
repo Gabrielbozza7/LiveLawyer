@@ -1,6 +1,8 @@
-import { Text, View } from 'react-native'
+import React, { useState } from 'react';
+import { Alert, Button, Text, View } from 'react-native';
 
 export default function Index() {
+  const [times, setTimes] = useState<number>(0);
   return (
     <View
       style={{
@@ -9,7 +11,17 @@ export default function Index() {
         alignItems: 'center',
       }}
     >
-      <Text>Edit app/index.tsx to edit this screen.</Text>
+      <Text style={{fontSize: 40, verticalAlign: 'bottom'}}>Hub{'\n\n\n'}</Text>
+      <Button
+          title='PRESS ME TO CALL'
+          onPress={() => {
+            Alert.alert('You are now chatting with a lawyer!');
+            setTimes(times + 1);
+          }}
+      />
+      <Text style={{textAlign: 'center', verticalAlign: 'bottom'}}>
+        (Pretend the button works.){'\n\n\n\n\n'}You have called a lawyer {times} times.
+      </Text>
     </View>
   )
 }
