@@ -23,5 +23,5 @@ export default function Index() {
         (Pretend the button works.){'\n\n\n\n\n'}You have called a lawyer {times} times.
       </Text>
     </View>
-  );
+  )
 }
