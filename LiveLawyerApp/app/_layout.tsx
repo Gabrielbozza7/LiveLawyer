@@ -1,5 +1,5 @@
-import { Stack, Tabs } from "expo-router";
-import { Platform } from "react-native";
+import { Tabs } from 'expo-router'
+import { Platform } from 'react-native'
 
 export default function RootLayout() {
   return (
@@ -13,7 +13,8 @@ export default function RootLayout() {
           },
           default: {},
         }),
-      }}>
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
@@ -39,5 +40,5 @@ export default function RootLayout() {
         }}
       />
     </Tabs>
-  );
+  )
 }

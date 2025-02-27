@@ -1,15 +1,13 @@
-import { Text, View } from "react-native";
+import { Styles } from '@/constants/Styles'
+import { Text } from 'react-native'
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
 
-export default function Index() {
+export default function Lawyer() {
   return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <Text>Screen template!</Text>
-    </View>
-  );
+    <SafeAreaProvider>
+      <SafeAreaView style={Styles.container}>
+        <Text style={Styles.pageTitle}>Screen template!</Text>
+      </SafeAreaView>
+    </SafeAreaProvider>
+  )
 }

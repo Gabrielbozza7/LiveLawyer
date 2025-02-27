@@ -7,17 +7,18 @@ import prettier from 'eslint-config-prettier'
 import prettierPlugin from 'eslint-plugin-prettier'
 
 export default [
-  js.configs.recommended,
   {
-    files: ['**/*.ts', '**/*.tsx'],
     ignores: [
       'node_modules/**',
       'assets/**',
       'app-example/**',
       '.expo/**',
       'expo-env.d.ts',
-      'package.json',
-    ],
+    ]
+  },
+  js.configs.recommended,
+  {
+    files: ['**/*.ts', '**/*.tsx'],
     languageOptions: {
       parser: tsParser,
       sourceType: 'module',
