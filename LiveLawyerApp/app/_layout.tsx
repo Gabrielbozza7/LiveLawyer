@@ -39,13 +39,13 @@ export default function RootLayout() {
         }}
         
       />
-      <Tabs.Screen
+      {/*<Tabs.Screen
         name="lawyer_info"
         options={{
           title: 'Lawyer info',
         }}
         
-      />
+      />*/}
     </Tabs>
   );
 }
