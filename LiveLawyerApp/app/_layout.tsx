@@ -38,7 +38,15 @@ export default function RootLayout() {
         options={{
           title: 'Resources',
         }}
+        
       />
+      {/*<Tabs.Screen
+        name="lawyer_info"
+        options={{
+          title: 'Lawyer info',
+        }}
+        
+      />*/}
     </Tabs>
   )
 }
