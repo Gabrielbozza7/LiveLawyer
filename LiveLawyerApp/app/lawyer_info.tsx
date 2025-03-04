@@ -1,8 +1,8 @@
 import React from "react";
-import { Linking, Text, View, TouchableOpacity, StyleSheet } from "react-native";
+import { Linking, Text, View, TouchableOpacity, StyleSheet, Image } from "react-native";
 
 export default function Lawyer_info() {
-  const phnum = '212-255-1234';
+  const phnum = '123-789-1234';
   const handleCall = () =>{
     Linking.openURL('tel:${phnum}');
   };
@@ -10,6 +10,11 @@ export default function Lawyer_info() {
 
   return (
     <View style={styles.container}>
+      
+      <Image
+        source={require('/workspace/LiveLawyerApp/assets/images/react-logo.png')}
+        style={styles.logo}
+      />
 
       <Text style={styles.LawofficeName}>Doeman's Law Office</Text>
       
@@ -30,15 +35,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#dc143c',
   },
+  logo:{
+    width: 150,
+    height: 150,
+    marginBottom: 20,
+  },
   LawofficeName: {
     color: 'blue',
     fontSize: 34,
-    marginTop: 16,
+    marginBottom: 20,
   },
   nameText: {
     color: 'blue',
     fontSize: 24,
-    marginBottom: 16,
+    marginBottom: 20,
   },
   phoneText: {
     fontSize: 18,
