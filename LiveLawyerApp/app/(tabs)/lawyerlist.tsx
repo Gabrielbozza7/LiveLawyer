@@ -1,7 +1,8 @@
 import { Styles } from '@/constants/Styles'
-import React from 'react'
-import { FlatList, Text, TouchableOpacity, Alert } from 'react-native'
+import React, { useState } from 'react'
+import { FlatList, Text, TouchableOpacity } from 'react-native'
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context'
+import LawyerInfo from '../lawyer_info/lawyer_info'
 
 type ItemData = {
   id: string
@@ -37,17 +38,21 @@ const Item = ({ item, onPress }: ItemProps) => (
   </TouchableOpacity>
 )
 export default function LawyerView() {
+  const [lawyer, setLawyer] = useState<ItemData | null>(null)
+
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={Styles.container}>
-        <FlatList
-          data={Data}
-          renderItem={({ item }) => (
-            <Item item={item} onPress={() => Alert.alert('Selected Lawyer', item.title)} />
-          )}
-          keyExtractor={item => item.id}
-        />
-      </SafeAreaView>
+      {lawyer ? (
+        <LawyerInfo onPressBack={() => setLawyer(null)}></LawyerInfo>
+      ) : (
+        <SafeAreaView style={Styles.container}>
+          <FlatList
+            data={Data}
+            renderItem={({ item }) => <Item item={item} onPress={() => setLawyer(Data[0])} />}
+            keyExtractor={item => item.id}
+          />
+        </SafeAreaView>
+      )}
     </SafeAreaProvider>
   )
 }
