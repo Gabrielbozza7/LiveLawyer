@@ -1,8 +1,8 @@
 import { Styles } from '@/constants/Styles'
 import React, { useState } from 'react'
-import { FlatList, Text, TouchableOpacity, Alert } from 'react-native'
+import { FlatList, Text, TouchableOpacity } from 'react-native'
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context'
-import Lawyer_info from '../lawyer_info/lawyer_info'
+import LawyerInfo from '../lawyer_info/lawyer_info'
 
 type ItemData = {
   id: string
@@ -43,7 +43,7 @@ export default function LawyerView() {
   return (
     <SafeAreaProvider>
       {lawyer ? (
-        <Lawyer_info></Lawyer_info>
+        <LawyerInfo onPressBack={() => setLawyer(null)}></LawyerInfo>
       ) : (
         <SafeAreaView style={Styles.container}>
           <FlatList
