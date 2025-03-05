@@ -1,23 +1,11 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
-import { Platform } from 'react-native';
+import { Tabs } from 'expo-router'
+import { Platform } from 'react-native'
 
-import { HapticTab } from '@/components/HapticTab';
-import { IconSymbol } from '@/components/ui/IconSymbol';
-import TabBarBackground from '@/components/ui/TabBarBackground';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
-
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
+export default function RootLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: false,
-        tabBarButton: HapticTab,
-        tabBarBackground: TabBarBackground,
         tabBarStyle: Platform.select({
           ios: {
             // Use a transparent background on iOS to show the blur effect
@@ -25,28 +13,40 @@ export default function TabLayout() {
           },
           default: {},
         }),
-      }}>
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'ExpoHome',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          title: 'Hub',
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="lawyerlist"
         options={{
-          title: 'ExpoExplore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          title: 'Lawyers',
         }}
       />
       <Tabs.Screen
-        name="home"
+        name="contacts"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          title: 'Contacts',
         }}
       />
+      <Tabs.Screen
+        name="resources"
+        options={{
+          title: 'Resources',
+        }}
+        
+      />
+      {/*<Tabs.Screen
+        name="lawyer_info"
+        options={{
+          title: 'Lawyer info',
+        }}
+        
+      />*/}
     </Tabs>
-  );
+  )
 }
