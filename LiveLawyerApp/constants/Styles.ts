@@ -35,4 +35,30 @@ export const Styles = StyleSheet.create({
     fontSize: 25,
   },
   centeredText: { textAlign: 'center' },
+  LawyerInfoContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.containerBackground,
+  },
+  lawyerlogo:{
+    width: 150,
+    height: 150,
+    marginBottom: 20,
+  },
+  LawofficeName: {
+    color: 'blue',
+    fontSize: 34,
+    marginBottom: 20,
+  },
+  nameText: {
+    color: 'blue',
+    fontSize: 24,
+    marginBottom: 20,
+  },
+  phoneText: {
+    fontSize: 18,
+    color: 'blue',
+    textDecorationLine: 'underline',
+  },
 })

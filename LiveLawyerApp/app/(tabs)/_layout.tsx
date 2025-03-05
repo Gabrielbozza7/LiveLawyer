@@ -22,9 +22,9 @@ export default function RootLayout() {
         }}
       />
       <Tabs.Screen
-        name="lawyer"
+        name="lawyerlist"
         options={{
-          title: 'Lawyer',
+          title: 'Lawyers',
         }}
       />
       <Tabs.Screen
