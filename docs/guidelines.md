@@ -52,10 +52,10 @@
 <br>
 
 ## Pull Request (PR) Guidelines
-1. Create PR against the `dev` branch
+1. Create PR against the `testing` branch
 2. Provide clear title and description of the changes:
 	   - address the problem in PR
-	   - Include steps to verify changes changes if needed
+	   - Include steps to verify changes if needed
 3. All tests must pass before submitting PR.
 4. Tag reviewers if needed
 5. Follow branch naming and commit message guidelines
@@ -68,7 +68,6 @@ Description:
 - Fix password input errors
 ```
 ## PR/Code Review
-- Make sure `STYLE_GUIDE.md` is being followed when writing code
 - Check for clear and descriptive commit messages
 -  Make sure no console logs or debug statements
 - Verify all new functionality is tested and documented if necessary
