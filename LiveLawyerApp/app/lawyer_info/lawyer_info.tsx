@@ -1,5 +1,5 @@
 import React from 'react'
-import { Text, TouchableOpacity, Image } from 'react-native'
+import { Text, TouchableOpacity, Image, Linking, Button } from 'react-native'
 import { Styles } from '@/constants/Styles'
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
 
@@ -8,18 +8,19 @@ type LawyerInfoProps = {
 }
 export default function LawyerInfo({ onPressBack }: LawyerInfoProps) {
   const phnum = '123-789-1234'
-  // const handleCall = () => {
-  //   Linking.openURL('tel:${phnum}')
-  // }
   const handleCall = () => {
+    Linking.openURL('tel:${phnum}')
+  }
+  const goingBack = () => {
     onPressBack()
   }
 
   return (
     <SafeAreaProvider>
       <SafeAreaView style={Styles.LawyerInfoContainer}>
+        <Button title="Send me back" onPress={() => goingBack()} />
         <Image
-          source={require('/workspace/LiveLawyerApp/assets/images/react-logo.png')}
+          source={{ uri: 'LiveLawyerApp/assets/images/react-logo.png' }}
           style={Styles.lawyerlogo}
         />
 

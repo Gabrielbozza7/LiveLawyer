@@ -41,7 +41,7 @@ export const Styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Colors.containerBackground,
   },
-  lawyerlogo:{
+  lawyerlogo: {
     width: 150,
     height: 150,
     marginBottom: 20,
