@@ -3,6 +3,8 @@ import { Text, TouchableOpacity, Image } from 'react-native'
 import { Styles } from '@/constants/Styles'
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
 
+const reactLogo = require('../../assets/images/react-logo.png');
+
 type LawyerInfoProps = {
   onPressBack: () => void
 }
@@ -19,7 +21,7 @@ export default function LawyerInfo({ onPressBack }: LawyerInfoProps) {
     <SafeAreaProvider>
       <SafeAreaView style={Styles.LawyerInfoContainer}>
         <Image
-          source={require('/workspace/LiveLawyerApp/assets/images/react-logo.png')}
+          source={reactLogo}
           style={Styles.lawyerlogo}
         />
 
