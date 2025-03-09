@@ -1,13 +1,16 @@
 import express from 'express'
 import { createServer } from 'node:http'
 import { Server } from 'socket.io'
+import TwilioManager from './TwilioManager'
 
 const app = express()
 const httpServer = createServer(app)
 const io = new Server(httpServer)
+const twilioManager: TwilioManager = new TwilioManager()
 
 const port = 4000
 app.use(express.json())
+twilioManager.setupPostRoute(app)
 
 app.get('/test', async (req, res) => {
   res.json({ it: 'works' })
