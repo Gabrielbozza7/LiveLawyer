@@ -39,6 +39,7 @@ export const startRoom = async (event: React.FormEvent<HTMLFormElement>,htmlForm
     room.on("participantConnected", (participant) => {
       handleConnectedParticipant(participant,containerRef)
     });
+
     //disconnect issues
     room.on("participantDisconnected", handleDisconnectedParticipant)
     window.addEventListener("pagehide", () => room.disconnect());
@@ -91,5 +92,3 @@ const handleDisconnectedParticipant = (participant: LocalParticipant | RemotePar
   const participantDiv = document.getElementById(participant.identity);
   participantDiv?.remove()
 }
-
-// fixing
