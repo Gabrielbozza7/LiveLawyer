@@ -14,8 +14,7 @@ app.get('/test', async (req, res) => {
 })
 
 app.get('/', async (req, res) => {
-  res.send(
-    '<!DOCTYPE html><html><body><script src="/socket.io/socket.io.js"></script><script>const socket = io();</script></body></html>',
+  res.send('../LiveLawyerWeb/src/page.tsx',
   )
 })
 
