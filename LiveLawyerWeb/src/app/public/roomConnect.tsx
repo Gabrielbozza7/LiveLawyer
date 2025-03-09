@@ -2,35 +2,41 @@
  * File for connecting into the rooms
  */
 
-import { connect, Room, LocalParticipant, RemoteParticipant, RemoteTrackPublication, LocalTrack, RemoteTrack, Participant,LocalVideoTrack,LocalAudioTrack, TrackPublication} from 'twilio-video'
-import React,{useRef} from "react";
-import { PageConfig } from 'next';
-import App from '../page'
+import { connect, Room, LocalParticipant, RemoteParticipant, LocalVideoTrack, LocalAudioTrack } from 'twilio-video'
+import React from "react";
 
 type mediaTrack = LocalAudioTrack | LocalVideoTrack
 
 export const startRoom = async (event: React.FormEvent<HTMLFormElement>,htmlForm:HTMLFormElement,containerRef:HTMLDivElement) => {
     // prevent a page reload when a user submits the form
     const formData = new FormData(htmlForm)
-    let roomName = formData.get("room-name-input")!.toString()
+    const roomName = formData.get("room_name")!.toString()
 
     event.preventDefault();
     // hide the join form
     htmlForm.style.visibility = "hidden";
   
     // fetch an Access Token from the join-room route
-    const response = await fetch("/join-room", {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({roomName}),
-    });
-    const { token } = await response.json();
+    let token: string;
+    try {
+      const response = await fetch("http://localhost:4000/join-room", {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({roomName: roomName}),
+        mode: 'cors'
+      });
+      const { token: retrievedToken } = await response.json();
+      token = retrievedToken;
+    } catch (error: unknown) {
+      console.log(`POST error: ${(error as Error).message}`)
+      return;
+    }
 
     const room = await joinVideoRoom(roomName, token);
-
+    
     // render the local and remote participants' video and audio tracks
     handleConnectedParticipant(room.localParticipant,containerRef);
     room.participants.forEach((participant) => {
@@ -64,19 +70,22 @@ const handleConnectedParticipant = (participant: LocalParticipant | RemotePartic
     participant.on("trackPublished", handleTrackPublication)
     
 }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const handleTrackPublication = (trackPublication:any,participant: LocalParticipant | RemoteParticipant) => {
   function displayTrack(track:mediaTrack){
     const participantDiv = document.getElementById(participant.identity);
-    participantDiv?.append((track as mediaTrack).attach())
+    if (track != null && track != undefined) {
+      participantDiv?.append((track as mediaTrack).attach())
+    }
   }
   // check if the trackPublication contains a `track` attribute. If it does,
   // we are subscribed to this track. If not, we are not subscribed.
   if(trackPublication){
     displayTrack(trackPublication.track)
+    // listen for any new subscriptions to this track publication
+    trackPublication.on("subscribed", displayTrack);
   }
 
-  // listen for any new subscriptions to this track publication
-  trackPublication.on("subscribed", displayTrack);
 }
 
 const joinVideoRoom = async (roomName:string, token:string): Promise<Room> => {

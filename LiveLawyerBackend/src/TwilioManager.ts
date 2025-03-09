@@ -53,6 +53,7 @@ export default class TwilioManager {
 
     // add the video grant
     token.addGrant(videoGrant)
+    console.log('Handed out a token!')
     // serialize the token and return it
     return token.toJwt()
   }
