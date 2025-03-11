@@ -46,19 +46,39 @@ export const Styles = StyleSheet.create({
     height: 150,
     marginBottom: 20,
   },
+
+  // this is for lawyer info page
+  // eslint-disable-next-line react-native/no-color-literals
   LawofficeName: {
     color: 'blue',
     fontSize: 34,
     marginBottom: 20,
   },
+  // eslint-disable-next-line react-native/no-color-literals
   nameText: {
     color: 'blue',
     fontSize: 24,
     marginBottom: 20,
   },
+  // eslint-disable-next-line react-native/no-color-literals
   phoneText: {
     fontSize: 18,
     color: 'blue',
     textDecorationLine: 'underline',
   },
+  // eslint-disable-next-line react-native/no-color-literals
+  goBackButton: {
+    backgroundColor: '#007AFF',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginVertical: 10,
+  },
+  // eslint-disable-next-line react-native/no-color-literals
+  goBackButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  // this ithe end of lawyer info page
 })
