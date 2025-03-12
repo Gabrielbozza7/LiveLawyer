@@ -36,7 +36,7 @@ export const startRoom = async (event: React.FormEvent<HTMLFormElement>,htmlForm
     }
 
     const room = await joinVideoRoom(roomName, token);
-    
+
     // render the local and remote participants' video and audio tracks
     handleConnectedParticipant(room.localParticipant,containerRef);
     room.participants.forEach((participant) => {
@@ -57,6 +57,7 @@ export const startRoom = async (event: React.FormEvent<HTMLFormElement>,htmlForm
  *  Can be in page.tsx because it only appends the people who join in the call
  */
 const handleConnectedParticipant = (participant: LocalParticipant | RemoteParticipant,containerRef:HTMLDivElement) => {
+    //div created
     const participantDiv = document.createElement('div')
     participantDiv.setAttribute("id",participant.identity)
     containerRef.appendChild(participantDiv)
@@ -64,23 +65,27 @@ const handleConnectedParticipant = (participant: LocalParticipant | RemotePartic
     // iterate through the participant's published tracks and
   // call `handleTrackPublication` on them
     participant.tracks.forEach(trackpublication=>{
-      handleTrackPublication(trackpublication.track as mediaTrack,participant);
+      console.log("trackPublication", trackpublication)
+      handleTrackPublication(trackpublication,participant,containerRef);
     })
 
     participant.on("trackPublished", handleTrackPublication)
     
 }
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const handleTrackPublication = (trackPublication:any,participant: LocalParticipant | RemoteParticipant) => {
+const handleTrackPublication = (trackPublication:any,participant: LocalParticipant | RemoteParticipant,containerRef:HTMLDivElement) => {
+  console.log("------------------")
+  console.log("TrackPublication: ",trackPublication.track)
+
   function displayTrack(track:mediaTrack){
     const participantDiv = document.getElementById(participant.identity);
     if (track != null && track != undefined) {
-      participantDiv?.append((track as mediaTrack).attach())
+      participantDiv?.appendChild(track.attach())
     }
   }
   // check if the trackPublication contains a `track` attribute. If it does,
   // we are subscribed to this track. If not, we are not subscribed.
-  if(trackPublication){
+  if(trackPublication.track){
     displayTrack(trackPublication.track)
     // listen for any new subscriptions to this track publication
     trackPublication.on("subscribed", displayTrack);
