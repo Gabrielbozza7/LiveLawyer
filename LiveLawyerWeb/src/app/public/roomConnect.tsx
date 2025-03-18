@@ -2,7 +2,7 @@
  * File for connecting into the rooms
  */
 
-import { connect, Room, LocalParticipant, RemoteParticipant, LocalVideoTrack, LocalAudioTrack } from 'twilio-video'
+import { connect, Room, LocalParticipant, RemoteParticipant, LocalVideoTrack, LocalAudioTrack, RemoteTrack } from 'twilio-video'
 import React from "react";
 
 type mediaTrack = LocalAudioTrack | LocalVideoTrack
@@ -74,8 +74,7 @@ const handleConnectedParticipant = (participant: LocalParticipant | RemotePartic
 }
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const handleTrackPublication = (trackPublication:any,participant: LocalParticipant | RemoteParticipant,containerRef:HTMLDivElement) => {
-  console.log("------------------")
-  console.log("TrackPublication: ",trackPublication.track)
+  console.log("-----------------------\nIDENTITY: ",participant.identity)
 
   function displayTrack(track:mediaTrack){
     const participantDiv = document.getElementById(participant.identity);
@@ -87,9 +86,11 @@ const handleTrackPublication = (trackPublication:any,participant: LocalParticipa
   // we are subscribed to this track. If not, we are not subscribed.
   if(trackPublication.track){
     displayTrack(trackPublication.track)
-    // listen for any new subscriptions to this track publication
-    trackPublication.on("subscribed", displayTrack);
+    
+    
   }
+  // listen for any new subscriptions to this track publication
+  trackPublication.on("subscribed", displayTrack);
 
 }
 
