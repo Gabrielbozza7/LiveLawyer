@@ -1,4 +1,4 @@
-import { connect, Room, LocalParticipant, RemoteParticipant, LocalVideoTrack, LocalAudioTrack } from 'twilio-video'
+import { connect, Room, LocalParticipant, RemoteParticipant, LocalVideoTrack, LocalAudioTrack, Participant } from 'twilio-video'
 
 type mediaTrack = LocalAudioTrack | LocalVideoTrack;
 
@@ -9,7 +9,7 @@ const handleConnectedParticipant = (participant: LocalParticipant | RemotePartic
   containerRef.appendChild(participantDiv)
 
   // iterate through the participant's published tracks and
-// call `handleTrackPublication` on them
+  // call `handleTrackPublication` on them
   participant.tracks.forEach(trackpublication=>{
     console.log("trackPublication", trackpublication)
     handleTrackPublication(trackpublication, participant);
@@ -50,10 +50,14 @@ const handleDisconnectedParticipant = (participant: LocalParticipant | RemotePar
 export default class TwilioVideoRoom {
     private token: string;
     private room: Room | undefined;
+    private allParticipants: Participant[];
+    public x = handleConnectedParticipant;
+    public y = handleDisconnectedParticipant;
     
     constructor() {
       this.token = "";
       this.room = undefined;
+      this.allParticipants = [];
     }
 
     public async joinRoom(roomName: string): Promise<boolean> {
@@ -84,23 +88,42 @@ export default class TwilioVideoRoom {
       return true;
     }
 
-    public setupListeners(containerRef: HTMLDivElement) {
+    public setupListeners(/*containerRef: HTMLDivElement,*/ callback: (updatedParticipants: Participant[]) => void) {
       if (this.room === undefined) {
         console.log("Cannot setup listeners if a room hasn't been joined!");
         return;
       }
-      // render the local and remote participants' video and audio tracks
-      handleConnectedParticipant(this.room.localParticipant,containerRef);
-      this.room.participants.forEach((participant) => {
-        handleConnectedParticipant(participant,containerRef)
-      });
-      this.room.on("participantConnected", (participant) => {
-        handleConnectedParticipant(participant,containerRef)
-      });
+      // // render the local and remote participants' video and audio tracks
+      // handleConnectedParticipant(this.room.localParticipant,containerRef);
+      // this.room.participants.forEach((participant) => {
+      //   handleConnectedParticipant(participant,containerRef)
+      // });
+      // this.room.on("participantConnected", (participant) => {
+      //   handleConnectedParticipant(participant,containerRef)
+      // });
 
-      //disconnect issues
-      this.room.on("participantDisconnected", handleDisconnectedParticipant)
+      // //disconnect issues
+      // this.room.on("participantDisconnected", handleDisconnectedParticipant)
+      // window.addEventListener("pagehide", () => this.room!.disconnect());
+      // window.addEventListener("beforeunload", () => this.room!.disconnect());
+
+      this.allParticipants = [this.room.localParticipant];
+      this.room.participants.forEach(participant => {
+        this.allParticipants.push(participant);
+      });
+      this.room.on("participantConnected", participant => {
+        this.allParticipants.push(participant);
+        console.log("CCC");
+        callback([...this.allParticipants]);
+      });
+      this.room.on("participantDisconnected", participant => {
+        this.allParticipants.splice(this.allParticipants.findIndex(value => value == participant), 1);
+        console.log("BBB");
+        callback([...this.allParticipants]);
+      });
       window.addEventListener("pagehide", () => this.room!.disconnect());
       window.addEventListener("beforeunload", () => this.room!.disconnect());
+      console.log("AAA");
+      callback([...this.allParticipants]);
     }
 }
