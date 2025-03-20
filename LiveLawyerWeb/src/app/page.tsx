@@ -1,15 +1,11 @@
 "use client"
-import React, { useState, useRef, useCallback} from 'react';
+import React, { useState, useCallback} from 'react';
 // import { socket } from './socket';
 import TwilioVideoRoom from './public/TwilioVideoRoom';
 import { Participant } from 'twilio-video';
-import TwilioVideoParticipant from './public/TwilioVideoParticipant';
+import TwilioParticipant from './public/TwilioParticipant';
 
 export default function App() {
-  const formRef = useRef(null);
-  const inputRef = useRef(null);
-  // const containerRef = useRef(null);
-
   const [videoRoom] = useState<TwilioVideoRoom>(new TwilioVideoRoom());
   const [participants, setParticipants] = useState<Participant[]>([]);
 
@@ -35,47 +31,41 @@ export default function App() {
   // }, []);
 
   const joinRoom = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
-    const htmlForm: HTMLFormElement = formRef.current!;
-    const formData = new FormData(htmlForm)
+    const formData = new FormData(event.currentTarget);
     const roomName = formData.get("room_name")!.toString()
 
     // prevent a page reload when a user submits the form
     event.preventDefault();
-    // hide the join form
-    htmlForm.style.visibility = "hidden";
 
-    console.log(await videoRoom.joinRoom(roomName));
+    await videoRoom.joinRoom(roomName);
     
     videoRoom.setupListeners(updatedParticipants => {
       setParticipants(updatedParticipants);
-      console.log(updatedParticipants.length);
     });
   }, [videoRoom]);
 
-  return(
+  return (
     <div>
       <div>
         <title>Live Lawyer</title>
-        {/* Twilio Video CDN */}
-        {/*eslint-disable-next-line @next/next/no-sync-scripts*/}
-        <script src="https://sdk.twilio.com/js/video/releases/2.15.2/twilio-video.min.js"></script>
       </div>
       <div>
-        <form id="room-name-form" ref={formRef} onSubmit={joinRoom}>
-          Enter a Room Name to join:
-          <input ref={inputRef} name="room_name" id="room-name-input" />
-          <button type="submit">Join Room</button>
-        </form>
-        {/* <div id="video-container"ref={containerRef}></div> */}
-        {participants.map(participant => <TwilioVideoParticipant key={participant.identity} room={videoRoom} participant={participant} />)}
-        <button onClick={() => {
-          videoRoom.disconnect();
-          setParticipants([]);
-        }}>Disconnect</button>
-        {/*<script src="public/main.js"></script>*/}
+        {videoRoom.inARoom ? (
+          <div>
+            {participants.map(participant => <TwilioParticipant key={participant.identity} room={videoRoom} participant={participant} />)}
+            <button onClick={() => {
+              videoRoom.disconnect();
+              setParticipants([]);
+            }}>Disconnect</button>
+          </div>
+        ) : (
+          <form id="room-name-form" onSubmit={joinRoom}>
+            Enter a Room Name to join:
+            <input name="room_name" id="room-name-input" />
+            <button type="submit">Join Room</button>
+          </form>
+        )}
       </div>
     </div>
-
-    )
-
+  )
 }

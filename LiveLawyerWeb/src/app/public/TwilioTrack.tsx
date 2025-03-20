@@ -21,6 +21,6 @@ export default function TwilioTrack({ track }: TwilioTrackProps) {
     }
   }, [track]);
   return (
-    <div className="twiliotrack" ref={divRef} />
+    <div ref={divRef} />
   );
 }

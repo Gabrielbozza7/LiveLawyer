@@ -1,59 +1,10 @@
-import { connect, Room, LocalParticipant, RemoteParticipant, LocalVideoTrack, LocalAudioTrack, Participant } from 'twilio-video'
-
-type mediaTrack = LocalAudioTrack | LocalVideoTrack;
-
-const handleConnectedParticipant = (participant: LocalParticipant | RemoteParticipant,containerRef:HTMLDivElement) => {
-  //div created
-  const participantDiv = document.createElement('div')
-  participantDiv.setAttribute("id",participant.identity)
-  containerRef.appendChild(participantDiv)
-
-  // iterate through the participant's published tracks and
-  // call `handleTrackPublication` on them
-  participant.tracks.forEach(trackpublication=>{
-    console.log("trackPublication", trackpublication)
-    handleTrackPublication(trackpublication, participant);
-  })
-
-  participant.on("trackPublished", handleTrackPublication);
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const handleTrackPublication = (trackPublication:any,participant: LocalParticipant | RemoteParticipant) => {
-  console.log("-----------------------\nIDENTITY: ",participant.identity)
-
-  function displayTrack(track:mediaTrack){
-    const participantDiv = document.getElementById(participant.identity);
-    if (track != null && track != undefined) {
-      participantDiv?.appendChild(track.attach())
-    }
-  }
-  // check if the trackPublication contains a `track` attribute. If it does,
-  // we are subscribed to this track. If not, we are not subscribed.
-  if(trackPublication.track){
-    displayTrack(trackPublication.track)
-    
-    
-  }
-  // listen for any new subscriptions to this track publication
-  trackPublication.on("subscribed", displayTrack);
-}
-
-const handleDisconnectedParticipant = (participant: LocalParticipant | RemoteParticipant) => {
-  participant.removeAllListeners();
-
-  const participantDiv = document.getElementById(participant.identity);
-  participantDiv?.remove()
-}
-
+import { connect, Room, Participant } from 'twilio-video'
 
 export default class TwilioVideoRoom {
     private token: string;
     private room: Room | undefined;
     private allParticipants: Participant[];
     private callback: ((updatedParticipants: Participant[]) => void) | undefined;
-    public x = handleConnectedParticipant;
-    public y = handleDisconnectedParticipant;
     
     constructor() {
       this.token = "";
@@ -90,6 +41,10 @@ export default class TwilioVideoRoom {
       return true;
     }
 
+    public get inARoom(): boolean {
+      return this.room !== undefined;
+    }
+
     public async disconnect() {
       if (this.room === undefined) {
         console.log("Cannot leave a room that hasn't been joined!");
@@ -97,27 +52,14 @@ export default class TwilioVideoRoom {
       } else {
         console.log("Leaving room...");
         this.room.disconnect();
+        this.room = undefined;
       }
     }
 
-    public setupListeners(/*containerRef: HTMLDivElement,*/ callback: (updatedParticipants: Participant[]) => void) {
+    public setupListeners(callback: (updatedParticipants: Participant[]) => void) {
       if (this.room === undefined) {
-        console.log("Cannot setup listeners if a room hasn't been joined!");
-        return;
+        throw new Error("Cannot setup listeners if a room hasn't been joined!");
       }
-      // // render the local and remote participants' video and audio tracks
-      // handleConnectedParticipant(this.room.localParticipant,containerRef);
-      // this.room.participants.forEach((participant) => {
-      //   handleConnectedParticipant(participant,containerRef)
-      // });
-      // this.room.on("participantConnected", (participant) => {
-      //   handleConnectedParticipant(participant,containerRef)
-      // });
-
-      // //disconnect issues
-      // this.room.on("participantDisconnected", handleDisconnectedParticipant)
-      // window.addEventListener("pagehide", () => this.room!.disconnect());
-      // window.addEventListener("beforeunload", () => this.room!.disconnect());
       this.callback = callback;
 
       this.allParticipants = [this.room.localParticipant];
@@ -125,28 +67,18 @@ export default class TwilioVideoRoom {
         this.allParticipants.push(participant);
       });
       this.room.on("participantConnected", participant => {
-        console.log("CCC");
         this.allParticipants.push(participant);
         callback([...this.allParticipants]);
       });
-      // this.room.on("participantDisconnected", participant => {
-      //   console.log("BBB");
-      //   this.allParticipants.splice(this.allParticipants.findIndex(value => value == participant), 1);
-      //   callback([...this.allParticipants]);
-      // });
-      window.addEventListener("pagehide", () => this.room!.disconnect());
-      window.addEventListener("beforeunload", () => this.room!.disconnect());
-      console.log("AAA");
+      window.addEventListener("pagehide", () => this.disconnect());
+      window.addEventListener("beforeunload", () => this.disconnect());
       callback([...this.allParticipants]);
     }
 
     public receiveDisconnection(participant: Participant) {
-      console.log("AHA PART 2");
       if (this.callback === undefined) {
-        console.log("Callback undefined!");
-        return;
+        throw new Error("Callback undefined!");
       }
-      console.log("BBB");
       this.allParticipants.splice(this.allParticipants.findIndex(value => value == participant), 1);
       this.callback([...this.allParticipants]);
     }
