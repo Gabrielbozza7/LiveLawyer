@@ -51,6 +51,7 @@ export default class TwilioVideoRoom {
     private token: string;
     private room: Room | undefined;
     private allParticipants: Participant[];
+    private callback: ((updatedParticipants: Participant[]) => void) | undefined;
     public x = handleConnectedParticipant;
     public y = handleDisconnectedParticipant;
     
@@ -58,6 +59,7 @@ export default class TwilioVideoRoom {
       this.token = "";
       this.room = undefined;
       this.allParticipants = [];
+      this.callback = undefined;
     }
 
     public async joinRoom(roomName: string): Promise<boolean> {
@@ -88,6 +90,16 @@ export default class TwilioVideoRoom {
       return true;
     }
 
+    public async disconnect() {
+      if (this.room === undefined) {
+        console.log("Cannot leave a room that hasn't been joined!");
+        return;
+      } else {
+        console.log("Leaving room...");
+        this.room.disconnect();
+      }
+    }
+
     public setupListeners(/*containerRef: HTMLDivElement,*/ callback: (updatedParticipants: Participant[]) => void) {
       if (this.room === undefined) {
         console.log("Cannot setup listeners if a room hasn't been joined!");
@@ -106,24 +118,36 @@ export default class TwilioVideoRoom {
       // this.room.on("participantDisconnected", handleDisconnectedParticipant)
       // window.addEventListener("pagehide", () => this.room!.disconnect());
       // window.addEventListener("beforeunload", () => this.room!.disconnect());
+      this.callback = callback;
 
       this.allParticipants = [this.room.localParticipant];
       this.room.participants.forEach(participant => {
         this.allParticipants.push(participant);
       });
       this.room.on("participantConnected", participant => {
-        this.allParticipants.push(participant);
         console.log("CCC");
+        this.allParticipants.push(participant);
         callback([...this.allParticipants]);
       });
-      this.room.on("participantDisconnected", participant => {
-        this.allParticipants.splice(this.allParticipants.findIndex(value => value == participant), 1);
-        console.log("BBB");
-        callback([...this.allParticipants]);
-      });
+      // this.room.on("participantDisconnected", participant => {
+      //   console.log("BBB");
+      //   this.allParticipants.splice(this.allParticipants.findIndex(value => value == participant), 1);
+      //   callback([...this.allParticipants]);
+      // });
       window.addEventListener("pagehide", () => this.room!.disconnect());
       window.addEventListener("beforeunload", () => this.room!.disconnect());
       console.log("AAA");
       callback([...this.allParticipants]);
+    }
+
+    public receiveDisconnection(participant: Participant) {
+      console.log("AHA PART 2");
+      if (this.callback === undefined) {
+        console.log("Callback undefined!");
+        return;
+      }
+      console.log("BBB");
+      this.allParticipants.splice(this.allParticipants.findIndex(value => value == participant), 1);
+      this.callback([...this.allParticipants]);
     }
 }

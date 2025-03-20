@@ -67,7 +67,11 @@ export default function App() {
           <button type="submit">Join Room</button>
         </form>
         {/* <div id="video-container"ref={containerRef}></div> */}
-        {participants.map(participant => <TwilioVideoParticipant key={participant.identity} participant={participant} />)}
+        {participants.map(participant => <TwilioVideoParticipant key={participant.identity} room={videoRoom} participant={participant} />)}
+        <button onClick={() => {
+          videoRoom.disconnect();
+          setParticipants([]);
+        }}>Disconnect</button>
         {/*<script src="public/main.js"></script>*/}
       </div>
     </div>
