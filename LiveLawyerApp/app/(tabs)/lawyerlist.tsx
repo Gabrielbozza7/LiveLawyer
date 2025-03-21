@@ -6,25 +6,35 @@ import LawyerInfo from '../lawyer_info/lawyer_info'
 
 type ItemData = {
   id: string
+  office: string
   title: string
+  number: string
 }
 //Data place holder
 var Data: ItemData[] = [
   {
     id: 'Lawyer_1',
+    office: 'Goodman Law Office',
     title: 'Saul Goodman',
+    number: '123-456-7890',
   },
   {
     id: 'Lawyer_2',
+    office: 'Spectre Law Office',
     title: 'Harvey Spectre',
+    number: '123-456-7891',
   },
   {
     id: 'Lawyer_3',
+    office: 'Ross Law Office',
     title: 'Mike Ross',
+    number: '123-456-7892',
   },
   {
     id: 'Lawyer_4',
+    office: 'Litt Law Office',
     title: 'Louis Litt',
+    number: '123-456-7893',
   },
 ]
 
@@ -43,12 +53,17 @@ export default function LawyerView() {
   return (
     <SafeAreaProvider>
       {lawyer ? (
-        <LawyerInfo onPressBack={() => setLawyer(null)}></LawyerInfo>
+        <LawyerInfo onPressBack={() => setLawyer(null)} lawyer={{
+          id: '',
+          office: '',
+          title: '',
+          number: ''
+        }}></LawyerInfo>
       ) : (
         <SafeAreaView style={Styles.container}>
           <FlatList
             data={Data}
-            renderItem={({ item }) => <Item item={item} onPress={() => setLawyer(Data[0])} />}
+            renderItem={({ item }) => <Item item={item} onPress={() => setLawyer(item)} />}
             keyExtractor={item => item.id}
           />
         </SafeAreaView>
