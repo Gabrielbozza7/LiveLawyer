@@ -1,13 +1,13 @@
-"use client"
-import React, { useState, useCallback} from 'react';
+'use client'
+import React, { useState, useCallback } from 'react'
 // import { socket } from './socket';
-import TwilioVideoRoom from './public/TwilioVideoRoom';
-import { Participant } from 'twilio-video';
-import TwilioParticipant from './public/TwilioParticipant';
+import TwilioVideoRoom from './public/TwilioVideoRoom'
+import { Participant } from 'twilio-video'
+import TwilioParticipant from './public/TwilioParticipant'
 
 export default function App() {
-  const [videoRoom] = useState<TwilioVideoRoom>(new TwilioVideoRoom());
-  const [participants, setParticipants] = useState<Participant[]>([]);
+  const [videoRoom] = useState<TwilioVideoRoom>(new TwilioVideoRoom())
+  const [participants, setParticipants] = useState<Participant[]>([])
 
   /// eslint-disable-next-line @typescript-eslint/no-unused-vars
   // const [isConnected, setIsConnected] = useState(socket.connected);
@@ -30,19 +30,22 @@ export default function App() {
   //   };
   // }, []);
 
-  const joinRoom = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
-    const formData = new FormData(event.currentTarget);
-    const roomName = formData.get("room_name")!.toString()
+  const joinRoom = useCallback(
+    async (event: React.FormEvent<HTMLFormElement>) => {
+      const formData = new FormData(event.currentTarget)
+      const roomName = formData.get('room_name')!.toString()
 
-    // prevent a page reload when a user submits the form
-    event.preventDefault();
+      // prevent a page reload when a user submits the form
+      event.preventDefault()
 
-    await videoRoom.joinRoom(roomName);
-    
-    videoRoom.setupListeners(updatedParticipants => {
-      setParticipants(updatedParticipants);
-    });
-  }, [videoRoom]);
+      await videoRoom.joinRoom(roomName)
+
+      videoRoom.setupListeners(updatedParticipants => {
+        setParticipants(updatedParticipants)
+      })
+    },
+    [videoRoom],
+  )
 
   return (
     <div>
@@ -52,11 +55,21 @@ export default function App() {
       <div>
         {videoRoom.inARoom ? (
           <div>
-            {participants.map(participant => <TwilioParticipant key={participant.identity} room={videoRoom} participant={participant} />)}
-            <button onClick={() => {
-              videoRoom.disconnect();
-              setParticipants([]);
-            }}>Disconnect</button>
+            {participants.map(participant => (
+              <TwilioParticipant
+                key={participant.identity}
+                room={videoRoom}
+                participant={participant}
+              />
+            ))}
+            <button
+              onClick={() => {
+                videoRoom.disconnect()
+                setParticipants([])
+              }}
+            >
+              Disconnect
+            </button>
           </div>
         ) : (
           <form id="room-name-form" onSubmit={joinRoom}>
