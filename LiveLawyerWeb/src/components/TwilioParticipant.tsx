@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Participant } from 'twilio-video'
 import { MediaTrack } from 'twilio-video/tsdef/MediaTrack'
 import TwilioTrack from './TwilioTrack'
-import TwilioVideoRoom from './TwilioVideoRoom'
+import TwilioVideoRoom from '../classes/TwilioVideoRoom'
 
 interface TwilioVideoParticipantProps {
   participant: Participant

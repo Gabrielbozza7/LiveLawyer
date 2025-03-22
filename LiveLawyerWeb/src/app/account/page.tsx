@@ -1,19 +1,17 @@
 'use client'
 import 'bootstrap/dist/css/bootstrap.min.css'
-import LiveLawyerNav from '@/components/LiveLawyerNav'
 import { Card, Container } from 'react-bootstrap'
+import LiveLawyerNav from '@/components/LiveLawyerNav'
 
-export default function App() {
+export default function Call() {
   return (
     <div>
-      <title>Live Lawyer Web</title>
+      <title>Account</title>
       <LiveLawyerNav />
       <Container fluid="md" style={{ margin: 24 }}>
         <Card>
-          <Card.Header>Live Lawyer Web</Card.Header>
           <Card.Body>
-            <Card.Title>This is the base page.</Card.Title>
-            <Card.Text>Yeah.</Card.Text>
+            <Card.Text>Account page!</Card.Text>
           </Card.Body>
         </Card>
       </Container>
