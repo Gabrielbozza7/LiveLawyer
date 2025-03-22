@@ -1,5 +1,21 @@
 import { connect, Room, Participant } from 'twilio-video'
 
+const [BACKEND_IP, BACKEND_PORT] = getBackendVariables();
+
+export function getBackendVariables(): [ip: string, port: string] {
+  let ip = process.env.NEXT_PUBLIC_BACKEND_IP;
+  let port = process.env.NEXT_PUBLIC_BACKEND_PORT;
+  if (ip === undefined) {
+    console.log("WARNING: NEXT_PUBLIC_BACKEND_IP environment variable not set, defaulting to 'localhost'!");
+    ip = 'localhost';
+  }
+  if (port === undefined) {
+    console.log("WARNING: NEXT_PUBLIC_BACKEND_PORT environment variable not set, defaulting to '4000'!");
+    port = '4000';
+  }
+  return [ip, port];
+}
+
 export default class TwilioVideoRoom {
     private token: string;
     private room: Room | undefined;
@@ -15,7 +31,9 @@ export default class TwilioVideoRoom {
 
     public async joinRoom(roomName: string): Promise<boolean> {
       try {
-        const response = await fetch("http://localhost:4000/join-room", {
+        const link = `http://${BACKEND_IP}:${BACKEND_PORT}/join-room`
+        console.log(link);
+        const response = await fetch(link, {
           method: "POST",
           headers: {
             Accept: "application/json",
