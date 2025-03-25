@@ -1,4 +1,5 @@
-import Example from '@/components/Example'
+// import Example from '@/components/Example'
+import ExampleRaw from '@/components/ExampleRaw'
 import { Styles } from '@/constants/Styles'
 import React, { useState } from 'react'
 import { Button, Text } from 'react-native'
@@ -29,25 +30,25 @@ export default function Index() {
   const [token, setToken] = useState<string>('')
 
   const getToken = async (): Promise<boolean> => {
-    // try {
-    //   const link = `http://${BACKEND_IP}:${BACKEND_PORT}/join-room`
-    //   console.log(link)
-    //   const response = await fetch(link, {
-    //     method: 'POST',
-    //     headers: {
-    //       Accept: 'application/json',
-    //       'Content-Type': 'application/json',
-    //     },
-    //     body: JSON.stringify({ roomName: 'abcxyz123' }),
-    //     mode: 'cors',
-    //   })
-    //   const { token: retrievedToken } = await response.json()
-    //   setToken(retrievedToken)
-    // } catch (error: unknown) {
-    //   console.log(`POST error: ${(error as Error).message}`)
-    //   return false
-    // }
-    setToken('12345') // normally would use what is above here; using this instead for debugging
+    try {
+      const link = `http://${BACKEND_IP}:${BACKEND_PORT}/join-room`
+      console.log(link)
+      const response = await fetch(link, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ roomName: 'abcxyz123' }),
+        mode: 'cors',
+      })
+      const { token: retrievedToken } = await response.json()
+      setToken(retrievedToken)
+      console.log(`TOKEN: ${retrievedToken}`)
+    } catch (error: unknown) {
+      console.log(`POST error: ${(error as Error).message}`)
+      return false
+    }
     setTimes(times + 1)
 
     return true
@@ -55,7 +56,7 @@ export default function Index() {
   return (
     <SafeAreaProvider>
       {token != '' ? (
-        <Example token={token} />
+        <ExampleRaw token={token} />
       ) : (
         <SafeAreaView style={Styles.container}>
           <Text style={Styles.pageTitle}>Hub{'\n\n\n'}</Text>
