@@ -1,26 +1,22 @@
 import express from 'express'
+import userRoutes from './database/routes/users'
+import contactsRoutes from './database/routes/contacts'
+import lawOfficeRoutes from './database/routes/lawoffices'
 import {supabase} from './database/supabase'
 
 const app = express()
 const port = 4000
+
 app.use(express.json())
 
 app.get('/test', async (req, res) => {
   res.json({ it: 'works' })
 })
 
-app.get('/database', async (req, res) => {
-  try {  
-  let { data, error } = await supabase
-  .from('user')
-  .select('*')
-    res.header("Access-Control-Allow-Origin", "*")
-    res.json(data)
-    console.log(`Database accessed by: ${req.ip}`)
-  } catch (error) {
-    res.send(error)
-  }
-})
+// DB routes
+app.use('/users', userRoutes)
+app.use('/contacts', contactsRoutes)
+app.use('/lawOffices', lawOfficeRoutes)
 
 app.post('/signup', async (req, res) => {
   const { email, password } = req.body
