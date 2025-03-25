@@ -15,9 +15,8 @@ export default function Index() {
             setTimes(times + 1)
         }}
         >
-          <Image
-          source={require('@/assets/main-call-image.jpeg')}
-          style={{ width: 150, height: 150, resizeMode: 'contain'}}
+          <Image source={require('@/assets/images/main-call-image.jpeg')}
+            style={{ width: 550, height: 550, resizeMode: 'contain'}}
 
           />
         </TouchableOpacity>
