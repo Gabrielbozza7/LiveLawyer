@@ -1,10 +1,13 @@
 import { Styles } from '@/constants/Styles'
 import React, { useState } from 'react'
-import { Alert, Button, Text, TouchableOpacity, Image } from 'react-native'
+import { Alert, Button, Text, TouchableOpacity, Image, Dimensions } from 'react-native'
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
 
 export default function Index() {
   const [times, setTimes] = useState<number>(0)
+  const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+  const imageHeight = (screenWidth * 9) / 16;
+
   return (
     <SafeAreaProvider>
       <SafeAreaView style={Styles.container}>
@@ -16,7 +19,8 @@ export default function Index() {
         }}
         >
           <Image source={require('@/assets/images/main-call-image.jpeg')}
-            style={{ width: 550, height: 550, resizeMode: 'contain'}}
+            style={{ width: screenWidth, height: imageHeight }}
+            resizeMode='contain'
 
           />
         </TouchableOpacity>
