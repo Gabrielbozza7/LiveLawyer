@@ -1,5 +1,4 @@
 import { createClient } from "@supabase/supabase-js"
-import { query } from "express";
 
 require('dotenv').config()
 const SUPABASE_URL = process.env.SUPABASE_URL
