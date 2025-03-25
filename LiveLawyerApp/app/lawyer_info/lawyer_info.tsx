@@ -3,7 +3,7 @@ import { Text, TouchableOpacity, Image } from 'react-native'
 import { Styles } from '@/constants/Styles'
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
 
-//const reactLogo = require('../../assets/images/react-logo.png');
+//const reactLogo = require('@/assets/images/react-logo.png');
 
 type LawyerInfoProps = {
   onPressBack: () => void
@@ -33,7 +33,7 @@ export default function LawyerInfo({ onPressBack, lawyer }: LawyerInfoProps) {
         <Text style={Styles.nameText}>{lawyer.title}</Text>
 
         <TouchableOpacity onPress={handleCall}>
-          <Text style={Styles.phoneText}>{lawyer.number}</Text>
+          <Text style={Styles.phoneText}>{phnum}</Text>
         </TouchableOpacity>
       </SafeAreaView>
     </SafeAreaProvider>

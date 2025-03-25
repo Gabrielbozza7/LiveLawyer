@@ -11,7 +11,7 @@ export default function Index() {
   return (
     <SafeAreaProvider>
       <SafeAreaView style={Styles.container}>
-        <Text style={Styles.pageTitle}>Hub{'\n\n\n'}</Text>
+        <Text style={Styles.pageTitle}>{'\n\n\n'}</Text>
         <TouchableOpacity
         onPress={() => {
           Alert.alert('You are now chatting with a lawyer!')
@@ -25,7 +25,7 @@ export default function Index() {
           />
         </TouchableOpacity>
         <Text style={Styles.centeredText}>
-          (Pretend the button works.){'\n\n\n\n\n'}You have called a lawyer {times} times.
+          Press the Logo To Call A Lawyer.{'\n\n\n\n\n'}You have called a lawyer {times} times.
         </Text>
       </SafeAreaView>
     </SafeAreaProvider>

@@ -42,12 +42,9 @@ export const Styles = StyleSheet.create({
     backgroundColor: Colors.containerBackground,
   },
   lawyerlogo:{
-    flex: 1,
-    width: 750,
-    height: 550,
+    width: 150,
+    height: 150,
     marginBottom: 20,
-    justifyContent: 'center',
-    alignItems: 'center'
   },
   LawofficeName: {
     color: 'blue',

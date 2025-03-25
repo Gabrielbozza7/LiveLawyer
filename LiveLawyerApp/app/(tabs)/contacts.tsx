@@ -1,5 +1,5 @@
 import { Styles } from '@/constants/Styles'
-import { Text, View, Button, Alert } from 'react-native'
+import { Text, View, Button, Alert, Linking, TouchableOpacity } from 'react-native'
 import { FlatList } from 'react-native'
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context'
 
@@ -22,11 +22,16 @@ const DATA = [
 ]
 
 type ItemProps = { name: string; phone: string }
+const handleCall = () => {
+     Linking.openURL('tel:${phnum}')
+   }
 
 const Item = ({ name, phone }: ItemProps) => (
   <View style={Styles.item}>
     <Text style={Styles.name}>{name}</Text>
-    <Text style={Styles.phone}>{phone}</Text>
+    <TouchableOpacity onPress={handleCall}>
+      <Text style={Styles.phone}>{phone}</Text>
+    </TouchableOpacity>
   </View>
 )
 
