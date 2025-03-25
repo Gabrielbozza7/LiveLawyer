@@ -5,6 +5,7 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
 
 export default function Index() {
   const [times, setTimes] = useState<number>(0)
+  getDB()
   return (
     <SafeAreaProvider>
       <SafeAreaView style={Styles.container}>
@@ -14,12 +15,34 @@ export default function Index() {
           onPress={() => {
             Alert.alert('You are now chatting with a lawyer!')
             setTimes(times + 1)
-          }}
-        />
+        }}
+        >
+          <Image
+          source={require('@/assets/images/main-call-image.jpeg')}
+          style={{ width: 150, height: 150, resizeMode: 'contain'}}
+
+          />
+        </TouchableOpacity>
         <Text style={Styles.centeredText}>
           (Pretend the button works.){'\n\n\n\n\n'}You have called a lawyer {times} times.
         </Text>
       </SafeAreaView>
     </SafeAreaProvider>
   )
+}
+
+async function getDB() {
+  try {
+    const response = await fetch('http://10.202.74.20:4000/database', {
+      method: 'GET'
+    })
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch: ${response.status} ${response.statusText}`
+      )
+    }
+    console.log(response.json())
+  } catch (error) {
+    console.error('There was a problem fetching data:', error)
+  }
 }

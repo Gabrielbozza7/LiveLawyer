@@ -2,7 +2,7 @@ import express from 'express'
 import userRoutes from './database/routes/users'
 import contactsRoutes from './database/routes/contacts'
 import lawOfficeRoutes from './database/routes/lawoffices'
-import supabase from './database/supabase'
+import { supabase } from './database/supabase'
 
 const app = express()
 const port = 4000
