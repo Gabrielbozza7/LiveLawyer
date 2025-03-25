@@ -12,12 +12,35 @@ app.get('/test', async (req, res) => {
 app.get('/database', async (req, res) => {
   try {  
   let { data, error } = await supabase
-  .from('users')
+  .from('user')
   .select('*')
-    res.send(data)
+    res.header("Access-Control-Allow-Origin", "*")
+    res.json(data)
+    console.log(`Database accessed by: ${req.ip}`)
   } catch (error) {
     res.send(error)
   }
+})
+
+app.post('/signup', async (req, res) => {
+  const { email, password } = req.body
+  const { data, error } = await supabase.auth.signUp({email: email, password: password})
+  if (error) {
+    res.status(400).json({ error: error.message })
+    return
+  }
+  res.status(200).json(data)
+})
+
+app.post('/login', async (req, res) => {
+  const { email, password } = req.body
+  const { data, error } = await supabase.auth.signInWithPassword({email: email, password: password})
+
+  if (error) {
+    res.status(400).json({ error: error.message })
+    return
+  }
+  res.status(200).json(data)
 })
 
 app.listen(port, () => {
