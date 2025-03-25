@@ -73,7 +73,7 @@ const ExampleRaw = props => {
         dominantSpeakerEnabled: true,
       })
     } catch (e) {
-      console.log(`Error: ${e}`)
+      console.log(`Error:\n${e.stack}`)
     }
     setStatus('connecting')
   }
