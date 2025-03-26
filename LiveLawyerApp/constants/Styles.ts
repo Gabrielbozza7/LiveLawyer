@@ -25,7 +25,8 @@ export const Styles = StyleSheet.create({
   },
   phone: {
     fontSize: 16,
-    color: Colors.phone,
+    color: 'white',
+    textDecorationLine: 'underline',
   },
   pageTitle: {
     fontSize: 40,

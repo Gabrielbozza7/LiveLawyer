@@ -7,17 +7,17 @@ const DATA = [
   {
     id: '1',
     name: 'Mom',
-    phone: '(012) 345 - 6789',
+    phone: '(012) - 345 - 6789',
   },
   {
     id: '2',
     name: 'Dad',
-    phone: '(111) 111 - 1111',
+    phone: '(111) - 111 - 1111',
   },
   {
     id: '3',
     name: 'Contact Three',
-    phone: '(222) 222 - 2222',
+    phone: '(222) - 222 - 2222',
   },
 ]
 
