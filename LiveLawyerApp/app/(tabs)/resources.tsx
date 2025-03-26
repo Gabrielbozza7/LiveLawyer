@@ -9,7 +9,7 @@ export default function Resources() {
   }
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={Styles.container}>
+      <SafeAreaView style={Styles.LawyerInfoContainer}>
         <TouchableOpacity onPress={handleOpenURL}>
         <Text style={Styles.pageTitle}>Traffic Laws for All States</Text>
         </TouchableOpacity>
