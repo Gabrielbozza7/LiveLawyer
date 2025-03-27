@@ -1,8 +1,8 @@
-import VideoCall from '@/components/VideoCall'
 import { Styles } from '@/constants/Styles'
+import { useRouter } from 'expo-router'
 import React, { useState } from 'react'
 import { Button, Text } from 'react-native'
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 const [BACKEND_IP, BACKEND_PORT] = getBackendVariables()
 
@@ -25,13 +25,12 @@ export function getBackendVariables(): [ip: string, port: string] {
 }
 
 export default function Index() {
+  const router = useRouter()
   const [times, setTimes] = useState<number>(0)
-  const [token, setToken] = useState<string>('')
 
   const getToken = async (): Promise<boolean> => {
     try {
       const link = `http://${BACKEND_IP}:${BACKEND_PORT}/join-room`
-      console.log(link)
       const response = await fetch(link, {
         method: 'POST',
         headers: {
@@ -42,30 +41,23 @@ export default function Index() {
         mode: 'cors',
       })
       const { token: retrievedToken } = await response.json()
-      setToken(retrievedToken)
       console.log(`TOKEN: ${retrievedToken}`)
+      setTimes(times + 1)
+      router.navigate(`/call?token=${retrievedToken}&roomName=abcxyz123`)
+      return true
     } catch (error: unknown) {
       console.log(`POST error: ${(error as Error).message}`)
       return false
     }
-    setTimes(times + 1)
-
-    return true
   }
   return (
-    <SafeAreaProvider>
-      {token != '' ? (
-        <VideoCall token={token} roomName={'abcxyz123'} />
-      ) : (
-        <SafeAreaView style={Styles.container}>
-          <Text style={Styles.pageTitle}>Hub{'\n\n\n'}</Text>
-          <Button title="PRESS ME TO CALL" onPress={getToken} />
-          <Text style={Styles.centeredText}>
-            `http://{BACKEND_IP}:{BACKEND_PORT}/join-room{'\n\n\n\n\n'}You have called a lawyer{' '}
-            {times} times.
-          </Text>
-        </SafeAreaView>
-      )}
-    </SafeAreaProvider>
+    <SafeAreaView style={Styles.container}>
+      <Text style={Styles.pageTitle}>Hub{'\n\n\n'}</Text>
+      <Button title="PRESS ME TO CALL" onPress={getToken} />
+      <Text style={Styles.centeredText}>
+        `http://{BACKEND_IP}:{BACKEND_PORT}/join-room{'\n\n\n\n\n'}You have called a lawyer {times}{' '}
+        times.
+      </Text>
+    </SafeAreaView>
   )
 }

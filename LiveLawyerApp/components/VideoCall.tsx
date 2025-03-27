@@ -1,7 +1,6 @@
 import { Styles } from '@/constants/Styles'
 import { useEffect, useRef, useState } from 'react'
 import { Text, View } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
 import {
   TwilioVideo,
   TwilioVideoLocalView,
@@ -61,7 +60,7 @@ export default function VideoCall({ token, roomName }: VideoCallProps) {
   }, [videoTracks.size])
 
   return (
-    <SafeAreaView style={Styles.videoContainer}>
+    <View style={Styles.videoContainer}>
       {errorMessage === '' ? (
         <View style={Styles.videoContainer}>
           {status === 'DISCONNECTED' ? (
@@ -69,7 +68,7 @@ export default function VideoCall({ token, roomName }: VideoCallProps) {
           ) : status === 'CONNECTING' ? (
             <Text>Connecting...</Text>
           ) : (
-            <SafeAreaView style={Styles.videoContainer}>
+            <View style={Styles.videoContainer}>
               {Array.from(videoTracks, ([trackSid, trackIdentifier]) => {
                 return (
                   <TwilioVideoParticipantView
@@ -80,7 +79,7 @@ export default function VideoCall({ token, roomName }: VideoCallProps) {
                 )
               })}
               <TwilioVideoLocalView enabled={true} style={Styles.videoLocal} />
-            </SafeAreaView>
+            </View>
           )}
         </View>
       ) : (
@@ -116,6 +115,6 @@ export default function VideoCall({ token, roomName }: VideoCallProps) {
           })
         }}
       />
-    </SafeAreaView>
+    </View>
   )
 }
