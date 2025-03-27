@@ -70,17 +70,22 @@ export default function VideoCall({ token, roomName }: VideoCallProps) {
             <Text>Connecting...</Text>
           ) : (
             <View>
-              <Text>THE CALL{'\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n'}X</Text>
-              {Array.from(videoTracks, ([trackSid, trackIdentifier]) => {
-                return (
-                  <TwilioVideoParticipantView
-                    key={trackSid}
-                    trackIdentifier={trackIdentifier}
-                    style={Styles.videoRemote}
-                  />
-                )
-              })}
-              <TwilioVideoLocalView enabled={true} style={Styles.videoLocal} />
+              <Text>THE CALL</Text>
+              <View>
+                {Array.from(videoTracks, ([trackSid, trackIdentifier]) => {
+                  return (
+                    <TwilioVideoParticipantView
+                      key={trackSid}
+                      trackIdentifier={trackIdentifier}
+                      style={Styles.videoRemote}
+                    />
+                  )
+                })}
+              </View>
+              <View>
+                <TwilioVideoLocalView enabled={true} style={Styles.videoLocal} />
+              </View>
+              
             </View>
           )}
         </View>
