@@ -81,17 +81,6 @@ export default function VideoCall({ token, roomName }: VideoCallProps) {
               })}
               <TwilioVideoLocalView enabled={true} style={Styles.videoLocal} />
             </SafeAreaView>
-            // <SafeAreaView style={Styles.videoContainer}>
-            //   {/* Remote Participant Video (Fills Screen) */}
-            //   <View style={Styles.videoRemote}>
-            //     <Text style={Styles.videoText}>NAME</Text>
-            //   </View>
-
-            //   {/* Local User Video (Small floating at bottom-right) */}
-            //   <View style={Styles.videoLocal}>
-            //     <Text style={Styles.videoText}>LOCAL USER</Text>
-            //   </View>
-            // </SafeAreaView>
           )}
         </View>
       ) : (

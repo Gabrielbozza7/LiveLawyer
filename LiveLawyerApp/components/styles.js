@@ -23,9 +23,9 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-import Dimensions from 'react-native'
+import { Dimensions, StyleSheet } from 'react-native'
 const { width, height } = Dimensions.get('window')
-export default {
+export default StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'white',
@@ -96,4 +96,4 @@ export default {
     justifyContent: 'center',
     alignItems: 'center',
   },
-}
+})
