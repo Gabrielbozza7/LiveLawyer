@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Participant } from 'twilio-video'
-import { MediaTrack } from 'twilio-video/tsdef/MediaTrack'
+import { Participant, Track } from 'twilio-video'
 import TwilioTrack from './TwilioTrack'
 import TwilioVideoRoom from '../classes/TwilioVideoRoom'
 
@@ -11,14 +10,14 @@ interface TwilioVideoParticipantProps {
 
 // This component should be mounted when the participant joins and dismounted when the participant leaves.
 export default function TwilioParticipant({ participant, room }: TwilioVideoParticipantProps) {
-  const [tracks] = useState<MediaTrack[]>([])
+  const [tracks] = useState<Track[]>([])
   const [trackUpdateFlag, setTrackUpdateFlag] = useState<number[]>([])
-  const [renderTracks, setRenderTracks] = useState<MediaTrack[]>([])
+  const [renderTracks, setRenderTracks] = useState<Track[]>([])
 
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleTrackPublication = (trackPublication: any) => {
-      function displayTrack(track: MediaTrack) {
+      function displayTrack(track: Track) {
         if (track != null && track != undefined) {
           if (tracks.findIndex(t => track == t) === -1) {
             tracks.push(track)

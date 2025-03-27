@@ -1,5 +1,4 @@
-// import Example from '@/components/Example'
-import ExampleRaw from '@/components/ExampleRaw'
+import VideoCall from '@/components/VideoCall'
 import { Styles } from '@/constants/Styles'
 import React, { useState } from 'react'
 import { Button, Text } from 'react-native'
@@ -56,7 +55,7 @@ export default function Index() {
   return (
     <SafeAreaProvider>
       {token != '' ? (
-        <ExampleRaw token={token} />
+        <VideoCall token={token} roomName={'abcxyz123'} />
       ) : (
         <SafeAreaView style={Styles.container}>
           <Text style={Styles.pageTitle}>Hub{'\n\n\n'}</Text>

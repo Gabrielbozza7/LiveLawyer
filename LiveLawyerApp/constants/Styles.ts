@@ -41,7 +41,7 @@ export const Styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Colors.containerBackground,
   },
-  lawyerlogo:{
+  lawyerlogo: {
     width: 150,
     height: 150,
     marginBottom: 20,
@@ -60,5 +60,20 @@ export const Styles = StyleSheet.create({
     fontSize: 18,
     color: 'blue',
     textDecorationLine: 'underline',
+  },
+  videoLocal: {
+    flex: 1,
+    width: 150,
+    height: 250,
+    position: 'absolute',
+    right: 10,
+    bottom: 10,
+  },
+  videoRemote: {
+    marginTop: 20,
+    marginLeft: 10,
+    marginRight: 10,
+    width: 100,
+    height: 120,
   },
 })
