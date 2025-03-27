@@ -4,7 +4,7 @@ import { useState, useCallback } from 'react'
 import { Participant } from 'twilio-video'
 import TwilioParticipant from '../../components/TwilioParticipant'
 import TwilioVideoRoom from '../../classes/TwilioVideoRoom'
-import { Button, Card, Container, Form, FormGroup } from 'react-bootstrap'
+import { Button, Card, Container, Form, FormGroup, Table } from 'react-bootstrap'
 import LiveLawyerNav from '@/components/LiveLawyerNav'
 
 export default function Call() {
@@ -56,14 +56,20 @@ export default function Call() {
       <Container fluid="md" style={{ margin: 24 }}>
         {videoRoom.inARoom ? (
           <div>
-            {participants.map(participant => (
-              <TwilioParticipant
-                key={participant.identity}
-                room={videoRoom}
-                participant={participant}
-              />
-            ))}
+            <Table>
+              <thead />
+              <tbody>
+                <tr>
+                  {participants.map(participant => (
+                    <td key={participant.identity}>
+                      <TwilioParticipant room={videoRoom} participant={participant} />
+                    </td>
+                  ))}
+                </tr>
+              </tbody>
+            </Table>
             <Button
+              style={{ display: 'block' }}
               variant="danger"
               onClick={() => {
                 videoRoom.disconnect()
