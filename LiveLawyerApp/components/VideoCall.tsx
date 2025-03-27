@@ -61,32 +61,37 @@ export default function VideoCall({ token, roomName }: VideoCallProps) {
   }, [videoTracks.size])
 
   return (
-    <SafeAreaView>
+    <SafeAreaView style={Styles.videoContainer}>
       {errorMessage === '' ? (
-        <View>
+        <View style={Styles.videoContainer}>
           {status === 'DISCONNECTED' ? (
             <Text>You have disconnected.</Text>
           ) : status === 'CONNECTING' ? (
             <Text>Connecting...</Text>
           ) : (
-            <View>
-              <Text>THE CALL</Text>
-              <View>
-                {Array.from(videoTracks, ([trackSid, trackIdentifier]) => {
-                  return (
-                    <TwilioVideoParticipantView
-                      key={trackSid}
-                      trackIdentifier={trackIdentifier}
-                      style={Styles.videoRemote}
-                    />
-                  )
-                })}
-              </View>
-              <View>
-                <TwilioVideoLocalView enabled={true} style={Styles.videoLocal} />
-              </View>
-              
-            </View>
+            <SafeAreaView style={Styles.videoContainer}>
+              {Array.from(videoTracks, ([trackSid, trackIdentifier]) => {
+                return (
+                  <TwilioVideoParticipantView
+                    key={trackSid}
+                    trackIdentifier={trackIdentifier}
+                    style={Styles.videoRemote}
+                  />
+                )
+              })}
+              <TwilioVideoLocalView enabled={true} style={Styles.videoLocal} />
+            </SafeAreaView>
+            // <SafeAreaView style={Styles.videoContainer}>
+            //   {/* Remote Participant Video (Fills Screen) */}
+            //   <View style={Styles.videoRemote}>
+            //     <Text style={Styles.videoText}>NAME</Text>
+            //   </View>
+
+            //   {/* Local User Video (Small floating at bottom-right) */}
+            //   <View style={Styles.videoLocal}>
+            //     <Text style={Styles.videoText}>LOCAL USER</Text>
+            //   </View>
+            // </SafeAreaView>
           )}
         </View>
       ) : (

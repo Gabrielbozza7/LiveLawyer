@@ -1,5 +1,7 @@
-import { StatusBar, StyleSheet } from 'react-native'
+import { Dimensions, StatusBar, StyleSheet } from 'react-native'
 import { Colors } from './Colors'
+
+const { width: WIDTH, height: HEIGHT } = Dimensions.get('window')
 
 export const Styles = StyleSheet.create({
   container: {
@@ -47,33 +49,43 @@ export const Styles = StyleSheet.create({
     marginBottom: 20,
   },
   LawofficeName: {
-    color: 'blue',
+    color: Colors.blue,
     fontSize: 34,
     marginBottom: 20,
   },
   nameText: {
-    color: 'blue',
+    color: Colors.blue,
     fontSize: 24,
     marginBottom: 20,
   },
   phoneText: {
     fontSize: 18,
-    color: 'blue',
+    color: Colors.blue,
     textDecorationLine: 'underline',
   },
-  videoLocal: {
+  videoContainer: {
     flex: 1,
-    width: 150,
-    height: 250,
-    position: 'absolute',
-    right: 10,
-    bottom: 10,
+    backgroundColor: Colors.black,
   },
   videoRemote: {
-    marginTop: 20,
-    marginLeft: 10,
-    marginRight: 10,
-    width: 100,
-    height: 120,
+    flex: 1, // Fills entire screen
+    backgroundColor: Colors.gray,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  videoLocal: {
+    position: 'absolute',
+    width: WIDTH * 0.35, // 35% of the screen width
+    height: HEIGHT * 0.25, // 25% of the screen height
+    bottom: 45, // Positioned at bottom-right
+    right: 15,
+    backgroundColor: Colors.blue,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 10,
+  },
+  videoText: {
+    color: Colors.white,
+    fontWeight: 'bold',
   },
 })

@@ -23,8 +23,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-import Dimensions from 'react-native';
-const {width,height} = Dimensions.get('window')
+import Dimensions from 'react-native'
+const { width, height } = Dimensions.get('window')
 export default {
   container: {
     flex: 1,
@@ -63,18 +63,18 @@ export default {
     justifyContent: 'center',
     right: 15,
     bottom: 15,
-    borderRadius:10,
+    borderRadius: 10,
   },
   remoteGrid: {
     flex: 1,
-    alignItems:'center',
+    alignItems: 'center',
     flexDirection: 'row',
     flexWrap: 'wrap',
   },
   remoteVideo: {
-    flex:1,
+    flex: 1,
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   optionsContainer: {
     position: 'absolute',
