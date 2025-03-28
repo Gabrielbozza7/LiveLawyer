@@ -5,6 +5,7 @@ import react from 'eslint-plugin-react'
 import reactNative from 'eslint-plugin-react-native'
 import prettier from 'eslint-config-prettier'
 import prettierPlugin from 'eslint-plugin-prettier'
+import globals from 'globals'
 
 export default [
   {
@@ -18,11 +19,14 @@ export default [
   },
   js.configs.recommended,
   {
-    files: ['**/*.ts', '**/*.tsx'],
+    files: ['**/*.ts', '**/*.js', '**/*.tsx', '**/*.jsx'],
     languageOptions: {
       parser: tsParser,
       sourceType: 'module',
       ecmaVersion: 'latest',
+      globals: {
+        ...globals.node
+      }
     },
     plugins: {
       '@typescript-eslint': ts,
