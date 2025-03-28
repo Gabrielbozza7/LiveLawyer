@@ -1,11 +1,6 @@
 import { Styles } from '@/constants/Styles'
 import { useEffect, useRef, useState } from 'react'
-<<<<<<< HEAD
 import { Text, TouchableOpacity, View } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-=======
-import { Text, View } from 'react-native'
->>>>>>> dbe75cdadb34d099eb986361dfc8c55112b3f2b9
 import {
   TwilioVideo,
   TwilioVideoLocalView,
@@ -22,10 +17,11 @@ interface VideoTrackInfo {
 interface VideoCallProps {
   token: string
   roomName: string
+  onDisconnect?: () => void
 }
 
-export default function VideoCall({ token, roomName }: VideoCallProps) {
-  const [status, setStatus] = useState<Status>('DISCONNECTED')
+export default function VideoCall({ token, roomName, onDisconnect }: VideoCallProps) {
+  const [status, setStatus] = useState<Status>('CONNECTING')
   const [errorMessage, setErrorMessage] = useState<string>('')
   const [videoTracks, setVideoTracks] = useState<Map<string, VideoTrackInfo>>(new Map())
   const twilioVideo = useRef<TwilioVideo>(null)
@@ -61,8 +57,10 @@ export default function VideoCall({ token, roomName }: VideoCallProps) {
   }, [])
 
   useEffect(() => {
-    console.log(`videoTracks size: ${videoTracks.size}`)
-  }, [videoTracks.size])
+    if (status === 'DISCONNECTED' && onDisconnect !== undefined) {
+      onDisconnect()
+    }
+  }, [status])
 
   return (
     <View style={Styles.videoContainer}>
@@ -83,13 +81,29 @@ export default function VideoCall({ token, roomName }: VideoCallProps) {
                   />
                 )
               })}
-<<<<<<< HEAD
+              <View style={Styles.videoBottomContainer}>
+                <View style={Styles.videoButtonContainer}>
+                  <TouchableOpacity
+                    style={Styles.videoButton}
+                    onPress={() => {
+                      twilioVideo.current!.flipCamera()
+                    }}
+                  >
+                    <Text>FLIP CAMERA</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={Styles.videoButton}
+                    onPress={() => {
+                      twilioVideo.current!.disconnect()
+                      setStatus('DISCONNECTED')
+                    }}
+                  >
+                    <Text>LEAVE CALL</Text>
+                  </TouchableOpacity>
+                </View>
                 <TwilioVideoLocalView enabled={true} style={Styles.videoLocal} />
-            </SafeAreaView>
-=======
-              <TwilioVideoLocalView enabled={true} style={Styles.videoLocal} />
+              </View>
             </View>
->>>>>>> dbe75cdadb34d099eb986361dfc8c55112b3f2b9
           )}
         </View>
       ) : (

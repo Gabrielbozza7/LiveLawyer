@@ -67,6 +67,26 @@ export const Styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.black,
   },
+  videoBottomContainer: {
+    flexDirection: 'row', // Aligns buttons & video in a row
+    position: 'absolute',
+    bottom: 50, // Adjusts position from bottom
+    left: 15,
+    right: 15,
+    width: WIDTH - 30, // Makes it stretch horizontally
+    alignItems: 'center',
+    justifyContent: 'space-between', // Keeps buttons on left, video on right
+  },
+  videoButtonContainer: {
+    flexDirection: 'column', // Stacks buttons vertically
+    alignItems: 'flex-start', // Aligns buttons to the left
+    gap: 100, // Adds space between buttons
+  },
+  videoButton: {
+    backgroundColor: Colors.red,
+    paddingVertical: 15,
+    paddingHorizontal: 15,
+  },
   videoRemote: {
     flex: 1, // Fills entire screen
     backgroundColor: Colors.gray,

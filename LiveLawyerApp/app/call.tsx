@@ -24,9 +24,9 @@ export default function Call() {
   return (
     <View style={Styles.videoContainer}>
       {valid ? (
-        <VideoCall token={finalToken} roomName={finalRoomName} />
+        <VideoCall token={finalToken} roomName={finalRoomName} onDisconnect={router.back} />
       ) : (
-        <Button title="Go Back" onPress={() => router.back()} />
+        <Button title="Go Back" onPress={router.back} />
       )}
     </View>
   )
