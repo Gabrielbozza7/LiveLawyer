@@ -55,6 +55,26 @@ export default StyleSheet.create({
   button: {
     marginTop: 100,
   },
+  buttonContainer: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: 100,
+  },
+  Button:{
+    backgroundColor: 'red',
+    paddingVertical: 15,
+    paddingHorizontal: 15,
+  },
+  bottomContainer: {
+    flexDirection: 'row', // Aligns buttons & video in a row
+    position: 'absolute',
+    bottom: 50, // Adjusts position from bottom
+    left: 15,
+    right: 15,
+    width: width - 30, // Makes it stretch horizontally
+    alignItems: 'center',
+    justifyContent: 'space-between', // Keeps buttons on left, video on right
+  },
   localVideo: {
     width: width * 0.35,
     height: height * 0.25,

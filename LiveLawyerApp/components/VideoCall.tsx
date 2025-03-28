@@ -1,6 +1,6 @@
 import { Styles } from '@/constants/Styles'
 import { useEffect, useRef, useState } from 'react'
-import { Text, View } from 'react-native'
+import { Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import {
   TwilioVideo,
@@ -79,7 +79,7 @@ export default function VideoCall({ token, roomName }: VideoCallProps) {
                   />
                 )
               })}
-              <TwilioVideoLocalView enabled={true} style={Styles.videoLocal} />
+                <TwilioVideoLocalView enabled={true} style={Styles.videoLocal} />
             </SafeAreaView>
           )}
         </View>

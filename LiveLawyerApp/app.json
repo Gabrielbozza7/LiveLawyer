@@ -23,9 +23,6 @@
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO",
-        "android.permission.MODIFY_AUDIO_SETTINGS",
-        "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO",
         "android.permission.MODIFY_AUDIO_SETTINGS"
       ]
     },
@@ -70,6 +67,7 @@
     },
     "updates": {
       "url": "https://u.expo.dev/b3b37051-c770-4c5d-afd1-de77444c190f"
-    }
+    },
+    "owner": "gabetheman"
   }
 }
