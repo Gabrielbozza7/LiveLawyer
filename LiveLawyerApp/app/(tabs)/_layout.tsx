@@ -1,7 +1,7 @@
 import { Tabs } from 'expo-router'
 import { Platform } from 'react-native'
 
-export default function RootLayout() {
+export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
@@ -38,7 +38,6 @@ export default function RootLayout() {
         options={{
           title: 'Resources',
         }}
-        
       />
       {/*<Tabs.Screen
         name="lawyer_info"

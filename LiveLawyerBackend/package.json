@@ -13,15 +13,20 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
     "eslint": "^9.21.0",
     "eslint-config-prettier": "^10.0.2",
     "eslint-plugin-prettier": "^5.2.3",
     "express": "^4.21.2",
     "globals": "^16.0.0",
     "prettier": "^3.5.3",
+    "socket.io": "^4.8.1",
     "ts-node": "^10.9.2",
+    "twilio": "^5.4.5",
     "typescript": "^5.8.2",
-    "typescript-eslint": "^8.26.0"
+    "typescript-eslint": "^8.26.0",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.0"
