@@ -1,8 +1,8 @@
 import { Styles } from '@/constants/Styles'
 import { useRouter } from 'expo-router'
 import React, { useState } from 'react'
-import { Button, Text } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { Text, TouchableOpacity, Image, Dimensions } from 'react-native'
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
 
 const [BACKEND_IP, BACKEND_PORT] = getBackendVariables()
 
@@ -27,6 +27,8 @@ export function getBackendVariables(): [ip: string, port: string] {
 export default function Index() {
   const router = useRouter()
   const [times, setTimes] = useState<number>(0)
+  const { width: screenWidth } = Dimensions.get('window')
+  const imageHeight = (screenWidth * 9) / 16
 
   const getToken = async (): Promise<boolean> => {
     try {
@@ -50,14 +52,23 @@ export default function Index() {
       return false
     }
   }
+
   return (
-    <SafeAreaView style={Styles.container}>
-      <Text style={Styles.pageTitle}>Hub{'\n\n\n'}</Text>
-      <Button title="PRESS ME TO CALL" onPress={getToken} />
-      <Text style={Styles.centeredText}>
-        `http://{BACKEND_IP}:{BACKEND_PORT}/join-room{'\n\n\n\n\n'}You have called a lawyer {times}{' '}
-        times.
-      </Text>
-    </SafeAreaView>
+    <SafeAreaProvider>
+      <SafeAreaView style={Styles.container}>
+        <Text style={Styles.pageTitle}>{'\n\n\n'}</Text>
+        <TouchableOpacity onPress={getToken}>
+          <Image
+            // eslint-disable-next-line @typescript-eslint/no-require-imports
+            source={require('@/assets/images/main-call-image.jpeg')}
+            style={{ width: screenWidth, height: imageHeight }}
+            resizeMode="contain"
+          />
+        </TouchableOpacity>
+        <Text style={Styles.centeredText}>
+          Press the Logo To Call A Lawyer.{'\n\n\n\n\n'}You have called a lawyer {times} times.
+        </Text>
+      </SafeAreaView>
+    </SafeAreaProvider>
   )
 }
