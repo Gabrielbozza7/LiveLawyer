@@ -44,7 +44,7 @@ type ItemProps = {
 }
 const Item = ({ item, onPress }: ItemProps) => (
   <TouchableOpacity onPress={onPress} style={Styles.itemLawyer}>
-    <Text style={Styles.title}>{item.title}</Text>
+    <Text style={Styles.name}>{item.title}</Text>
   </TouchableOpacity>
 )
 export default function LawyerView() {

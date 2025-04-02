@@ -15,28 +15,20 @@ export const Styles = StyleSheet.create({
     marginVertical: 8,
     marginHorizontal: 16,
   },
-  imageShadows: {
-    shadowColor: 'black',
-    shadowOffset: {
-      height: 5,
-      width: 0,
-    },
-    shadowOpacity: 1,
-  },
   itemLawyer: {
     backgroundColor: Colors.itemLawyerBackground,
-    padding: 20,
-    marginVertical: 4,
+    padding: 30,
+    marginVertical: 10,
     marginHorizontal: 15,
+    borderRadius: 20,
   },
   name: {
     fontSize: 32,
     color: Colors.name,
   },
-  // eslint-disable-next-line react-native/no-color-literals
   phone: {
     fontSize: 16,
-    color: 'white',
+    color: Colors.phone,
     textDecorationLine: 'underline',
   },
   pageTitle: {

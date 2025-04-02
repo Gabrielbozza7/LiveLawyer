@@ -1,9 +1,9 @@
 export const Colors = {
   containerBackground: '#e6e6e6',
-  itemBackground: '#0000ff',
-  itemLawyerBackground: '#22bdf5',
-  name: '#ffffff',
-  phone: '#808080',
+  itemBackground: '#000066',
+  itemLawyerBackground: '#000066',
+  name: '#FFFFFF',
+  phone: '#FFFFFF',
   black: '#000000',
   gray: '#808080',
   blue: '#0000ff',
