@@ -1,3 +1,4 @@
+/* eslint-disable react-native/no-color-literals */
 import { Styles } from '@/constants/Styles'
 import { useRouter } from 'expo-router'
 import React, { useState } from 'react'
@@ -28,7 +29,7 @@ export default function Index() {
   const router = useRouter()
   const [times, setTimes] = useState<number>(0)
   const { width: screenWidth } = Dimensions.get('window')
-  const imageHeight = (screenWidth * 9) / 16
+  const imageHeight = (screenWidth * 14) / 16
 
   const getToken = async (): Promise<boolean> => {
     try {
@@ -61,13 +62,19 @@ export default function Index() {
           <Image
             // eslint-disable-next-line @typescript-eslint/no-require-imports
             source={require('@/assets/images/main-call-image.jpeg')}
-            style={{ width: screenWidth, height: imageHeight }}
+            // eslint-disable-next-line react-native/no-inline-styles
+            style={{
+              width: screenWidth,
+              height: imageHeight,
+              borderRadius: 50,
+              shadowColor: 'black',
+              shadowOffset: { height: 5, width: 1 },
+              shadowOpacity: 5,
+            }}
             resizeMode="contain"
           />
         </TouchableOpacity>
-        <Text style={Styles.centeredText}>
-          Press the Logo To Call A Lawyer.{'\n\n\n\n\n'}You have called a lawyer {times} times.
-        </Text>
+        <Text style={Styles.centeredText}>Press the Logo To Call A Lawyer.</Text>
       </SafeAreaView>
     </SafeAreaProvider>
   )

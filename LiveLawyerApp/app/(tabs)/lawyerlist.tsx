@@ -53,8 +53,7 @@ export default function LawyerView() {
   return (
     <SafeAreaProvider>
       {lawyer ? (
-        <LawyerInfo onPressBack={() => setLawyer(null)} lawyer={
-        lawyer}></LawyerInfo>
+        <LawyerInfo onPressBack={() => setLawyer(null)} lawyer={lawyer}></LawyerInfo>
       ) : (
         <SafeAreaView style={Styles.container}>
           <FlatList

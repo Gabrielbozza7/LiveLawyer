@@ -15,6 +15,14 @@ export const Styles = StyleSheet.create({
     marginVertical: 8,
     marginHorizontal: 16,
   },
+  imageShadows: {
+    shadowColor: 'black',
+    shadowOffset: {
+      height: 5,
+      width: 0,
+    },
+    shadowOpacity: 1,
+  },
   itemLawyer: {
     backgroundColor: Colors.itemLawyerBackground,
     padding: 20,
@@ -25,6 +33,7 @@ export const Styles = StyleSheet.create({
     fontSize: 32,
     color: Colors.name,
   },
+  // eslint-disable-next-line react-native/no-color-literals
   phone: {
     fontSize: 16,
     color: 'white',
@@ -37,7 +46,7 @@ export const Styles = StyleSheet.create({
   title: {
     fontSize: 25,
   },
-  centeredText: { textAlign: 'center' },
+  centeredText: { fontSize: 20, textAlign: 'center' },
   LawyerInfoContainer: {
     flex: 1,
     justifyContent: 'center',

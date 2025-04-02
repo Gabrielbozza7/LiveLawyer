@@ -23,13 +23,13 @@ const DATA = [
 
 type ItemProps = { name: string; phone: string }
 const handleCall = (DATA: string) => {
-     Linking.openURL(`tel:${DATA}`)
-   }
+  Linking.openURL(`tel:${DATA}`)
+}
 
 const Item = ({ name, phone }: ItemProps) => (
   <View style={Styles.item}>
     <Text style={Styles.name}>{name}</Text>
-    <TouchableOpacity onPress={()=>handleCall(phone)}>
+    <TouchableOpacity onPress={() => handleCall(phone)}>
       <Text style={Styles.phone}>{phone}</Text>
     </TouchableOpacity>
   </View>

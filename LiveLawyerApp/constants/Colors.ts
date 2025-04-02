@@ -1,5 +1,5 @@
 export const Colors = {
-  containerBackground: '#ff0000',
+  containerBackground: '#e6e6e6',
   itemBackground: '#0000ff',
   itemLawyerBackground: '#22bdf5',
   name: '#ffffff',
