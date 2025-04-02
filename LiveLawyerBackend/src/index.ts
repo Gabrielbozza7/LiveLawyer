@@ -3,11 +3,20 @@ import cors from 'cors'
 import { createServer } from 'node:http'
 import { Server } from 'socket.io'
 import TwilioManager from './TwilioManager'
+import { ClientToServerEvents, ServerToClientEvents } from './calls/SocketEventDefinitions'
+import CallCenter from './calls/CallCenter'
 
 const app = express()
 const httpServer = createServer(app)
-const io = new Server(httpServer)
+const io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
+  connectionStateRecovery: {},
+  cors: {
+    origin: 'http://localhost:3000',
+    methods: ['GET', 'POST'],
+  },
+})
 const twilioManager: TwilioManager = new TwilioManager()
+const callCenter: CallCenter = new CallCenter(twilioManager)
 
 const port = 4000
 app.use(cors())
@@ -18,13 +27,14 @@ app.get('/test', async (req, res) => {
   res.status(200).json({ it: 'works' })
 })
 
-app.get('/', async (req, res) => {
-  res.send('../LiveLawyerWeb/src/page.tsx')
-})
-
 io.on('connection', socket => {
-  console.log(`a user connected with id ${socket.id}`)
-  socket.join('testcall')
+  console.log(`User connected to socket: {${socket.id}}`)
+  socket.on('joinAsClient', () => {
+    callCenter.connectClient(socket)
+  })
+  socket.on('joinAsParalegal', () => {
+    callCenter.enqueueParalegal(socket)
+  })
 })
 
 httpServer.listen(port, '0.0.0.0', () => {

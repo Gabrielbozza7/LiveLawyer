@@ -1,59 +1,19 @@
 import { connect, Room, Participant } from 'twilio-video'
 
-const [BACKEND_IP, BACKEND_PORT] = getBackendVariables()
-
-export function getBackendVariables(): [ip: string, port: string] {
-  let ip = process.env.NEXT_PUBLIC_BACKEND_IP
-  let port = process.env.NEXT_PUBLIC_BACKEND_PORT
-  if (ip === undefined) {
-    console.log(
-      "WARNING: NEXT_PUBLIC_BACKEND_IP environment variable not set, defaulting to 'localhost'!",
-    )
-    ip = 'localhost'
-  }
-  if (port === undefined) {
-    console.log(
-      "WARNING: NEXT_PUBLIC_BACKEND_PORT environment variable not set, defaulting to '4000'!",
-    )
-    port = '4000'
-  }
-  return [ip, port]
-}
-
 export default class TwilioVideoRoom {
-  private token: string
   private room: Room | undefined
   private allParticipants: Participant[]
   private callback: ((updatedParticipants: Participant[]) => void) | undefined
 
   constructor() {
-    this.token = ''
     this.room = undefined
     this.allParticipants = []
     this.callback = undefined
   }
 
-  public async joinRoom(roomName: string): Promise<boolean> {
+  public async joinRoom(token: string, roomName: string): Promise<boolean> {
     try {
-      const link = `http://${BACKEND_IP}:${BACKEND_PORT}/join-room`
-      console.log(link)
-      const response = await fetch(link, {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ roomName: roomName }),
-        mode: 'cors',
-      })
-      const { token: retrievedToken } = await response.json()
-      this.token = retrievedToken
-    } catch (error: unknown) {
-      console.log(`POST error: ${(error as Error).message}`)
-      return false
-    }
-    try {
-      this.room = await connect(this.token, {
+      this.room = await connect(token, {
         name: roomName,
       })
     } catch (error: unknown) {
@@ -99,7 +59,7 @@ export default class TwilioVideoRoom {
 
   public receiveDisconnection(participant: Participant) {
     if (this.callback === undefined) {
-      throw new Error('Callback undefined!')
+      throw new Error('Participant-change callback undefined!')
     }
     this.allParticipants.splice(
       this.allParticipants.findIndex(value => value == participant),
