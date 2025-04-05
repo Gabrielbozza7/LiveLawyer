@@ -1,21 +1,21 @@
-type UserType = 'CLIENT' | 'PARALEGAL' | 'LAWYER'
+export type UserType = 'CLIENT' | 'PARALEGAL' | 'LAWYER'
 
 export interface ClientToServerEvents {
-  joinAsClient: (payload: { userId: string }) => void // for when the client is making a call
-  joinAsParalegal: (payload: { userId: string }) => void
-  joinAsLawyer: (payload: { userId: string }) => void
-  summonLawyer: () => void
-  dequeue: () => void
+  joinAsClient: (
+    payload: { userId: string },
+    callback: (isParalegalAvailable: boolean) => void,
+  ) => void // for when the client is making a call
+  joinAsParalegal: (
+    payload: { userId: string },
+    callback: (queuedUserType: UserType) => void,
+  ) => void
+  joinAsLawyer: (payload: { userId: string }, callback: (queuedUserType: UserType) => void) => void
+  summonLawyer: (payload: null, callback: (isLawyerAvailable: boolean) => void) => void
+  dequeue: (payload: null, callback: (didExitQueue: boolean) => void) => void
   hangUp: () => void
 }
 
 export interface ServerToClientEvents {
-  rejectFromNoParalegals: () => void // indication that there are no paralegals available
-  rejectFromNoLawyers: () => void // indication to paralegal that there are no lawyers available
-  notifyQueueEntry: (payload: { userType: UserType }) => void // indication for the paralegal/lawyer that they are now accepting calls
-  notifyQueueExit: () => void // indication for the paralegal/lawyer that they are no longer accepting calls
   sendToRoom: (payload: { token: string; roomName: string }) => void
   endCall: () => void
 }
-
-// callback: (e: sometype) => void

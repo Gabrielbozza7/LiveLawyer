@@ -25,34 +25,16 @@ export default function Call() {
       })
     }
 
-    const onNotifyQueueEntry = () => {
-      setInQueueOrCall(true)
-    }
-
-    const onNotifyQueueExit = () => {
-      setInQueueOrCall(false)
-    }
-
-    const onRejectFromNoLawyers = () => {
-      setShowToastNoLawyers(true)
-    }
-
     const onEndCall = () => {
       videoRoom.disconnect()
       setParticipants([])
     }
 
     socket.on('sendToRoom', onSendToRoom)
-    socket.on('notifyQueueEntry', onNotifyQueueEntry)
-    socket.on('notifyQueueExit', onNotifyQueueExit)
-    socket.on('rejectFromNoLawyers', onRejectFromNoLawyers)
     socket.on('endCall', onEndCall)
 
     return () => {
       socket.off('sendToRoom', onSendToRoom)
-      socket.off('notifyQueueEntry', onNotifyQueueEntry)
-      socket.off('notifyQueueExit', onNotifyQueueExit)
-      socket.off('rejectFromNoLawyers', onRejectFromNoLawyers)
       socket.off('endCall', onEndCall)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -91,9 +73,13 @@ export default function Call() {
               variant="success"
               hidden={isLawyer}
               disabled={hasLawyerInCall}
-              onClick={() => {
-                socket.emit('summonLawyer')
-                setHasLawyerInCall(true)
+              onClick={async () => {
+                const isLawyerAvailable = await socket.emitWithAck('summonLawyer', null)
+                if (isLawyerAvailable) {
+                  setHasLawyerInCall(true)
+                } else {
+                  setShowToastNoLawyers(true)
+                }
               }}
             >
               Summon Lawyer
@@ -122,8 +108,11 @@ export default function Call() {
                 <Button
                   variant="danger"
                   type="submit"
-                  onClick={() => {
-                    socket.emit('dequeue')
+                  onClick={async () => {
+                    const didExitQueue = await socket.emitWithAck('dequeue', null)
+                    if (didExitQueue) {
+                      setInQueueOrCall(false)
+                    }
                     setIsLawyer(false)
                   }}
                 >
@@ -135,9 +124,12 @@ export default function Call() {
                 <Button
                   variant="primary"
                   type="submit"
-                  onClick={() => {
-                    socket.emit('joinAsParalegal', { userId: '12345' })
-                    setIsLawyer(false)
+                  onClick={async () => {
+                    const queuedUserType = await socket.emitWithAck('joinAsParalegal', {
+                      userId: '12345',
+                    })
+                    setIsLawyer(queuedUserType === 'LAWYER')
+                    setInQueueOrCall(true)
                   }}
                 >
                   Join Queue as Paralegal
@@ -145,9 +137,12 @@ export default function Call() {
                 <Button
                   variant="primary"
                   type="submit"
-                  onClick={() => {
-                    socket.emit('joinAsLawyer', { userId: '12345' })
-                    setIsLawyer(true)
+                  onClick={async () => {
+                    const queuedUserType = await socket.emitWithAck('joinAsLawyer', {
+                      userId: '12345',
+                    })
+                    setIsLawyer(queuedUserType === 'LAWYER')
+                    setInQueueOrCall(true)
                   }}
                 >
                   Join Queue as Lawyer

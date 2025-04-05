@@ -54,25 +54,30 @@ app.get('/test', async (req, res) => {
 
 io.on('connection', socket => {
   console.log(`User connected to socket: {${socket.id}}`)
-  socket.on('joinAsClient', () => {
+  socket.on('joinAsClient', (payload, callback) => {
     console.log(`Received joinAsClient event: {${socket.id}}`)
-    callCenter.connectClient(socket)
+    const isParalegalAvailable = callCenter.connectClient(socket)
+    callback(isParalegalAvailable)
   })
-  socket.on('joinAsParalegal', () => {
+  socket.on('joinAsParalegal', (payload, callback) => {
     console.log(`Received joinAsParalegal event: {${socket.id}}`)
-    callCenter.enqueueParalegal(socket)
+    const queuedUserType = callCenter.enqueueParalegal(socket)
+    callback(queuedUserType)
   })
-  socket.on('joinAsLawyer', () => {
+  socket.on('joinAsLawyer', (payload, callback) => {
     console.log(`Received joinAsLawyer event: {${socket.id}}`)
-    callCenter.enqueueLawyer(socket)
+    const queuedUserType = callCenter.enqueueLawyer(socket)
+    callback(queuedUserType)
   })
-  socket.on('summonLawyer', () => {
+  socket.on('summonLawyer', (payload, callback) => {
     console.log(`Received summonLawyer event: {${socket.id}}`)
-    callCenter.pullLawyer(socket)
+    const isLawyerAvailable = callCenter.pullLawyer(socket)
+    callback(isLawyerAvailable)
   })
-  socket.on('dequeue', () => {
+  socket.on('dequeue', (payload, callback) => {
     console.log(`Received dequeue event: {${socket.id}}`)
-    callCenter.dequeueWorker(socket)
+    const didExitQueue = callCenter.dequeueWorker(socket)
+    callback(didExitQueue)
   })
   socket.on('hangUp', () => {
     console.log(`Received hangUp event: {${socket.id}}`)

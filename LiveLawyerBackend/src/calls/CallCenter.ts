@@ -1,5 +1,5 @@
 import { DefaultEventsMap, Socket } from 'socket.io'
-import { ClientToServerEvents, ServerToClientEvents } from './SocketEventDefinitions'
+import { ClientToServerEvents, ServerToClientEvents, UserType } from './SocketEventDefinitions'
 import TwilioManager from '../TwilioManager'
 import ActiveRoom from './ActiveRoom'
 
@@ -23,7 +23,7 @@ export default class CallCenter {
     this.memberToRoomMapping = new Map()
   }
 
-  public connectClient(client: UserSocket) {
+  public connectClient(client: UserSocket): boolean {
     if (this.waitingParalegals.length !== 0) {
       const roomName = `room${this.roomNameCounter++}`
       const paralegal = this.waitingParalegals.shift()
@@ -37,12 +37,13 @@ export default class CallCenter {
       const room: ActiveRoom = { roomName: roomName, participants: participants }
       this.memberToRoomMapping.set(client, room)
       this.memberToRoomMapping.set(paralegal, room)
+      return true
     } else {
-      client.emit('rejectFromNoParalegals')
+      return false
     }
   }
 
-  public pullLawyer(paralegal: UserSocket) {
+  public pullLawyer(paralegal: UserSocket): boolean {
     if (this.waitingLawyers.length !== 0) {
       const room: ActiveRoom | undefined = this.memberToRoomMapping.get(paralegal)
       if (room === undefined) {
@@ -56,24 +57,25 @@ export default class CallCenter {
       this.activeLawyers.add(lawyer)
       room.participants.push(lawyer)
       this.memberToRoomMapping.set(lawyer, room)
+      return true
     } else {
-      paralegal.emit('rejectFromNoLawyers')
+      return false
     }
   }
 
-  public enqueueParalegal(paralegal: UserSocket) {
+  public enqueueParalegal(paralegal: UserSocket): UserType {
     this.waitingParalegals.push(paralegal)
     console.log(`Added a paralegal to queue, new length: ${this.waitingParalegals.length}`)
-    paralegal.emit('notifyQueueEntry', { userType: 'PARALEGAL' })
+    return 'PARALEGAL'
   }
 
-  public enqueueLawyer(lawyer: UserSocket) {
+  public enqueueLawyer(lawyer: UserSocket): UserType {
     this.waitingLawyers.push(lawyer)
     console.log(`Added a lawyer to queue, new length: ${this.waitingLawyers.length}`)
-    lawyer.emit('notifyQueueEntry', { userType: 'LAWYER' })
+    return 'LAWYER'
   }
 
-  public dequeueWorker(worker: UserSocket) {
+  public dequeueWorker(worker: UserSocket): boolean {
     let index: number
     if (
       this.waitingParalegals.find((x, i) => {
@@ -83,7 +85,7 @@ export default class CallCenter {
     ) {
       this.waitingParalegals.splice(index, 1)
       console.log(`Removed a paralegal from queue, new length: ${this.waitingParalegals.length}`)
-      worker.emit('notifyQueueExit')
+      return true
     } else if (
       this.waitingLawyers.find((x, i) => {
         index = i
@@ -92,9 +94,10 @@ export default class CallCenter {
     ) {
       this.waitingLawyers.splice(index, 1)
       console.log(`Removed a lawyer from queue, new length: ${this.waitingLawyers.length}`)
-      worker.emit('notifyQueueExit')
+      return true
     } else {
       console.log(`WARNING: Unable to dequeue {${worker.id}} due to not existing in a queue!`)
+      return false
     }
   }
 

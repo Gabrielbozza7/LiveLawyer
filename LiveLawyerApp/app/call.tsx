@@ -20,27 +20,27 @@ export default function Call() {
       setInCall(true)
     }
 
-    const onRejectFromNoParalegals = () => {
-      Alert.alert('There are no paralegals currently available to take your call.')
-      router.back()
-    }
-
     const onEndCall = () => {
       setDisconnectSignal(true)
     }
 
     socket.on('sendToRoom', onSendToRoom)
-    socket.on('rejectFromNoParalegals', onRejectFromNoParalegals)
     socket.on('endCall', onEndCall)
 
     if (inCall === null) {
+      // only runs for initialization even with strict mode
       setInCall(false)
-      socket.emit('joinAsClient', { userId: '12345' })
+      ;(async (): Promise<void> => {
+        const isParalegalAvailable = await socket.emitWithAck('joinAsClient', { userId: '12345' })
+        if (!isParalegalAvailable) {
+          Alert.alert('There are no paralegals currently available to take your call.')
+          router.back()
+        }
+      })()
     }
 
     return () => {
       socket.off('sendToRoom', onSendToRoom)
-      socket.off('rejectFromNoParalegals', onRejectFromNoParalegals)
       socket.off('endCall', onEndCall)
     }
   }, [])
