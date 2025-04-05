@@ -1,11 +1,7 @@
 import { Styles } from '@/constants/Styles'
 import { useEffect, useRef, useState } from 'react'
-<<<<<<< HEAD
-import { Text, View } from 'react-native'
-=======
 import { Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
->>>>>>> 18361a6e10b901c1ae06d3b9700decdb0526f380
 import {
   TwilioVideo,
   TwilioVideoLocalView,
@@ -22,12 +18,6 @@ interface VideoTrackInfo {
 interface VideoCallProps {
   token: string
   roomName: string
-<<<<<<< HEAD
-}
-
-export default function VideoCall({ token, roomName }: VideoCallProps) {
-  const [status, setStatus] = useState<Status>('DISCONNECTED')
-=======
   disconnectSignal: boolean
   hangUpCallback: () => void
   disconnectCallback?: () => void
@@ -41,7 +31,6 @@ export default function VideoCall({
   disconnectCallback,
 }: VideoCallProps) {
   const latestStatus = useRef<Status>('CONNECTING')
->>>>>>> 18361a6e10b901c1ae06d3b9700decdb0526f380
   const [errorMessage, setErrorMessage] = useState<string>('')
   const [videoTracks, setVideoTracks] = useState<Map<string, VideoTrackInfo>>(new Map())
   const twilioVideo = useRef<TwilioVideo>(null)
@@ -76,10 +65,6 @@ export default function VideoCall({
   }, [])
 
   useEffect(() => {
-<<<<<<< HEAD
-    console.log(`videoTracks size: ${videoTracks.size}`)
-  }, [videoTracks.size])
-=======
     if (disconnectSignal) {
       twilioVideo.current!.disconnect()
       latestStatus.current = 'DISCONNECTED'
@@ -91,7 +76,6 @@ export default function VideoCall({
       disconnectCallback()
     }
   }, [latestStatus.current])
->>>>>>> 18361a6e10b901c1ae06d3b9700decdb0526f380
 
   return (
     <View style={Styles.videoContainer}>
@@ -116,9 +100,6 @@ export default function VideoCall({
                   />
                 )
               })}
-<<<<<<< HEAD
-              <TwilioVideoLocalView enabled={true} style={Styles.videoLocal} />
-=======
               <View style={Styles.videoBottomContainer}>
                 <View style={Styles.videoButtonContainer}>
                   <TouchableOpacity
@@ -135,7 +116,6 @@ export default function VideoCall({
                 </View>
                 <TwilioVideoLocalView enabled={true} style={Styles.videoLocal} />
               </View>
->>>>>>> 18361a6e10b901c1ae06d3b9700decdb0526f380
             </View>
           )}
         </View>

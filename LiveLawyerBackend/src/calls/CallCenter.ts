@@ -12,6 +12,7 @@ export default class CallCenter {
   private readonly activeParalegals: Set<UserSocket>
   private readonly activeLawyers: Set<UserSocket>
   private readonly memberToRoomMapping: Map<UserSocket, ActiveRoom>
+  private readonly timeoutFrame: number = 5000
   private roomNameCounter: number = 0
 
   constructor(twilioManager: TwilioManager) {
@@ -23,27 +24,38 @@ export default class CallCenter {
     this.memberToRoomMapping = new Map()
   }
 
-  public connectClient(client: UserSocket): boolean {
+  public async connectClient(client: UserSocket): Promise<boolean> {
     if (this.waitingParalegals.length !== 0) {
       const roomName = `room${this.roomNameCounter++}`
       const paralegal = this.waitingParalegals.shift()
       console.log(`Removed a paralegal from queue, new length: ${this.waitingParalegals.length}`)
+
       const clientToken = this.twilioManager.getAccessToken(roomName)
       const paralegalToken = this.twilioManager.getAccessToken(roomName)
-      client.emit('sendToRoom', { token: clientToken, roomName: roomName })
-      paralegal.emit('sendToRoom', { token: paralegalToken, roomName: roomName })
+      
+      try{
+        // Wait for both client and paralegal to ack
+        await Promise.all([
+          client.timeout(this.timeoutFrame).emitWithAck('sendToRoom',{token:clientToken,roomName}),
+          paralegal.timeout(this.timeoutFrame).emitWithAck('sendToRoom',{token:paralegalToken,roomName}),
+        ])
+      // proceed if both acknowledged
       this.activeParalegals.add(paralegal)
       const participants = [client, paralegal]
       const room: ActiveRoom = { roomName: roomName, participants: participants }
       this.memberToRoomMapping.set(client, room)
       this.memberToRoomMapping.set(paralegal, room)
       return true
+      } catch (err){
+        console.error("One or both parties did not acknowlede sendToRoom in given time.",err)
+        return false;        
+      }
     } else {
       return false
     }
   }
 
-  public pullLawyer(paralegal: UserSocket): boolean {
+  public async pullLawyer(paralegal: UserSocket): Promise<boolean> {
     if (this.waitingLawyers.length !== 0) {
       const room: ActiveRoom | undefined = this.memberToRoomMapping.get(paralegal)
       if (room === undefined) {
@@ -53,11 +65,18 @@ export default class CallCenter {
       const lawyer = this.waitingLawyers.shift()
       console.log(`Removed a lawyer from queue, new length: ${this.waitingLawyers.length}`)
       const lawyerToken = this.twilioManager.getAccessToken(room.roomName)
-      lawyer.emit('sendToRoom', { token: lawyerToken, roomName: room.roomName })
-      this.activeLawyers.add(lawyer)
-      room.participants.push(lawyer)
-      this.memberToRoomMapping.set(lawyer, room)
-      return true
+      try{
+        await lawyer.timeout(this.timeoutFrame).emitWithAck('sendToRoom', { token: lawyerToken, roomName: room.roomName })
+        this.activeLawyers.add(lawyer)
+        room.participants.push(lawyer)
+        this.memberToRoomMapping.set(lawyer, room)
+        return true
+
+      } catch(err){
+        console.log('Lawyer did not acknowledge sendToRoom:',err)
+        return false
+      }
+      
     } else {
       return false
     }
