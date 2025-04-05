@@ -4,14 +4,17 @@ import { useState, useEffect } from 'react'
 import { Participant } from 'twilio-video'
 import TwilioParticipant from '../../components/TwilioParticipant'
 import TwilioVideoRoom from '../../classes/TwilioVideoRoom'
-import { Button, Card, Container, Table } from 'react-bootstrap'
+import { Button, Card, Container, Table, Toast } from 'react-bootstrap'
 import LiveLawyerNav from '@/components/LiveLawyerNav'
 import { socket } from '../socket'
 
 export default function Call() {
   const [videoRoom] = useState<TwilioVideoRoom>(new TwilioVideoRoom())
   const [participants, setParticipants] = useState<Participant[]>([])
-  const [inQueue, setInQueue] = useState<boolean>(false)
+  const [inQueueOrCall, setInQueueOrCall] = useState<boolean>(false)
+  const [isLawyer, setIsLawyer] = useState<boolean>(false)
+  const [showToastNoLawyers, setShowToastNoLawyers] = useState<boolean>(false)
+  const [hasLawyerInCall, setHasLawyerInCall] = useState<boolean>(false)
 
   useEffect(() => {
     const onSendToRoom = async ({ token, roomName }: { token: string; roomName: string }) => {
@@ -22,8 +25,16 @@ export default function Call() {
       })
     }
 
-    const onNotifyParalegalQueueEntry = () => {
-      setInQueue(true)
+    const onNotifyQueueEntry = () => {
+      setInQueueOrCall(true)
+    }
+
+    const onNotifyQueueExit = () => {
+      setInQueueOrCall(false)
+    }
+
+    const onRejectFromNoLawyers = () => {
+      setShowToastNoLawyers(true)
     }
 
     const onEndCall = () => {
@@ -32,12 +43,16 @@ export default function Call() {
     }
 
     socket.on('sendToRoom', onSendToRoom)
-    socket.on('notifyParalegalQueueEntry', onNotifyParalegalQueueEntry)
+    socket.on('notifyQueueEntry', onNotifyQueueEntry)
+    socket.on('notifyQueueExit', onNotifyQueueExit)
+    socket.on('rejectFromNoLawyers', onRejectFromNoLawyers)
     socket.on('endCall', onEndCall)
 
     return () => {
       socket.off('sendToRoom', onSendToRoom)
-      socket.off('notifyParalegalQueueEntry', onNotifyParalegalQueueEntry)
+      socket.off('notifyQueueEntry', onNotifyQueueEntry)
+      socket.off('notifyQueueExit', onNotifyQueueExit)
+      socket.off('rejectFromNoLawyers', onRejectFromNoLawyers)
       socket.off('endCall', onEndCall)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -69,14 +84,51 @@ export default function Call() {
                 socket.emit('hangUp')
               }}
             >
-              Disconnect
+              End Call
             </Button>
+            <Button
+              style={{ display: 'block' }}
+              variant="success"
+              hidden={isLawyer}
+              disabled={hasLawyerInCall}
+              onClick={() => {
+                socket.emit('summonLawyer')
+                setHasLawyerInCall(true)
+              }}
+            >
+              Summon Lawyer
+            </Button>
+            <Toast
+              bg="danger"
+              onClose={() => setShowToastNoLawyers(false)}
+              show={showToastNoLawyers}
+              delay={2500}
+              autohide
+            >
+              <Toast.Header>
+                <strong className="me-auto">Error</strong>
+              </Toast.Header>
+              <Toast.Body>There are currently no lawyers available!</Toast.Body>
+            </Toast>
           </div>
         ) : (
           <Card>
-            {inQueue ? (
+            {inQueueOrCall ? (
               <Card.Body>
-                <Card.Text>You are now in the queue, waiting for a client!</Card.Text>
+                <Card.Text>
+                  You are now in the queue, waiting for a{' '}
+                  {isLawyer ? 'paralegal to summon you' : 'client'}!
+                </Card.Text>
+                <Button
+                  variant="danger"
+                  type="submit"
+                  onClick={() => {
+                    socket.emit('dequeue')
+                    setIsLawyer(false)
+                  }}
+                >
+                  Leave Queue
+                </Button>
               </Card.Body>
             ) : (
               <Card.Body>
@@ -85,9 +137,20 @@ export default function Call() {
                   type="submit"
                   onClick={() => {
                     socket.emit('joinAsParalegal', { userId: '12345' })
+                    setIsLawyer(false)
                   }}
                 >
-                  Join Queue
+                  Join Queue as Paralegal
+                </Button>
+                <Button
+                  variant="primary"
+                  type="submit"
+                  onClick={() => {
+                    socket.emit('joinAsLawyer', { userId: '12345' })
+                    setIsLawyer(true)
+                  }}
+                >
+                  Join Queue as Lawyer
                 </Button>
               </Card.Body>
             )}

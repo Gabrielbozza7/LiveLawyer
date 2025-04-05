@@ -62,6 +62,18 @@ io.on('connection', socket => {
     console.log(`Received joinAsParalegal event: {${socket.id}}`)
     callCenter.enqueueParalegal(socket)
   })
+  socket.on('joinAsLawyer', () => {
+    console.log(`Received joinAsLawyer event: {${socket.id}}`)
+    callCenter.enqueueLawyer(socket)
+  })
+  socket.on('summonLawyer', () => {
+    console.log(`Received summonLawyer event: {${socket.id}}`)
+    callCenter.pullLawyer(socket)
+  })
+  socket.on('dequeue', () => {
+    console.log(`Received dequeue event: {${socket.id}}`)
+    callCenter.dequeueWorker(socket)
+  })
   socket.on('hangUp', () => {
     console.log(`Received hangUp event: {${socket.id}}`)
     callCenter.handleHangUp(socket)
