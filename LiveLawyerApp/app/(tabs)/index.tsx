@@ -16,13 +16,7 @@ export default function Index() {
             Alert.alert('You are now chatting with a lawyer!')
             setTimes(times + 1)
         }}
-        >
-          <Image
-          source={require('@/assets/images/main-call-image.jpeg')}
-          style={{ width: 150, height: 150, resizeMode: 'contain'}}
-
-          />
-        </TouchableOpacity>
+        />
         <Text style={Styles.centeredText}>
           (Pretend the button works.){'\n\n\n\n\n'}You have called a lawyer {times} times.
         </Text>

@@ -3,6 +3,5 @@
 	"forwardPorts": [8081],
 	"build": {
 		"dockerfile": "Dockerfile"
-	},
-	"runArgs": ["-p=8081:8081"]
+	}
 }

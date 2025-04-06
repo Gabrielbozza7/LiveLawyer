@@ -39,7 +39,7 @@ app.post('/login', async (req, res) => {
   res.status(200).json(data)
 })
 
-app.listen(port, () => {
+app.listen(port, '0.0.0.0', () => {
   console.log('Hi.')
   console.log(`Server is running on http://localhost:${port}`)
 })
