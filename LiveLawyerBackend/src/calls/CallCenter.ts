@@ -48,7 +48,27 @@ export default class CallCenter {
       return true
       } catch (err){
         console.error("One or both parties did not acknowlede sendToRoom in given time.",err)
-        return false;        
+        console.log('Reconnecting after 1 second ')
+        // Wait 1 second and retry connecting
+        await new Promise(res => setTimeout(res,1000))
+        try{
+          // Wait for both client and paralegal to ack
+          await Promise.all([
+            client.timeout(this.timeoutFrame).emitWithAck('sendToRoom',{token:clientToken,roomName}),
+            paralegal.timeout(this.timeoutFrame).emitWithAck('sendToRoom',{token:paralegalToken,roomName}),
+          ])
+        // proceed if both acknowledged
+        this.activeParalegals.add(paralegal)
+        const participants = [client, paralegal]
+        const room: ActiveRoom = { roomName: roomName, participants: participants }
+        this.memberToRoomMapping.set(client, room)
+        this.memberToRoomMapping.set(paralegal, room)
+        return true
+        } catch (err){
+          console.log("Retrying failed")
+          console.error("One or both parties did not acknowlede sendToRoom in given time.",err)
+          return false
+        }   
       }
     } else {
       return false
@@ -74,9 +94,21 @@ export default class CallCenter {
 
       } catch(err){
         console.log('Lawyer did not acknowledge sendToRoom:',err)
-        return false
-      }
-      
+        console.log('Lawyer Reconnecting after 1 second')
+        // Wait 1 second and retry connecting
+        await new Promise(res => setTimeout(res,1000))
+        try{
+          await lawyer.timeout(this.timeoutFrame).emitWithAck('sendToRoom', { token: lawyerToken, roomName: room.roomName })
+          this.activeLawyers.add(lawyer)
+          room.participants.push(lawyer)
+          this.memberToRoomMapping.set(lawyer, room)
+          return true
+        } catch (err){
+          console.log('Retrying failed')
+          console.log('Lawyer did not acknowledge sendToRoom:',err)
+          return false
+        }
+      }    
     } else {
       return false
     }
