@@ -16,7 +16,7 @@ export default function RootLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
+        name="hub"
         options={{
           title: 'Hub',
         }}
@@ -38,7 +38,6 @@ export default function RootLayout() {
         options={{
           title: 'Resources',
         }}
-        
       />
       {/*<Tabs.Screen
         name="lawyer_info"
