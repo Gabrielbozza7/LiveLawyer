@@ -11,7 +11,11 @@ const router = express.Router()
 router.get('/', async (req, res) => {
   try {
     const lawyers = await prisma.lawyer.findMany()
-    res.json({ lawyers })
+    if (!lawyers || lawyers.length === 0) {
+      res.status(404).json({ message: 'No Lawyers fetched or found' })
+    } else {
+      res.status(200).json({ message: 'Successfully Fetched Lawyers', lawyers })
+    }
   } catch (error) {
     console.error(error)
     res.status(500).json({ error: 'Failed to fetch lawyers' })
@@ -31,8 +35,9 @@ router.get('/:id', async (req, res) => {
     })
     if (!lawyer) {
       res.status(404).json({ error: 'Lawyer not found' })
+    } else {
+      res.status(200).json({ message: 'Successfully Fetched Lawyer', lawyer })
     }
-    res.json(lawyer)
   } catch (error) {
     console.error(error)
     res.status(500).json({ error: 'Failed to fetch lawyer' })
@@ -45,11 +50,12 @@ router.get('/:id', async (req, res) => {
  * Creates a new lawyer row.
  */
 router.post('/', async (req, res) => {
-  const { name, description, address, phoneNum, email, picUrl } = req.body
+  const { id, name, description, address, phoneNum, email, picUrl } = req.body
 
   try {
     const lawyer = await prisma.lawyer.create({
       data: {
+        id,
         name,
         description,
         address,
@@ -58,7 +64,7 @@ router.post('/', async (req, res) => {
         picUrl,
       },
     })
-    res.status(201).json(lawyer)
+    res.status(201).json({ message: 'Successfully Created Lawyer', lawyer })
   } catch (error) {
     console.error(error)
     res.status(400).json({ error: 'Failed to create lawyer' })
@@ -86,7 +92,7 @@ router.put('/:id', async (req, res) => {
         picUrl,
       },
     })
-    res.json(updatedLawyer)
+    res.status(200).json({ message: 'Successfully Updated Lawyer Info', updatedLawyer })
   } catch (error) {
     console.error(error)
     res.status(404).json({ error: 'Lawyer not found or update failed' })
@@ -104,7 +110,7 @@ router.delete('/:id', async (req, res) => {
     const deletedLawyer = await prisma.lawyer.delete({
       where: { id },
     })
-    res.json({ message: 'Lawyer deleted successfully', deletedLawyer })
+    res.status(200).json({ message: 'Lawyer Deleted Successfully', deletedLawyer })
   } catch (error) {
     console.error(error)
     res.status(404).json({ error: 'Lawyer not found or deletion failed' })
