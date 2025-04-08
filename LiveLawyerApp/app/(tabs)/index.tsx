@@ -11,6 +11,7 @@ export default function Index() {
   const imageHeight = (screenWidth * 9) / 16
 
   const attemptCall = async (): Promise<boolean> => {
+    console.log('Attempting call')
     try {
       setTimes(times + 1)
       router.navigate(`/call`)
