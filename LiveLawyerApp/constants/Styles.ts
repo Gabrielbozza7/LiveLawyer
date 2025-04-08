@@ -67,9 +67,19 @@ export const Styles = StyleSheet.create({
     height: 150,
     marginBottom: 20,
   },
+  lawyerInfoBox: {
+    backgroundColor: Colors.containerBackground,
+    padding: 30,
+    marginVertical: 10,
+    marginHorizontal: 15,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: '90%',
+  },
   LawofficeName: {
     color: Colors.blue,
-    fontSize: 34,
+    fontSize: 30,
     marginBottom: 20,
   },
   nameText: {
