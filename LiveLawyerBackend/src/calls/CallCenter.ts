@@ -25,8 +25,8 @@ export default class CallCenter {
   }
 
   public async connectClient(client: UserSocket): Promise<boolean> {
-    console.log("CONENCT CLIENT FUNCTION")
-    if(this.waitingParalegals.length === 0) return false;
+    console.log('CONENCT CLIENT FUNCTION')
+    if (this.waitingParalegals.length === 0) return false
     const roomName = `room${this.roomNameCounter++}`
     const paralegal = this.waitingParalegals.shift()
     console.log(`Removed a paralegal from queue, new length: ${this.waitingParalegals.length}`)
@@ -36,22 +36,26 @@ export default class CallCenter {
 
     // Promise for sending to room
     const trySendToRoom = async (): Promise<boolean> => {
-      try{
+      try {
         // Wait for both client and paralegal to ack
         await Promise.all([
-          client.timeout(this.timeoutFrame).emitWithAck('sendToRoom',{token:clientToken,roomName}),
-          paralegal.timeout(this.timeoutFrame).emitWithAck('sendToRoom',{token:paralegalToken,roomName}),
+          client
+            .timeout(this.timeoutFrame)
+            .emitWithAck('sendToRoom', { token: clientToken, roomName }),
+          paralegal
+            .timeout(this.timeoutFrame)
+            .emitWithAck('sendToRoom', { token: paralegalToken, roomName }),
         ])
         return true
-      }catch (err){
-        console.error("One or both parties did not acknowlede sendToRoom in given time.",err)
+      } catch (err) {
+        console.error('One or both parties did not acknowlede sendToRoom in given time.', err)
         return false
       }
     }
     // 2 attempts to try to send 2 to a room
-    for(let attempt = 0; attempt<2; attempt++){
+    for (let attempt = 0; attempt < 2; attempt++) {
       const roomEnter = await trySendToRoom()
-      if(roomEnter){
+      if (roomEnter) {
         // proceed if both acknowledged
         this.activeParalegals.add(paralegal)
         const participants = [client, paralegal]
@@ -59,12 +63,13 @@ export default class CallCenter {
         this.memberToRoomMapping.set(client, room)
         this.memberToRoomMapping.set(paralegal, room)
         return true
-      } else if(attempt === 0){ // retrying after first  fail attempt
+      } else if (attempt === 0) {
+        // retrying after first  fail attempt
         console.log('Reconnecting after 1 second')
-        await new Promise((res) => setTimeout(res,1000));
+        await new Promise(res => setTimeout(res, 1000))
       }
     }
-    console.log('Reconnection Failed');
+    console.log('Reconnection Failed')
     return false
   }
 
@@ -79,29 +84,32 @@ export default class CallCenter {
     console.log(`Removed a lawyer from queue, new length: ${this.waitingLawyers.length}`)
     const lawyerToken = this.twilioManager.getAccessToken(room.roomName)
     const lawyerToRoom = async (): Promise<boolean> => {
-      try{
-        await lawyer.timeout(this.timeoutFrame).emitWithAck('sendToRoom', { token: lawyerToken, roomName: room.roomName })
+      try {
+        await lawyer
+          .timeout(this.timeoutFrame)
+          .emitWithAck('sendToRoom', { token: lawyerToken, roomName: room.roomName })
         return true
-      } catch (err){
-        console.log('Lawyer did not acknowledge sendToRoom:',err)
+      } catch (err) {
+        console.log('Lawyer did not acknowledge sendToRoom:', err)
         return false
       }
     }
 
     // 2 attempts to try to send 2 to a room
-    for(let attempt = 0; attempt<2; attempt++){
+    for (let attempt = 0; attempt < 2; attempt++) {
       const roomEnter = await lawyerToRoom()
-      if(roomEnter){
+      if (roomEnter) {
         this.activeLawyers.add(lawyer)
         room.participants.push(lawyer)
         this.memberToRoomMapping.set(lawyer, room)
         return true
-      } else if(attempt === 0){ // retrying after first  fail attempt
+      } else if (attempt === 0) {
+        // retrying after first  fail attempt
         console.log('Reconnecting after 1 second')
-        await new Promise((res) => setTimeout(res,1000));
+        await new Promise(res => setTimeout(res, 1000))
       }
     }
-    console.log("Reconnecting Lawyer Failed.")
+    console.log('Reconnecting Lawyer Failed.')
     return false
   }
 
