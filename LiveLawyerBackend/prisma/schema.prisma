@@ -1,50 +1,165 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DIRECT_URL")
+  schemas  = ["auth", "public"]
 }
 
 model User {
-  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id           String    @id @db.Uuid
   lastName     String
   firstName    String
   profPicUrl   String?
   phoneNum     String
   email        String    @unique
   userType     UserType  @default(Civilian)
-  emerContacts Contact[]
   sessionToken String?
   dateJoined   DateTime  @default(now())
+  emerContacts Contact[]
+
+  @@schema("public")
 }
 
 model Contact {
-  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId     String?  @db.Uuid
-  user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  lastName   String
-  firstName  String
-  picUrl     String?
-  phoneNum   String
-  email      String?
-  type       UserType?
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String?   @db.Uuid
+  lastName  String
+  firstName String
+  picUrl    String?
+  phoneNum  String
+  email     String?
+  type      UserType?
+  user      User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@schema("public")
 }
 
-model Lawyer {
-  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+model lawyer {
+  id          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name        String
   description String?
   address     String
   phoneNum    String
-  email       String   @unique
+  email       String  @unique
   picUrl      String?
+
+  @@schema("public")
 }
+
+// model audit_log_entries {
+// @@schema("auth")
+// }
+
+// model flow_state {
+// @@schema("auth")
+// }
+
+// model identities {
+// @@schema("auth")
+// }
+
+// model instances {
+// @@schema("auth")
+// }
+
+// model mfa_amr_claims {
+// @@schema("auth")
+// }
+
+// model mfa_challenges {
+// @@schema("auth")
+// }
+
+// model mfa_factors {
+// @@schema("auth")
+// }
+
+// model one_time_tokens {
+// @@schema("auth")
+// }
+
+// model refresh_tokens {
+// @@schema("auth")
+// }
+
+// model saml_providers {
+// @@schema("auth")
+// }
+
+// model saml_relay_states {
+// @@schema("auth")
+// }
+
+// model schema_migrations {
+// @@schema("auth")
+// }
+
+// model sessions {
+// @@schema("auth")
+// }
+
+// model sso_domains {
+// @@schema("auth")
+// }
+
+// model sso_providers {
+// @@schema("auth")
+// }
+
+// model users {
+// @@schema("auth")
+// }
 
 enum UserType {
   Paralegal
   Lawyer
   Civilian
   Dev
+
+  @@schema("public")
+}
+
+enum aal_level {
+  aal1
+  aal2
+  aal3
+
+  @@schema("auth")
+}
+
+enum code_challenge_method {
+  s256
+  plain
+
+  @@schema("auth")
+}
+
+enum factor_status {
+  unverified
+  verified
+
+  @@schema("auth")
+}
+
+enum factor_type {
+  totp
+  webauthn
+  phone
+
+  @@schema("auth")
+}
+
+enum one_time_token_type {
+  confirmation_token
+  reauthentication_token
+  recovery_token
+  email_change_token_new
+  email_change_token_current
+  phone_change_token
+
+  @@schema("auth")
 }
