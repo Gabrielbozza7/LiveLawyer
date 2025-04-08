@@ -5,7 +5,7 @@ import { Server } from 'socket.io'
 import TwilioManager from './TwilioManager'
 import userRoutes from './database/routes/users'
 import contactsRoutes from './database/routes/contacts'
-import lawOfficeRoutes from './database/routes/lawoffices'
+import lawyerRoutes from './database/routes/lawyers'
 import { supabase } from './database/supabase'
 
 const app = express()
@@ -34,7 +34,7 @@ io.on('connection', socket => {
 // DB routes
 app.use('/users', userRoutes)
 app.use('/contacts', contactsRoutes)
-app.use('/lawOffices', lawOfficeRoutes)
+app.use('/lawyers', lawyerRoutes)
 
 app.post('/signup', async (req, res) => {
   const { email, password } = req.body
