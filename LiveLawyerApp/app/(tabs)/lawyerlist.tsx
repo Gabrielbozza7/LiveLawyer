@@ -44,6 +44,26 @@ type User = {
   last_name: string
 }
 
+const [BACKEND_IP, BACKEND_PORT] = getBackendVariables()
+
+export function getBackendVariables(): [ip: string, port: string] {
+  let ip = process.env.EXPO_PUBLIC_BACKEND_IP
+  let port = process.env.EXPO_PUBLIC_BACKEND_PORT
+  if (ip === undefined) {
+    console.log(
+      "WARNING: EXPO_PUBLIC_BACKEND_IP environment variable not set, defaulting to 'localhost'!",
+    )
+    ip = 'localhost'
+  }
+  if (port === undefined) {
+    console.log(
+      "WARNING: EXPO_PUBLIC_BACKEND_PORT environment variable not set, defaulting to '4000'!",
+    )
+    port = '4000'
+  }
+  return [ip, port]
+}
+
 export default function LawyerView() {
   const [lawyer, setLawyer] = useState<ItemData | null>(null)
   const [users, setUsers] = useState<User[]>([])
@@ -51,10 +71,9 @@ export default function LawyerView() {
   useEffect(() => {
     async function getDB() {
       try {
-        const response = await fetch('http://192.168.87.31:4000/users', {
-          method: 'GET',
+        const response = await fetch(`http://${BACKEND_IP}:${BACKEND_PORT}/users`, {
+          method: 'GET'
         })
-        
         if (!response.ok) {
           throw new Error(`Failed to fetch: ${response.status} ${response.statusText}`)
         }
@@ -81,7 +100,13 @@ export default function LawyerView() {
           {/* Lawyer List */}
           <FlatList
             data={Data}
-            renderItem={({ item }) => <Item item={item} onPress={() => setLawyer(item)} />}
+            renderItem={({ item }) => (
+              <TouchableOpacity onPress={() => setLawyer(item)} style={Styles.itemLawyer}>
+                <Text style={Styles.title}>{item.title}</Text>
+                <Text>{item.office}</Text>
+                <Text>{item.number}</Text>
+              </TouchableOpacity>
+            )}
             keyExtractor={item => item.id}
           />
 

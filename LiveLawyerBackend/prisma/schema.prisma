@@ -8,37 +8,37 @@ datasource db {
 }
 
 model User {
-  id           BigInt    @id @default(autoincrement())
-  created_at   DateTime  @default(now()) @db.Timestamptz(6)
-  last_name    String
-  first_name   String
-  email        String    @unique
-  accType      UserType  @default(Civilian)
-  phoneNum     String
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  lastName     String
+  firstName    String
   profPicUrl   String?
-  twilioToken  String?
+  phoneNum     String
+  email        String    @unique
+  userType     UserType  @default(Civilian)
   emerContacts Contact[]
+  sessionToken String?
+  dateJoined   DateTime  @default(now())
 }
 
 model Contact {
-  id         BigInt    @id @default(autoincrement())
-  last_name  String
-  first_name String
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String?  @db.Uuid
+  user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lastName   String
+  firstName  String
   picUrl     String?
   phoneNum   String
   email      String?
   type       UserType?
-  userId     BigInt?
-  user       User?     @relation(fields: [userId], references: [id])
 }
 
-model LawOffice {
-  id          BigInt  @id @default(autoincrement())
+model Lawyer {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name        String
   description String?
   address     String
   phoneNum    String
-  email       String  @unique
+  email       String   @unique
   picUrl      String?
 }
 
