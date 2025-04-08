@@ -15,12 +15,15 @@ export const Styles = StyleSheet.create({
     marginVertical: 8,
     marginHorizontal: 16,
   },
-  itemLawyer: {
+  itemInfoBox: {
     backgroundColor: Colors.itemLawyerBackground,
     padding: 30,
     marginVertical: 10,
     marginHorizontal: 15,
     borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: '90%',
   },
   name: {
     fontSize: 32,
@@ -34,6 +37,7 @@ export const Styles = StyleSheet.create({
   pageTitle: {
     fontSize: 40,
     textAlign: 'center',
+    color: Colors.phone,
   },
   title: {
     fontSize: 25,
