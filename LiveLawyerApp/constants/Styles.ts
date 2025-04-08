@@ -2,6 +2,8 @@ import { Dimensions, StatusBar, StyleSheet } from 'react-native'
 import { Colors } from './Colors'
 
 const { width: WIDTH, height: HEIGHT } = Dimensions.get('window')
+const { width: screenWidth } = Dimensions.get('window')
+const imageHeight = (screenWidth * 14) / 16
 
 export const Styles = StyleSheet.create({
   container: {
@@ -24,6 +26,17 @@ export const Styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     minWidth: '90%',
+  },
+  // eslint-disable-next-line react-native/no-color-literals
+  mainLogoButton: {
+    width: screenWidth,
+    height: imageHeight,
+    borderRadius: 50,
+    shadowColor: 'black',
+    shadowOffset: { height: -5, width: -1 },
+    shadowOpacity: 1,
+    shadowRadius: 4,
+    elevation: 5,
   },
   name: {
     fontSize: 32,
