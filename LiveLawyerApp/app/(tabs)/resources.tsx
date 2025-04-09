@@ -14,9 +14,8 @@ export default function Resources({ session }: { session: Session }) {
   async function getProfile() {
     try {
       if (!session?.user) setAccNum('No Profile Found')
-
       const { data, error, status } = await supabase
-        .from('profiles')
+        .from('User')
         .select('id')
         .eq('id', session?.user.id)
         .single()

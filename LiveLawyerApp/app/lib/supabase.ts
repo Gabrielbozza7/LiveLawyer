@@ -6,9 +6,9 @@ import { createClient } from '@supabase/supabase-js'
   Needs to be changed to the main supabase URL and key instead of mine.
 */
 
-const supabaseUrl = 'https://hgnkyoaoezolwihgkndj.supabase.co'
+const supabaseUrl = 'https://jalyamjykxebqsixdwoi.supabase.co'
 const supabaseAnonKey =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhnbmt5b2FvZXpvbHdpaGdrbmRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE5NzM3NTQsImV4cCI6MjA1NzU0OTc1NH0._0DBAC7DU5s7ivvsJIUt5M-ySbEG7i1CDLuAn5kbXBQ'
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImphbHlhbWp5a3hlYnFzaXhkd29pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MjY2MTEsImV4cCI6MjA1NzMwMjYxMX0.AScuXEU60mJtWAggEeq3HB-LzNDQPp16yj1h-yJbj5s'
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
