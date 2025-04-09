@@ -72,19 +72,3 @@ export default function Index() {
     </SafeAreaProvider>
   )
 }
-
-async function getDB() {
-  try {
-    const response = await fetch('http://10.202.74.20:4000/database', {
-      method: 'GET'
-    })
-    if (!response.ok) {
-      throw new Error(
-        `Failed to fetch: ${response.status} ${response.statusText}`
-      )
-    }
-    console.log(response.json())
-  } catch (error) {
-    console.error('There was a problem fetching data:', error)
-  }
-}

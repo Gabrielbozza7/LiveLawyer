@@ -1,6 +1,9 @@
+import { useState, useEffect } from 'react'
 import { Styles } from '@/constants/Styles'
 import { Linking, Text, TouchableOpacity } from 'react-native'
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
+import { Session } from '@supabase/supabase-js'
+import { supabase } from '../lib/supabase'
 
 export default function Resources() {
 

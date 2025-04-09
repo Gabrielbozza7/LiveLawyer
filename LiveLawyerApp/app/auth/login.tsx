@@ -1,50 +1,95 @@
-import React from 'react'
-import {SafeAreaView,View,Text,TextInput,TouchableOpacity} from 'react-native'
-import Fontisto from '@expo/vector-icons/Fontisto';
-import AntDesign from '@expo/vector-icons/AntDesign';
+import React, { useState } from 'react'
+import { Alert, StyleSheet, View, AppState } from 'react-native'
+import { supabase } from '../lib/supabase'
+import { Button, Input } from '@rneui/themed'
 
-const LoginScreen = () =>{
-    return(
-        <SafeAreaView style={{flex:1,justifyContent:'center'}}>
-            <View style={{paddingHorizontal:25, width: '93%', alignSelf:'center'}}>
-                <Text style={{fontSize:28,fontWeight:500,marginBottom:30}}>Login</Text>
-                <View style = {{flex:1, justifyContent:'center',alignItems:'center'}}>
-                </View>
-                <View style={{flexDirection:'row', borderBottomWidth:1, paddingBottom:9,marginBottom:20}}>
-                    <Fontisto name='email' size={20} style={{marginRight:7}}/>
-                    <TextInput placeholder='email' style={{flex:1,paddingVertical:0}} keyboardType="email-address"/>
-                </View>
-                <View style={{flexDirection:'row', borderBottomWidth:1, paddingBottom:9,marginBottom:20}}>
-                    <AntDesign name='lock' size={20} style={{marginRight:7}}/>
-                    <TextInput
-                     placeholder='password' 
-                     style={{flex:1,paddingVertical:0}}
-                     secureTextEntry={true}
-                     />
-                                    /* Button for When users forget their passwords*/ 
-                    <TouchableOpacity onPress={() => {}}>
-                        <Text style={{color:'#1e7494'}}>Forgot</Text>
-                    </TouchableOpacity>
-                </View>
-                                            /* Button for logging in */
-                <TouchableOpacity onPress={() => {}} style={{backgroundColor:'#961e06', padding:20, borderRadius:10, marginBottom:30}}>
-                    <Text style={{textAlign:'center',fontWeight:'700',fontSize:16,color:'#FFFFFF'}}>Login</Text>
-                </TouchableOpacity>
+// Tells Supabase Auth to continuously refresh the session automatically if
+// the app is in the foreground. When this is added, you will continue to receive
+// `onAuthStateChange` events with the `TOKEN_REFRESHED` or `SIGNED_OUT` event
+// if the user's session is terminated. This should only be registered once.
+AppState.addEventListener('change', state => {
+  if (state === 'active') {
+    supabase.auth.startAutoRefresh()
+  } else {
+    supabase.auth.stopAutoRefresh()
+  }
+})
 
+export default function Login() {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
 
+  async function signInWithEmail() {
+    setLoading(true)
+    const { error } = await supabase.auth.signInWithPassword({
+      email: email,
+      password: password,
+    })
 
-            <View>
-                    <Text style={{fontSize:20,fontWeight:500,marginBottom:5,marginRight:15}}>New to the app?</Text>
-                                        /* Button for registering in */
-                    <TouchableOpacity onPress={() => {}}>
-                    <Text style={{fontSize:20,fontWeight:500,marginBottom:30,color:'#1e7494',marginRight:15}}>Register</Text>
-                    </TouchableOpacity>
-                </View>
-            </View>
-            
-        </SafeAreaView>
-        
-    )
+    if (error) Alert.alert(error.message)
+    setLoading(false)
+  }
+
+  async function signUpWithEmail() {
+    setLoading(true)
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.signUp({
+      email: email,
+      password: password,
+    })
+
+    if (error) Alert.alert(error.message)
+    if (!session) Alert.alert('Please check your inbox for email verification!')
+    setLoading(false)
+  }
+
+  return (
+    <View style={styles.container}>
+      <View style={[styles.verticallySpaced, styles.mt20]}>
+        <Input
+          label="Email"
+          leftIcon={{ type: 'font-awesome', name: 'envelope' }}
+          onChangeText={text => setEmail(text)}
+          value={email}
+          placeholder="email@address.com"
+          autoCapitalize={'none'}
+        />
+      </View>
+      <View style={styles.verticallySpaced}>
+        <Input
+          label="Password"
+          leftIcon={{ type: 'font-awesome', name: 'lock' }}
+          onChangeText={text => setPassword(text)}
+          value={password}
+          secureTextEntry={true}
+          placeholder="Password"
+          autoCapitalize={'none'}
+        />
+      </View>
+      <View style={[styles.verticallySpaced, styles.mt20]}>
+        <Button title="Sign in" disabled={loading} onPress={() => signInWithEmail()} />
+      </View>
+      <View style={styles.verticallySpaced}>
+        <Button title="Sign up" disabled={loading} onPress={() => signUpWithEmail()} />
+      </View>
+    </View>
+  )
 }
 
-export default LoginScreen
+const styles = StyleSheet.create({
+  container: {
+    marginTop: 40,
+    padding: 12,
+  },
+  verticallySpaced: {
+    paddingTop: 4,
+    paddingBottom: 4,
+    alignSelf: 'stretch',
+  },
+  mt20: {
+    marginTop: 20,
+  },
+})
