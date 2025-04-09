@@ -12,30 +12,10 @@ type ItemData = {
 }
 //Data place holder
 var Data: ItemData[] = [
-  {
-    id: 'Lawyer_1',
-    office: 'Goodman Law Office',
-    title: 'Saul Goodman',
-    number: '123-456-7890',
-  },
-  {
-    id: 'Lawyer_2',
-    office: 'Spectre Law Office',
-    title: 'Harvey Spectre',
-    number: '123-456-7891',
-  },
-  {
-    id: 'Lawyer_3',
-    office: 'Ross Law Office',
-    title: 'Mike Ross',
-    number: '123-456-7892',
-  },
-  {
-    id: 'Lawyer_4',
-    office: 'Litt Law Office',
-    title: 'Louis Litt',
-    number: '123-456-7893',
-  },
+  { id: 'Lawyer_1', office: 'Goodman Law Office', title: 'Saul Goodman', number: '123-456-7890' },
+  { id: 'Lawyer_2', office: 'Spectre Law Office', title: 'Harvey Spectre', number: '123-456-7891' },
+  { id: 'Lawyer_3', office: 'Ross Law Office', title: 'Mike Ross', number: '123-456-7892' },
+  { id: 'Lawyer_4', office: 'Litt Law Office', title: 'Louis Litt', number: '123-456-7893' },
 ]
 
 type ItemProps = {
@@ -43,8 +23,8 @@ type ItemProps = {
   onPress: () => void
 }
 const Item = ({ item, onPress }: ItemProps) => (
-  <TouchableOpacity onPress={onPress} style={Styles.itemLawyer}>
-    <Text style={Styles.title}>{item.title}</Text>
+  <TouchableOpacity onPress={onPress} style={Styles.itemInfoBox}>
+    <Text style={Styles.name}>{item.title}</Text>
   </TouchableOpacity>
 )
 export default function LawyerView() {
@@ -53,8 +33,7 @@ export default function LawyerView() {
   return (
     <SafeAreaProvider>
       {lawyer ? (
-        <LawyerInfo onPressBack={() => setLawyer(null)} lawyer={
-        lawyer}></LawyerInfo>
+        <LawyerInfo onPressBack={() => setLawyer(null)} lawyer={lawyer}></LawyerInfo>
       ) : (
         <SafeAreaView style={Styles.container}>
           <FlatList

@@ -1,5 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Tabs } from 'expo-router'
 import { Platform } from 'react-native'
+import Ionicons from '@expo/vector-icons/Ionicons'
+import Octicons from '@expo/vector-icons/Octicons'
+import MaterialIcons from '@expo/vector-icons/MaterialIcons'
+import FontAwesome from '@expo/vector-icons/FontAwesome'
 
 export default function TabsLayout() {
   return (
@@ -19,33 +24,38 @@ export default function TabsLayout() {
         name="index"
         options={{
           title: 'Hub',
+          tabBarIcon: ({ focused, color, size }) => {
+            return <Ionicons name="call" size={24} color="black" />
+          },
         }}
       />
       <Tabs.Screen
         name="lawyerlist"
         options={{
           title: 'Lawyers',
+          tabBarIcon: ({ focused, color, size }) => {
+            return <Octicons name="law" size={24} color="black" />
+          },
         }}
       />
       <Tabs.Screen
         name="contacts"
         options={{
           title: 'Contacts',
+          tabBarIcon: ({ focused, color, size }) => {
+            return <MaterialIcons name="contact-page" size={24} color="black" />
+          },
         }}
       />
       <Tabs.Screen
         name="resources"
         options={{
           title: 'Resources',
+          tabBarIcon: ({ focused, color, size }) => {
+            return <FontAwesome name="info-circle" size={24} color="black" />
+          },
         }}
       />
-      {/*<Tabs.Screen
-        name="lawyer_info"
-        options={{
-          title: 'Lawyer info',
-        }}
-        
-      />*/}
     </Tabs>
   )
 }
