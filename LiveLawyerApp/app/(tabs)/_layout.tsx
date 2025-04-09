@@ -1,7 +1,7 @@
 import { Tabs } from 'expo-router'
 import { Platform } from 'react-native'
 
-export default function RootLayout() {
+export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{

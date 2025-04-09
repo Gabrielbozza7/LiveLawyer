@@ -4,5 +4,5 @@
 	"build": {
 		"dockerfile": "Dockerfile"
 	},
-	"runArgs": ["-p=8081:8081"]
+	"runArgs": ["-p=8081:8081", "-p=3000:3000", "-p=4000:4000"]
 }

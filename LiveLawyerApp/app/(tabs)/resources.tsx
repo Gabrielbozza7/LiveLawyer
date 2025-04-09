@@ -1,41 +1,21 @@
 import { useState, useEffect } from 'react'
 import { Styles } from '@/constants/Styles'
-import { Text } from 'react-native'
+import { Linking, Text, TouchableOpacity } from 'react-native'
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
 import { Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 
-export default function Resources({ session }: { session: Session }) {
-  const [accNum, setAccNum] = useState('')
-  useEffect(() => {
-    if (session) getProfile()
-  }, [session])
+export default function Resources() {
 
-  async function getProfile() {
-    try {
-      if (!session?.user) setAccNum('No Profile Found')
-      const { data, error, status } = await supabase
-        .from('User')
-        .select('id')
-        .eq('id', session?.user.id)
-        .single()
-      if (error && status !== 406) {
-        throw error
-      }
-      if (data) {
-        setAccNum(data.id)
-      }
-    } catch (error) {
-      if (error instanceof Error) {
-        console.log(error.message)
-      }
-    }
+  const handleOpenURL = () => {
+    Linking.openURL('https://www.findlaw.com/traffic/traffic-tickets/state-traffic-laws.html')
   }
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={Styles.container}>
-        <Text style={Styles.pageTitle}>Screen template!</Text>
-        <Text>Account Number: {accNum}</Text>
+      <SafeAreaView style={Styles.LawyerInfoContainer}>
+        <TouchableOpacity onPress={handleOpenURL}>
+        <Text style={Styles.pageTitle}>Traffic Laws for All States</Text>
+        </TouchableOpacity>
       </SafeAreaView>
     </SafeAreaProvider>
   )

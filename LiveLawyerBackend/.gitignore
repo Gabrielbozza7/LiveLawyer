@@ -16,3 +16,6 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
+
+# credentials and such
+*.env
