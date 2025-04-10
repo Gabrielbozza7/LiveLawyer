@@ -1,7 +1,11 @@
 import { DefaultEventsMap, Socket } from 'socket.io'
-import { ClientToServerEvents, ServerToClientEvents, UserType } from './SocketEventDefinitions'
 import TwilioManager from '../TwilioManager'
 import ActiveRoom from './ActiveRoom'
+import {
+  ClientToServerEvents,
+  ServerToClientEvents,
+  UserType,
+} from 'livelawyerlibrary/SocketEventDefinitions'
 
 type UserSocket = Socket<ClientToServerEvents, ServerToClientEvents, DefaultEventsMap, unknown>
 

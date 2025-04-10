@@ -3,34 +3,12 @@ import cors from 'cors'
 import { createServer } from 'node:http'
 import { Server } from 'socket.io'
 import TwilioManager from './TwilioManager'
-import { ClientToServerEvents, ServerToClientEvents } from './calls/SocketEventDefinitions'
 import CallCenter from './calls/CallCenter'
-import dotenv from 'dotenv'
-
-const [BACKEND_IP, BACKEND_PORT] = getBackendVariables()
-
-export function getBackendVariables(): [ip: string, port: string] {
-  dotenv.config()
-  let ip = process.env.BACKEND_IP
-  let port = process.env.BACKEND_PORT
-  if (ip === undefined) {
-    console.log("WARNING: BACKEND_IP environment variable not set, defaulting to 'localhost'!")
-    ip = 'localhost'
-  }
-  if (port === undefined) {
-    console.log("WARNING: BACKEND_PORT environment variable not set, defaulting to '4000'!")
-    port = '4000'
-  }
-  return [ip, port]
-}
-
-function getURL() {
-  getBackendVariables()
-  return `http://${BACKEND_IP}:${BACKEND_PORT}`
-}
-
-const URL = getURL()
-// ^ This should be pulled from a shared configuration at some point.
+import {
+  ClientToServerEvents,
+  ServerToClientEvents,
+} from 'livelawyerlibrary/SocketEventDefinitions'
+import { BACKEND_IP, BACKEND_PORT, BACKEND_URL } from 'livelawyerlibrary'
 
 const app = express()
 const httpServer = createServer(app)
@@ -88,6 +66,6 @@ io.on('connection', socket => {
 httpServer.listen(Number(BACKEND_PORT), '0.0.0.0', () => {
   console.log('Hi.')
   console.log(
-    `Server is running on http://0.0.0.0:${BACKEND_PORT}, which should be accessible via ${URL}`,
+    `Server is running on http://0.0.0.0:${BACKEND_PORT}, which should be accessible via ${BACKEND_URL}`,
   )
 })

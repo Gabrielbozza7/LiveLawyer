@@ -20,6 +20,7 @@
     "eslint-plugin-prettier": "^5.2.3",
     "express": "^4.21.2",
     "globals": "^16.0.0",
+    "livelawyerlibrary": "file:../LiveLawyerLibrary",
     "prettier": "^3.5.3",
     "socket.io": "^4.8.1",
     "ts-node": "^10.9.2",
