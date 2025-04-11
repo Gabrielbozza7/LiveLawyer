@@ -54,14 +54,18 @@ app.get('/test', async (req, res) => {
 
 io.on('connection', socket => {
   console.log(`User connected to socket: {${socket.id}}`)
-  socket.on('joinAsClient', (payload, callback) => {
+  socket.on('joinAsClient', async (payload, callback) => {
     console.log(`Received joinAsClient event: {${socket.id}}`)
-    const isParalegalAvailable = callCenter.connectClient(socket)
+    const isParalegalAvailable = await callCenter.connectClient(socket)
+    console.log(
+      `isParalegalAvailable = {${isParalegalAvailable}}\nParalegal Available event: {${socket.id}}`,
+    )
     callback(isParalegalAvailable)
   })
   socket.on('joinAsParalegal', (payload, callback) => {
     console.log(`Received joinAsParalegal event: {${socket.id}}`)
     const queuedUserType = callCenter.enqueueParalegal(socket)
+    console.log(`queuedUserType = {${queuedUserType}}\nParalegal Available event: {${socket.id}}`)
     callback(queuedUserType)
   })
   socket.on('joinAsLawyer', (payload, callback) => {
@@ -69,9 +73,9 @@ io.on('connection', socket => {
     const queuedUserType = callCenter.enqueueLawyer(socket)
     callback(queuedUserType)
   })
-  socket.on('summonLawyer', (payload, callback) => {
+  socket.on('summonLawyer', async (payload, callback) => {
     console.log(`Received summonLawyer event: {${socket.id}}`)
-    const isLawyerAvailable = callCenter.pullLawyer(socket)
+    const isLawyerAvailable = await callCenter.pullLawyer(socket)
     callback(isLawyerAvailable)
   })
   socket.on('dequeue', (payload, callback) => {

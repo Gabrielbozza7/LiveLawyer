@@ -4,5 +4,7 @@
 	"build": {
 		"dockerfile": "Dockerfile"
 	},
-	"runArgs": ["-p=8081:8081", "-p=3000:3000", "-p=4000:4000"]
+	"containerUser": "root",
+	"remoteUser": "root",
+	"runArgs": ["-p=8081:8081", "-v", "livelawyer-source:/volume"]
 }
