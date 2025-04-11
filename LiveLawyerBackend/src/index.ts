@@ -57,9 +57,13 @@ io.on('connection', socket => {
   socket.on('joinAsClient', async (payload, callback) => {
     console.log(`Received joinAsClient event: {${socket.id}}`)
     const isParalegalAvailable = await callCenter.connectClient(socket)
+<<<<<<< HEAD
     console.log(
       `isParalegalAvailable = {${isParalegalAvailable}}\nParalegal Available event: {${socket.id}}`,
     )
+=======
+    console.log(`Paralegal Available event: {${socket.id}}`)
+>>>>>>> e29916c5dc13b9cddaddc3fc977fa3cc719f9697
     callback(isParalegalAvailable)
   })
   socket.on('joinAsParalegal', (payload, callback) => {
@@ -73,7 +77,11 @@ io.on('connection', socket => {
     const queuedUserType = callCenter.enqueueLawyer(socket)
     callback(queuedUserType)
   })
+<<<<<<< HEAD
   socket.on('summonLawyer', async (payload, callback) => {
+=======
+  socket.on('summonLawyer', async(payload, callback) => {
+>>>>>>> e29916c5dc13b9cddaddc3fc977fa3cc719f9697
     console.log(`Received summonLawyer event: {${socket.id}}`)
     const isLawyerAvailable = await callCenter.pullLawyer(socket)
     callback(isLawyerAvailable)

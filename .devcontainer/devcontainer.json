@@ -4,7 +4,13 @@
 	"build": {
 		"dockerfile": "Dockerfile"
 	},
+<<<<<<< HEAD
 	"containerUser": "root",
 	"remoteUser": "root",
 	"runArgs": ["-p=8081:8081", "-v", "livelawyer-source:/volume"]
+=======
+	"workspaceMount": "source=livelawyer-source,target=/workspace,type=volume",
+	"workspaceFolder": "/workspace",
+	"runArgs": ["-p=8081:8081","-p=3000:3000","-p=4000:4000"]
+>>>>>>> e29916c5dc13b9cddaddc3fc977fa3cc719f9697
 }

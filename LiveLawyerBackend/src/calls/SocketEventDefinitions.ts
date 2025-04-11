@@ -16,9 +16,13 @@ export interface ClientToServerEvents {
 }
 
 export interface ServerToClientEvents {
+<<<<<<< HEAD
   sendToRoom: (
     payload: { token: string; roomName: string },
     callback: (acknowledged: boolean) => void,
   ) => void
+=======
+  sendToRoom: (payload: { token: string; roomName: string }) => void
+>>>>>>> e29916c5dc13b9cddaddc3fc977fa3cc719f9697
   endCall: () => void
 }
