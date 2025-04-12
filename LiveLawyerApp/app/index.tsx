@@ -7,19 +7,20 @@ export default function Index() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        console.log(`Session found: ${session}`)
-        router.replace(`./(tabs)/index`)
+        console.log(`Session found: `)
+        router.replace('/(tabs)')
       } else {
         console.log(`Session not found.`)
-        router.replace(`./auth/login`)
+        router.replace('/auth/login')
       }
     })
 
     supabase.auth.onAuthStateChange((_event, session) => {
+      console.log(`onAuthStateChanged()`)
       if (session) {
-        router.replace(`./(tabs)/index`)
+        router.replace('/(tabs)')
       } else {
-        router.replace(`./auth/login`)
+        router.replace(`/auth/login`)
       }
     })
   }, [])

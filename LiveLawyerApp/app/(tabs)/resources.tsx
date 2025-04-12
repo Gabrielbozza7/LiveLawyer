@@ -32,7 +32,7 @@ export default function Resources() {
     <SafeAreaProvider>
       <SafeAreaView style={Styles.LawyerInfoContainer}>
         <View>
-          <Text>{JSON.stringify(user, null, 2)}</Text>
+          <Text>{JSON.stringify(user, ['id'], 2)}</Text>
         </View>
         <View style={Styles.itemInfoBox}>
           <TouchableOpacity onPress={handleOpenURL}>
