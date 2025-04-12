@@ -70,41 +70,28 @@ export default function LawyerView() {
     getDB()
   }, [])
 
+  type ItemProps = {
+    item: ItemData
+    onPress: () => void
+  }
+
+  const Item = ({ item, onPress }: ItemProps) => (
+    <TouchableOpacity onPress={onPress} style={Styles.itemInfoBox}>
+      <Text style={Styles.name}>{item.title}</Text>
+    </TouchableOpacity>
+  )
+
   return (
     <SafeAreaProvider>
       {lawyer ? (
         <LawyerInfo onPressBack={() => setLawyer(null)} lawyer={lawyer}></LawyerInfo>
       ) : (
         <SafeAreaView style={Styles.container}>
-          {/* Lawyer List */}
           <FlatList
             data={Data}
-            renderItem={({ item }) => (
-              <TouchableOpacity onPress={() => setLawyer(item)} style={Styles.itemLawyer}>
-                <Text style={Styles.title}>{item.title}</Text>
-                <Text>{item.office}</Text>
-                <Text>{item.number}</Text>
-              </TouchableOpacity>
-            )}
+            renderItem={({ item }) => <Item item={item} onPress={() => setLawyer(item)} />}
             keyExtractor={item => item.id}
           />
-
-          {/* Divider */}
-          <View style={{ marginVertical: 20, height: 2, backgroundColor: '#ddd' }} />
-
-          {/* Fetched Users */}
-          <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 10 }}>
-            Users from Database:
-          </Text>
-          {users.length > 0 ? (
-            users.map((user) => (
-              <Text key={user.id} style={{ fontSize: 16 }}>
-                {user.first_name} {user.last_name}
-              </Text>
-            ))
-          ) : (
-            <Text style={{ fontSize: 16, color: 'gray' }}>Loading users...</Text>
-          )}
         </SafeAreaView>
       )}
     </SafeAreaProvider>
