@@ -3,6 +3,10 @@ import cors from 'cors'
 import { createServer } from 'node:http'
 import { Server } from 'socket.io'
 import TwilioManager from './TwilioManager'
+import userRoutes from './database/routes/users'
+import contactsRoutes from './database/routes/contacts'
+import lawyerRoutes from './database/routes/lawyers'
+import { supabase } from './database/supabase'
 import CallCenter from './calls/CallCenter'
 import {
   ClientToServerEvents,
@@ -61,6 +65,32 @@ io.on('connection', socket => {
     console.log(`Received hangUp event: {${socket.id}}`)
     callCenter.handleHangUp(socket)
   })
+})
+
+// DB routes
+app.use('/users', userRoutes)
+app.use('/contacts', contactsRoutes)
+app.use('/lawyers', lawyerRoutes)
+
+app.post('/signup', async (req, res) => {
+  const { email, password } = req.body
+  const { data, error } = await supabase.auth.signUp({ email: email, password: password })
+  if (error) {
+    res.status(400).json({ error: error.message })
+    return
+  }
+  res.status(200).json(data)
+})
+
+app.post('/login', async (req, res) => {
+  const { email, password } = req.body
+  const { data, error } = await supabase.auth.signInWithPassword({ email: email, password: password })
+
+  if (error) {
+    res.status(400).json({ error: error.message })
+    return
+  }
+  res.status(200).json(data)
 })
 
 httpServer.listen(Number(BACKEND_PORT), '0.0.0.0', () => {
