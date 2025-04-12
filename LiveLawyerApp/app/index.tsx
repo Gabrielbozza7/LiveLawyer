@@ -1,26 +1,39 @@
-import { useState, useEffect } from 'react'
-import { supabase } from './lib/supabase'
-import Login from './auth/login'
-import Account from './components/account'
-import { View } from 'react-native'
-import { Session } from '@supabase/supabase-js'
+import { useEffect } from 'react';
+import { supabase } from '../app/lib/supabaseClient';
+import { useRouter } from 'expo-router';
+import { View, ActivityIndicator } from 'react-native';
 
 export default function Index() {
-  const [session, setSession] = useState<Session | null>(null)
+  const router = useRouter();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-    })
+    const init = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        router.replace('/(tabs)/callLawyer');
+      } else {
+        router.replace('/auth/login');
+      }
+    };
 
-    supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
-    })
-  }, [])
+    init();
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        router.replace('/(tabs)/callLawyer');
+      } else {
+        router.replace('/test');
+      }
+    });
+
+    return () => {
+      listener.subscription.unsubscribe();
+    };
+  }, []);
 
   return (
-    <View>
-      {session && session.user ? <Account key={session.user.id} session={session} /> : <Login />}
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <ActivityIndicator />
     </View>
-  )
+  );
 }

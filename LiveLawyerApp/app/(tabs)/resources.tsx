@@ -4,7 +4,6 @@ import { Styles } from '@/constants/Styles'
 import { Alert, Button, Linking, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
 import { Session } from '@supabase/supabase-js'
-import { supabase } from '../lib/supabase'
 
 export default function Resources() {
   const handleOpenURL = () => {

@@ -24,7 +24,7 @@ export function getBackendVariables(): [ip: string, port: string] {
   return [ip, port]
 }
 
-export default function Index() {
+export default function CallLawyer() {
   const router = useRouter()
   const [times, setTimes] = useState<number>(0)
 
