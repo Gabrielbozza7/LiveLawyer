@@ -36,6 +36,7 @@
     "expo-system-ui": "~4.0.8",
     "expo-updates": "~0.27.1",
     "expo-web-browser": "~14.0.2",
+    "livelawyerlibrary": "file:../LiveLawyerLibrary",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-native": "0.76.7",
@@ -45,7 +46,8 @@
     "react-native-screens": "~4.4.0",
     "react-native-twilio-video-webrtc": "^3.2.1",
     "react-native-web": "~0.19.13",
-    "react-native-webview": "13.12.5"
+    "react-native-webview": "13.12.5",
+    "socket.io-client": "^4.8.1"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
