@@ -20,7 +20,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.gabetheman.LiveLawyerApp"
+      "package": "com.gabetheman.LiveLawyerApp",
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO",
