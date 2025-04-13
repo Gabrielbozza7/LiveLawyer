@@ -1,6 +1,12 @@
 import { io, Socket } from 'socket.io-client'
-import { ClientToServerEvents, ServerToClientEvents } from './SocketEventDefinitions'
-// "undefined" means the URL will be computed from the `window.location` object
+import {
+  ClientToServerEvents,
+  ServerToClientEvents,
+} from 'livelawyerlibrary/SocketEventDefinitions'
+
+// I would like to be able to use { BACKEND_URL } from 'livelawyerlibrary', but importing it breaks the bundler due to the use
+// of the 'path' module in the library's dependency 'dotenv', which doesn't exist in React Native. So, unless a solution for that
+// is found, we will have to continue having the backend IP duplicated.
 
 const [BACKEND_IP, BACKEND_PORT] = getBackendVariables()
 
@@ -22,12 +28,11 @@ export function getBackendVariables(): [ip: string, port: string] {
   return [ip, port]
 }
 
-function getURL() {
+function getBackendUrl() {
   getBackendVariables()
   return `http://${BACKEND_IP}:${BACKEND_PORT}`
 }
 
-const URL = getURL()
-// ^ This should be pulled from a shared configuration at some point.
+const BACKEND_URL = getBackendUrl()
 
-export const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(URL)
+export const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(BACKEND_URL)

@@ -14,12 +14,13 @@
   "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",
-    "dotenv": "^16.4.7",
+    "dotenv": "^16.5.0",
     "eslint": "^9.21.0",
     "eslint-config-prettier": "^10.0.2",
     "eslint-plugin-prettier": "^5.2.3",
     "express": "^4.21.2",
     "globals": "^16.0.0",
+    "livelawyerlibrary": "file:../LiveLawyerLibrary",
     "prettier": "^3.5.3",
     "socket.io": "^4.8.1",
     "ts-node": "^10.9.2",
@@ -29,6 +30,7 @@
     "uuid": "^11.1.0"
   },
   "devDependencies": {
+    "@types/dotenv": "^6.1.1",
     "@types/express": "^5.0.0"
   }
 }

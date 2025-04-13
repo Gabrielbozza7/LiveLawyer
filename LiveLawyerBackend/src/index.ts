@@ -3,34 +3,12 @@ import cors from 'cors'
 import { createServer } from 'node:http'
 import { Server } from 'socket.io'
 import TwilioManager from './TwilioManager'
-import { ClientToServerEvents, ServerToClientEvents } from './calls/SocketEventDefinitions'
 import CallCenter from './calls/CallCenter'
-import dotenv from 'dotenv'
-
-const [BACKEND_IP, BACKEND_PORT] = getBackendVariables()
-
-export function getBackendVariables(): [ip: string, port: string] {
-  dotenv.config()
-  let ip = process.env.BACKEND_IP
-  let port = process.env.BACKEND_PORT
-  if (ip === undefined) {
-    console.log("WARNING: BACKEND_IP environment variable not set, defaulting to 'localhost'!")
-    ip = 'localhost'
-  }
-  if (port === undefined) {
-    console.log("WARNING: BACKEND_PORT environment variable not set, defaulting to '4000'!")
-    port = '4000'
-  }
-  return [ip, port]
-}
-
-function getURL() {
-  getBackendVariables()
-  return `http://${BACKEND_IP}:${BACKEND_PORT}`
-}
-
-const URL = getURL()
-// ^ This should be pulled from a shared configuration at some point.
+import {
+  ClientToServerEvents,
+  ServerToClientEvents,
+} from 'livelawyerlibrary/SocketEventDefinitions'
+import { BACKEND_IP, BACKEND_PORT, BACKEND_URL } from 'livelawyerlibrary'
 
 const app = express()
 const httpServer = createServer(app)
@@ -57,13 +35,7 @@ io.on('connection', socket => {
   socket.on('joinAsClient', async (payload, callback) => {
     console.log(`Received joinAsClient event: {${socket.id}}`)
     const isParalegalAvailable = await callCenter.connectClient(socket)
-<<<<<<< HEAD
-    console.log(
-      `isParalegalAvailable = {${isParalegalAvailable}}\nParalegal Available event: {${socket.id}}`,
-    )
-=======
     console.log(`Paralegal Available event: {${socket.id}}`)
->>>>>>> e29916c5dc13b9cddaddc3fc977fa3cc719f9697
     callback(isParalegalAvailable)
   })
   socket.on('joinAsParalegal', (payload, callback) => {
@@ -77,11 +49,7 @@ io.on('connection', socket => {
     const queuedUserType = callCenter.enqueueLawyer(socket)
     callback(queuedUserType)
   })
-<<<<<<< HEAD
   socket.on('summonLawyer', async (payload, callback) => {
-=======
-  socket.on('summonLawyer', async(payload, callback) => {
->>>>>>> e29916c5dc13b9cddaddc3fc977fa3cc719f9697
     console.log(`Received summonLawyer event: {${socket.id}}`)
     const isLawyerAvailable = await callCenter.pullLawyer(socket)
     callback(isLawyerAvailable)
@@ -100,6 +68,6 @@ io.on('connection', socket => {
 httpServer.listen(Number(BACKEND_PORT), '0.0.0.0', () => {
   console.log('Hi.')
   console.log(
-    `Server is running on http://0.0.0.0:${BACKEND_PORT}, which should be accessible via ${URL}`,
+    `Server is running on http://0.0.0.0:${BACKEND_PORT}, which should be accessible via ${BACKEND_URL}`,
   )
 })

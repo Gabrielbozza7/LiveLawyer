@@ -1,5 +1,8 @@
+import {
+  ClientToServerEvents,
+  ServerToClientEvents,
+} from 'livelawyerlibrary/SocketEventDefinitions'
 import { Socket, DefaultEventsMap } from 'socket.io'
-import { ClientToServerEvents, ServerToClientEvents } from './SocketEventDefinitions'
 
 type UserSocket = Socket<ClientToServerEvents, ServerToClientEvents, DefaultEventsMap, unknown>
 

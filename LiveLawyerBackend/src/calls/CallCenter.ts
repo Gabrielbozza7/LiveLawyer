@@ -1,7 +1,11 @@
 import { DefaultEventsMap, Socket } from 'socket.io'
-import { ClientToServerEvents, ServerToClientEvents, UserType } from './SocketEventDefinitions'
 import TwilioManager from '../TwilioManager'
 import ActiveRoom from './ActiveRoom'
+import {
+  ClientToServerEvents,
+  ServerToClientEvents,
+  UserType,
+} from 'livelawyerlibrary/SocketEventDefinitions'
 
 type UserSocket = Socket<ClientToServerEvents, ServerToClientEvents, DefaultEventsMap, unknown>
 
@@ -12,7 +16,7 @@ export default class CallCenter {
   private readonly activeParalegals: Set<UserSocket>
   private readonly activeLawyers: Set<UserSocket>
   private readonly memberToRoomMapping: Map<UserSocket, ActiveRoom>
-  private readonly timeoutFrame: number = 3000
+  private readonly timeoutFrame: number = 5000
   private roomNameCounter: number = 0
 
   constructor(twilioManager: TwilioManager) {
@@ -152,7 +156,6 @@ export default class CallCenter {
       return
     }
     room.participants.forEach(participant => {
-      console.log('ending call for', participant.id)
       participant.emit('endCall')
       if (this.activeParalegals.has(participant)) {
         this.activeParalegals.delete(participant)
