@@ -16,8 +16,6 @@ export default function Resources() {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
         setUser(user)
-      } else {
-        console.log('Error while fetching user.')
       }
     })
   }, [])
@@ -28,12 +26,11 @@ export default function Resources() {
       Alert.alert('Failed to log out.', error.message)
     }
   }
+  const userJSON = JSON.parse(JSON.stringify(user))
+  const userId = userJSON['id']
   return (
     <SafeAreaProvider>
       <SafeAreaView style={Styles.LawyerInfoContainer}>
-        <View>
-          <Text>{JSON.stringify(user, ['id'], 2)}</Text>
-        </View>
         <View style={Styles.itemInfoBox}>
           <TouchableOpacity onPress={handleOpenURL}>
             <Text style={Styles.pageTitle}>Traffic Laws for All States</Text>
@@ -48,6 +45,9 @@ export default function Resources() {
             color={Colors.white}
             accessibilityLabel="Log out from the application."
           />
+        </View>
+        <View>
+          <Text>{userId}</Text>
         </View>
       </SafeAreaView>
     </SafeAreaProvider>
