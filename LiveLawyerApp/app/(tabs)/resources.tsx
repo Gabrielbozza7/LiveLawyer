@@ -26,8 +26,7 @@ export default function Resources() {
       Alert.alert('Failed to log out.', error.message)
     }
   }
-  const userJSON = JSON.parse(JSON.stringify(user))
-  const userId = userJSON['id']
+  const userId = JSON.stringify(user, ['id'])
   return (
     <SafeAreaProvider>
       <SafeAreaView style={Styles.LawyerInfoContainer}>
@@ -47,7 +46,7 @@ export default function Resources() {
           />
         </View>
         <View>
-          <Text>{userId}</Text>
+            <Text>{userId}</Text>
         </View>
       </SafeAreaView>
     </SafeAreaProvider>
