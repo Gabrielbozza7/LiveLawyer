@@ -1,18 +1,30 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import * as SecureStore from 'expo-secure-store'
 import { createClient } from '@supabase/supabase-js'
+
+const ExpoSecureStoreAdapter = {
+  getItem: (key: string) => {
+    return SecureStore.getItemAsync(key)
+  },
+  setItem: (key: string, value: string) => {
+    SecureStore.setItemAsync(key, value)
+  },
+  removeItem: (key: string) => {
+    SecureStore.deleteItemAsync(key)
+  },
+}
 
 /*
   Info for connecting to supabase DB, using anonymous key designed for public use.
   Needs to be changed to the main supabase URL and key instead of mine.
 */
 
-const supabaseUrl = 'https://jalyamjykxebqsixdwoi.supabase.co'
-const supabaseAnonKey =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImphbHlhbWp5a3hlYnFzaXhkd29pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MjY2MTEsImV4cCI6MjA1NzMwMjYxMX0.AScuXEU60mJtWAggEeq3HB-LzNDQPp16yj1h-yJbj5s'
+const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL
+const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    storage: AsyncStorage,
+    storage: ExpoSecureStoreAdapter,
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: false,

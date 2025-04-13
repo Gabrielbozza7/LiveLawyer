@@ -21,7 +21,7 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen
-        name="hub"
+        name="index"
         options={{
           title: 'Hub',
           tabBarIcon: ({ focused, color, size }) => {

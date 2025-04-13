@@ -1,26 +1,27 @@
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
+import { useRouter } from 'expo-router'
 import { supabase } from './lib/supabase'
-import Login from './auth/login'
-import Account from './components/account'
-import { View } from 'react-native'
-import { Session } from '@supabase/supabase-js'
 
 export default function Index() {
-  const [session, setSession] = useState<Session | null>(null)
-
+  const router = useRouter()
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
+      if (session) {
+        console.log(`Session found: `)
+        router.replace('/(tabs)')
+      } else {
+        console.log(`Session not found.`)
+        router.replace('/auth/login')
+      }
     })
 
     supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
+      console.log(`onAuthStateChanged()`)
+      if (session) {
+        router.replace('/(tabs)')
+      } else {
+        router.replace(`/auth/login`)
+      }
     })
   }, [])
-
-  return (
-    <View>
-      {session && session.user ? <Account key={session.user.id} session={session} /> : <Login />}
-    </View>
-  )
 }

@@ -1,15 +1,32 @@
 import { useState, useEffect } from 'react'
 import { Colors } from '@/constants/Colors'
 import { Styles } from '@/constants/Styles'
+import { User } from '@supabase/supabase-js'
 import { Alert, Button, Linking, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
-import { Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 
 export default function Resources() {
   const handleOpenURL = () => {
     Linking.openURL('https://www.findlaw.com/traffic/traffic-tickets/state-traffic-laws.html')
   }
+  // Get User Data
+  const [user, setUser] = useState<User | null>(null)
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        setUser(user)
+      }
+    })
+  }, [])
+  // Logout
+  const logOut = async () => {
+    const { error } = await supabase.auth.signOut()
+    if (error) {
+      Alert.alert('Failed to log out.', error.message)
+    }
+  }
+  const userId = JSON.stringify(user, ['id'])
   return (
     <SafeAreaProvider>
       <SafeAreaView style={Styles.LawyerInfoContainer}>
@@ -21,12 +38,15 @@ export default function Resources() {
         <View style={Styles.itemInfoBox}>
           <Button
             onPress={() => {
-              Alert.alert('Contact button pressed.')
+              logOut()
             }}
-            title="Signup"
+            title="Log Out"
             color={Colors.white}
-            accessibilityLabel="Yay you signed up lol"
+            accessibilityLabel="Log out from the application."
           />
+        </View>
+        <View>
+            <Text>{userId}</Text>
         </View>
       </SafeAreaView>
     </SafeAreaProvider>
