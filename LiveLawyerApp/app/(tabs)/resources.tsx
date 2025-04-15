@@ -3,7 +3,6 @@ import { Linking, Text, TouchableOpacity } from 'react-native'
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
 
 export default function Resources() {
-
   const handleOpenURL = () => {
     Linking.openURL('https://www.findlaw.com/traffic/traffic-tickets/state-traffic-laws.html')
   }
@@ -11,7 +10,7 @@ export default function Resources() {
     <SafeAreaProvider>
       <SafeAreaView style={Styles.LawyerInfoContainer}>
         <TouchableOpacity onPress={handleOpenURL}>
-        <Text style={Styles.pageTitle}>Traffic Laws for All States</Text>
+          <Text style={Styles.pageTitle}>Traffic Laws for All States</Text>
         </TouchableOpacity>
       </SafeAreaView>
     </SafeAreaProvider>

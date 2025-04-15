@@ -63,6 +63,31 @@ io.on('connection', socket => {
     console.log(`Received hangUp event: {${socket.id}}`)
     callCenter.handleHangUp(socket)
   })
+  socket.on('disconnect', reason => {
+    console.log(`User {${socket.id}} disconnected reason: ${reason}`)
+  })
+
+  socket.on('rejoinRoomAttempt', async (payload, callback) => {
+    const { userId, userType } = payload
+    console.log(`Received rejoinRoomAttempt from ${userType} {${userId}}, socket {${socket.id}}`)
+    const room = callCenter.getRoomByUserId(userId)
+
+    if (!room) {
+      console.warn(`No previous room found for userId ${userId}`)
+      callback(false)
+      return
+    }
+    const token = twilioManager.getAccessToken(room.roomName)
+    try {
+      await socket.timeout(5000).emitWithAck('sendToRoom', { token, roomName: room.roomName })
+      room.participants.push(socket)
+      callback(true)
+      console.log(`User ${userId} successfully rejoined room ${room.roomName}`)
+    } catch (err) {
+      console.error(`Failed to rejoin user ${userId}:`, err)
+      callback(false)
+    }
+  })
 })
 
 httpServer.listen(Number(BACKEND_PORT), '0.0.0.0', () => {

@@ -18,6 +18,8 @@ export default class CallCenter {
   private readonly memberToRoomMapping: Map<UserSocket, ActiveRoom>
   private readonly timeoutFrame: number = 5000
   private roomNameCounter: number = 0
+  private readonly userIdToSocket: Map<string, UserSocket> = new Map()
+  private readonly userIdToRoom: Map<string, ActiveRoom> = new Map()
 
   constructor(twilioManager: TwilioManager) {
     this.twilioManager = twilioManager
@@ -36,34 +38,38 @@ export default class CallCenter {
 
     const clientToken = this.twilioManager.getAccessToken(roomName)
     const paralegalToken = this.twilioManager.getAccessToken(roomName)
-
-    try {
-      await paralegal
-        .timeout(this.timeoutFrame)
-        .emitWithAck('sendToRoom', { token: paralegalToken, roomName })
-      console.log('Paralegal is in, waiting for client to connect.')
-      for (let attempt = 0; attempt < 2; attempt++) {
-        try {
-          await client
-            .timeout(this.timeoutFrame)
-            .emitWithAck('sendToRoom', { token: clientToken, roomName })
-
-          this.activeParalegals.add(paralegal)
-          const participants = [client, paralegal]
-          const room: ActiveRoom = { roomName: roomName, participants: participants }
-          this.memberToRoomMapping.set(client, room)
-          this.memberToRoomMapping.set(paralegal, room)
-          return true
-        } catch (err) {
-          console.log('Client Failed to acknowledge sendToRoom.', err)
-          if (attempt === 0) {
-            console.log('Reconnecting after 1 second.')
-            await new Promise(res => setTimeout(res, 1000))
+    for (let i = 0; i < 2; i++) {
+      try {
+        await paralegal
+          .timeout(this.timeoutFrame)
+          .emitWithAck('sendToRoom', { token: paralegalToken, roomName })
+        console.log('Paralegal is in, waiting for client to connect.')
+        for (let attempt = 0; attempt < 2; attempt++) {
+          try {
+            await client
+              .timeout(this.timeoutFrame)
+              .emitWithAck('sendToRoom', { token: clientToken, roomName })
+            this.activeParalegals.add(paralegal)
+            const participants = [client, paralegal]
+            const room: ActiveRoom = { roomName: roomName, participants: participants }
+            this.memberToRoomMapping.set(client, room)
+            this.memberToRoomMapping.set(paralegal, room)
+            return true
+          } catch (err) {
+            console.log('Client Failed to acknowledge sendToRoom.', err)
+            if (attempt === 0) {
+              console.log('Reconnecting after 1 second.')
+              await new Promise(res => setTimeout(res, 1000))
+            }
           }
         }
+      } catch (err) {
+        console.log('Paralegal failed to acknowledge send to room. ', err)
+        if (i === 0) {
+          console.log('Paralegal econnecting after 1 second')
+          await new Promise(res => setTimeout(res, 1000))
+        }
       }
-    } catch (err) {
-      console.log('Paralegal failed to acknowledge send to room. ', err)
     }
     paralegal.emit('endCall')
     this.enqueueParalegal(paralegal)
@@ -167,5 +173,9 @@ export default class CallCenter {
       }
       this.memberToRoomMapping.delete(participant)
     })
+  }
+
+  public getRoomByUserId(userId: string): ActiveRoom | undefined {
+    return this.userIdToRoom.get(userId)
   }
 }
