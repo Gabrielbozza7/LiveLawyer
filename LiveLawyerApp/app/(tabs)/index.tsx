@@ -1,14 +1,12 @@
 import { Styles } from '@/constants/Styles'
 import { useRouter } from 'expo-router'
 import React, { useState } from 'react'
-import { Text, TouchableOpacity, Image, Dimensions } from 'react-native'
+import { Text, TouchableOpacity, Image } from 'react-native'
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
 
 export default function Index() {
   const router = useRouter()
   const [times, setTimes] = useState<number>(0)
-  const { width: screenWidth } = Dimensions.get('window')
-  const imageHeight = (screenWidth * 9) / 16
 
   const attemptCall = async (): Promise<boolean> => {
     try {
@@ -30,13 +28,11 @@ export default function Index() {
           <Image
             // eslint-disable-next-line @typescript-eslint/no-require-imports
             source={require('@/assets/images/main-call-image.jpeg')}
-            style={{ width: screenWidth, height: imageHeight }}
+            style={Styles.mainLogoButton}
             resizeMode="contain"
           />
         </TouchableOpacity>
-        <Text style={Styles.centeredText}>
-          Press the Logo To Call A Lawyer.{'\n\n\n\n\n'}You have called a lawyer {times} times.
-        </Text>
+        <Text style={Styles.centeredText}>Press the Logo To Call A Lawyer.</Text>
       </SafeAreaView>
     </SafeAreaProvider>
   )
