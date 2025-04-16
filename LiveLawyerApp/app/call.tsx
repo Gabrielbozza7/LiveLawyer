@@ -1,32 +1,78 @@
 import VideoCall from '@/components/VideoCall'
+import { socket } from '@/constants/socket'
 import { Styles } from '@/constants/Styles'
-import { useLocalSearchParams, useRouter } from 'expo-router'
+import { useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
-import { Button, View } from 'react-native'
+import { Button, View, Text, Alert } from 'react-native'
+import { SafeAreaProvider } from 'react-native-safe-area-context'
 
 export default function Call() {
   const router = useRouter()
-  const { token, roomName } = useLocalSearchParams()
-  const [valid, setValid] = useState<boolean>(false)
-  const [finalToken, setFinalToken] = useState<string>('')
-  const [finalRoomName, setFinalRoomName] = useState<string>('')
+  const [inCall, setInCall] = useState<boolean | null>(null)
+  const [token, setToken] = useState<string>('')
+  const [roomName, setRoomName] = useState<string>('')
+  const [disconnectSignal, setDisconnectSignal] = useState<boolean>(false)
 
   useEffect(() => {
-    if (typeof token !== 'string' || typeof roomName !== 'string') {
-      router.back()
-    } else {
-      setFinalToken(token)
-      setFinalRoomName(roomName)
-      setValid(true)
+    const onSendToRoom = async (
+      { token, roomName }: { token: string; roomName: string },
+      callback: (acknowledged: boolean) => void,
+    ) => {
+      setToken(token)
+      setRoomName(roomName)
+      setInCall(true)
+      callback(true)
+    }
+
+    const onEndCall = () => {
+      setDisconnectSignal(true)
+    }
+
+    socket.on('sendToRoom', onSendToRoom)
+    socket.on('endCall', onEndCall)
+
+    if (inCall === null) {
+      // only runs for initialization even with strict mode
+      setInCall(false)
+      ;(async (): Promise<void> => {
+        const isParalegalAvailable = await socket.emitWithAck('joinAsClient', { userId: '12345' })
+        if (!isParalegalAvailable) {
+          Alert.alert('There are no paralegals currently available to take your call.')
+          router.back()
+        }
+      })()
+    }
+
+    return () => {
+      socket.off('sendToRoom', onSendToRoom)
+      socket.off('endCall', onEndCall)
     }
   }, [])
 
+  const hangUp = () => {
+    socket.emit('hangUp')
+  }
+
   return (
     <View style={Styles.videoContainer}>
-      {valid ? (
-        <VideoCall token={finalToken} roomName={finalRoomName} onDisconnect={router.back} />
+      {inCall ? (
+        <VideoCall
+          token={token}
+          roomName={roomName}
+          disconnectSignal={disconnectSignal}
+          hangUpCallback={hangUp}
+          disconnectCallback={() => {
+            setInCall(false)
+            router.back()
+          }}
+        />
       ) : (
-        <Button title="Go Back" onPress={router.back} />
+        <SafeAreaProvider>
+          <View>
+            <Text>Loading...</Text>
+            <Button title="Go Back" onPress={router.back} />
+          </View>
+        </SafeAreaProvider>
       )}
     </View>
   )

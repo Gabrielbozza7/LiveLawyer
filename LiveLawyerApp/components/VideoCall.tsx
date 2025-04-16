@@ -1,6 +1,7 @@
 import { Styles } from '@/constants/Styles'
 import { useEffect, useRef, useState } from 'react'
 import { Text, TouchableOpacity, View } from 'react-native'
+import { SafeAreaProvider } from 'react-native-safe-area-context'
 import {
   TwilioVideo,
   TwilioVideoLocalView,
@@ -17,11 +18,19 @@ interface VideoTrackInfo {
 interface VideoCallProps {
   token: string
   roomName: string
-  onDisconnect?: () => void
+  disconnectSignal: boolean
+  hangUpCallback: () => void
+  disconnectCallback?: () => void
 }
 
-export default function VideoCall({ token, roomName, onDisconnect }: VideoCallProps) {
-  const [status, setStatus] = useState<Status>('CONNECTING')
+export default function VideoCall({
+  token,
+  roomName,
+  disconnectSignal,
+  hangUpCallback,
+  disconnectCallback,
+}: VideoCallProps) {
+  const latestStatus = useRef<Status>('CONNECTING')
   const [errorMessage, setErrorMessage] = useState<string>('')
   const [videoTracks, setVideoTracks] = useState<Map<string, VideoTrackInfo>>(new Map())
   const twilioVideo = useRef<TwilioVideo>(null)
@@ -42,7 +51,6 @@ export default function VideoCall({ token, roomName, onDisconnect }: VideoCallPr
 
   useEffect(() => {
     if (twilioVideo.current != null) {
-      setStatus('CONNECTING')
       try {
         twilioVideo.current.connect({
           roomName: roomName,
@@ -57,19 +65,30 @@ export default function VideoCall({ token, roomName, onDisconnect }: VideoCallPr
   }, [])
 
   useEffect(() => {
-    if (status === 'DISCONNECTED' && onDisconnect !== undefined) {
-      onDisconnect()
+    if (disconnectSignal) {
+      twilioVideo.current!.disconnect()
+      latestStatus.current = 'DISCONNECTED'
     }
-  }, [status])
+  }, [disconnectSignal])
+
+  useEffect(() => {
+    if (latestStatus.current === 'DISCONNECTED' && disconnectCallback !== undefined) {
+      disconnectCallback()
+    }
+  }, [latestStatus.current])
 
   return (
     <View style={Styles.videoContainer}>
       {errorMessage === '' ? (
         <View style={Styles.videoContainer}>
-          {status === 'DISCONNECTED' ? (
-            <Text>You have disconnected.</Text>
-          ) : status === 'CONNECTING' ? (
-            <Text>Connecting...</Text>
+          {latestStatus.current === 'DISCONNECTED' ? (
+            <SafeAreaProvider>
+              <Text>You have disconnected.</Text>
+            </SafeAreaProvider>
+          ) : latestStatus.current === 'CONNECTING' ? (
+            <SafeAreaProvider>
+              <Text>Connecting...</Text>
+            </SafeAreaProvider>
           ) : (
             <View style={Styles.videoContainer}>
               {Array.from(videoTracks, ([trackSid, trackIdentifier]) => {
@@ -91,13 +110,7 @@ export default function VideoCall({ token, roomName, onDisconnect }: VideoCallPr
                   >
                     <Text>FLIP CAMERA</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity
-                    style={Styles.videoButton}
-                    onPress={() => {
-                      twilioVideo.current!.disconnect()
-                      setStatus('DISCONNECTED')
-                    }}
-                  >
+                  <TouchableOpacity style={Styles.videoButton} onPress={hangUpCallback}>
                     <Text>LEAVE CALL</Text>
                   </TouchableOpacity>
                 </View>
@@ -114,14 +127,16 @@ export default function VideoCall({ token, roomName, onDisconnect }: VideoCallPr
       )}
       <TwilioVideo
         ref={twilioVideo}
-        onRoomDidConnect={() => setStatus('CONNECTED')}
+        onRoomDidConnect={() => {
+          latestStatus.current = 'CONNECTED'
+        }}
         onRoomDidDisconnect={error => {
           noteError(error)
-          setStatus('DISCONNECTED')
+          latestStatus.current = 'DISCONNECTED'
         }}
         onRoomDidFailToConnect={error => {
           noteError(error)
-          setStatus('DISCONNECTED')
+          latestStatus.current = 'DISCONNECTED'
         }}
         onParticipantAddedVideoTrack={({ participant, track }) => {
           setVideoTracks(originalVideoTracks => {

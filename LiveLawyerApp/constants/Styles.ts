@@ -2,6 +2,8 @@ import { Dimensions, StatusBar, StyleSheet } from 'react-native'
 import { Colors } from './Colors'
 
 const { width: WIDTH, height: HEIGHT } = Dimensions.get('window')
+const { width: screenWidth } = Dimensions.get('window')
+const imageHeight = (screenWidth * 14) / 16
 
 export const Styles = StyleSheet.create({
   container: {
@@ -15,11 +17,26 @@ export const Styles = StyleSheet.create({
     marginVertical: 8,
     marginHorizontal: 16,
   },
-  itemLawyer: {
+  itemInfoBox: {
     backgroundColor: Colors.itemLawyerBackground,
-    padding: 20,
-    marginVertical: 4,
+    padding: 30,
+    marginVertical: 10,
     marginHorizontal: 15,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: '90%',
+  },
+  // eslint-disable-next-line react-native/no-color-literals
+  mainLogoButton: {
+    width: screenWidth,
+    height: imageHeight,
+    borderRadius: 50,
+    shadowColor: 'black',
+    shadowOffset: { height: -5, width: -1 },
+    shadowOpacity: 1,
+    shadowRadius: 4,
+    elevation: 5,
   },
   name: {
     fontSize: 32,
@@ -27,17 +44,18 @@ export const Styles = StyleSheet.create({
   },
   phone: {
     fontSize: 16,
-    color: 'white',
+    color: Colors.phone,
     textDecorationLine: 'underline',
   },
   pageTitle: {
     fontSize: 40,
     textAlign: 'center',
+    color: Colors.phone,
   },
   title: {
     fontSize: 25,
   },
-  centeredText: { textAlign: 'center' },
+  centeredText: { fontSize: 20, textAlign: 'center' },
   LawyerInfoContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -49,9 +67,19 @@ export const Styles = StyleSheet.create({
     height: 150,
     marginBottom: 20,
   },
+  lawyerInfoBox: {
+    backgroundColor: Colors.containerBackground,
+    padding: 30,
+    marginVertical: 10,
+    marginHorizontal: 15,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: '90%',
+  },
   LawofficeName: {
     color: Colors.blue,
-    fontSize: 34,
+    fontSize: 30,
     marginBottom: 20,
   },
   nameText: {
