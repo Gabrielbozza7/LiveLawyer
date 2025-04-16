@@ -12,6 +12,7 @@ export default function Index() {
     try {
       setTimes(times + 1)
       router.navigate(`/call`)
+      console.log('Attempting call')
       return true
     } catch (error: unknown) {
       console.log(`POST error: ${(error as Error).message}`)

@@ -36,14 +36,16 @@ app.get('/test', async (req, res) => {
 
 io.on('connection', socket => {
   console.log(`User connected to socket: {${socket.id}}`)
-  socket.on('joinAsClient', (payload, callback) => {
+  socket.on('joinAsClient', async (payload, callback) => {
     console.log(`Received joinAsClient event: {${socket.id}}`)
-    const isParalegalAvailable = callCenter.connectClient(socket)
+    const isParalegalAvailable = await callCenter.connectClient(socket)
+    console.log(`Paralegal Available event: {${socket.id}}`)
     callback(isParalegalAvailable)
   })
   socket.on('joinAsParalegal', (payload, callback) => {
     console.log(`Received joinAsParalegal event: {${socket.id}}`)
     const queuedUserType = callCenter.enqueueParalegal(socket)
+    console.log(`queuedUserType = {${queuedUserType}}\nParalegal Available event: {${socket.id}}`)
     callback(queuedUserType)
   })
   socket.on('joinAsLawyer', (payload, callback) => {
@@ -51,9 +53,9 @@ io.on('connection', socket => {
     const queuedUserType = callCenter.enqueueLawyer(socket)
     callback(queuedUserType)
   })
-  socket.on('summonLawyer', (payload, callback) => {
+  socket.on('summonLawyer', async (payload, callback) => {
     console.log(`Received summonLawyer event: {${socket.id}}`)
-    const isLawyerAvailable = callCenter.pullLawyer(socket)
+    const isLawyerAvailable = await callCenter.pullLawyer(socket)
     callback(isLawyerAvailable)
   })
   socket.on('dequeue', (payload, callback) => {
@@ -64,6 +66,31 @@ io.on('connection', socket => {
   socket.on('hangUp', () => {
     console.log(`Received hangUp event: {${socket.id}}`)
     callCenter.handleHangUp(socket)
+  })
+  socket.on('disconnect', reason => {
+    console.log(`User {${socket.id}} disconnected reason: ${reason}`)
+  })
+
+  socket.on('rejoinRoomAttempt', async (payload, callback) => {
+    const { userId, userType } = payload
+    console.log(`Received rejoinRoomAttempt from ${userType} {${userId}}, socket {${socket.id}}`)
+    const room = callCenter.getRoomByUserId(userId)
+
+    if (!room) {
+      console.warn(`No previous room found for userId ${userId}`)
+      callback(false)
+      return
+    }
+    const token = twilioManager.getAccessToken(room.roomName)
+    try {
+      await socket.timeout(5000).emitWithAck('sendToRoom', { token, roomName: room.roomName })
+      room.participants.push(socket)
+      callback(true)
+      console.log(`User ${userId} successfully rejoined room ${room.roomName}`)
+    } catch (err) {
+      console.error(`Failed to rejoin user ${userId}:`, err)
+      callback(false)
+    }
   })
 })
 
@@ -84,7 +111,10 @@ app.post('/signup', async (req, res) => {
 
 app.post('/login', async (req, res) => {
   const { email, password } = req.body
-  const { data, error } = await supabase.auth.signInWithPassword({ email: email, password: password })
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: email,
+    password: password,
+  })
 
   if (error) {
     res.status(400).json({ error: error.message })

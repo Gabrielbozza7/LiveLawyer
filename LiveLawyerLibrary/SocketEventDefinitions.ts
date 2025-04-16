@@ -13,9 +13,17 @@ export interface ClientToServerEvents {
   summonLawyer: (payload: null, callback: (isLawyerAvailable: boolean) => void) => void
   dequeue: (payload: null, callback: (didExitQueue: boolean) => void) => void
   hangUp: () => void
+  rejoinRoomAttempt: (
+    payload: { userId: string; userType: UserType },
+    callback: (didRejoin: boolean) => void,
+  ) => void
 }
 
 export interface ServerToClientEvents {
-  sendToRoom: (payload: { token: string; roomName: string }) => void
+  sendToRoom: (
+    payload: { token: string; roomName: string },
+    callback: (acknowledged: boolean) => void,
+  ) => void
   endCall: () => void
+  rejoinRoomSuccess: (payload: { token: string; roomName: string }) => void
 }

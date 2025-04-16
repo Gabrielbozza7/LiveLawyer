@@ -16,7 +16,10 @@ export default class CallCenter {
   private readonly activeParalegals: Set<UserSocket>
   private readonly activeLawyers: Set<UserSocket>
   private readonly memberToRoomMapping: Map<UserSocket, ActiveRoom>
+  private readonly timeoutFrame: number = 5000
   private roomNameCounter: number = 0
+  private readonly userIdToSocket: Map<string, UserSocket> = new Map()
+  private readonly userIdToRoom: Map<string, ActiveRoom> = new Map()
 
   constructor(twilioManager: TwilioManager) {
     this.twilioManager = twilioManager
@@ -27,44 +30,91 @@ export default class CallCenter {
     this.memberToRoomMapping = new Map()
   }
 
-  public connectClient(client: UserSocket): boolean {
-    if (this.waitingParalegals.length !== 0) {
-      const roomName = `room${this.roomNameCounter++}`
-      const paralegal = this.waitingParalegals.shift()
-      console.log(`Removed a paralegal from queue, new length: ${this.waitingParalegals.length}`)
-      const clientToken = this.twilioManager.getAccessToken(roomName)
-      const paralegalToken = this.twilioManager.getAccessToken(roomName)
-      client.emit('sendToRoom', { token: clientToken, roomName: roomName })
-      paralegal.emit('sendToRoom', { token: paralegalToken, roomName: roomName })
-      this.activeParalegals.add(paralegal)
-      const participants = [client, paralegal]
-      const room: ActiveRoom = { roomName: roomName, participants: participants }
-      this.memberToRoomMapping.set(client, room)
-      this.memberToRoomMapping.set(paralegal, room)
-      return true
-    } else {
-      return false
+  public async connectClient(client: UserSocket): Promise<boolean> {
+    if (this.waitingParalegals.length === 0) return false
+    const roomName = `room${this.roomNameCounter++}`
+    const paralegal = this.waitingParalegals.shift()
+    console.log(`Removed a paralegal from queue, new length: ${this.waitingParalegals.length}`)
+
+    const clientToken = this.twilioManager.getAccessToken(roomName)
+    const paralegalToken = this.twilioManager.getAccessToken(roomName)
+    for (let i = 0; i < 2; i++) {
+      try {
+        await paralegal
+          .timeout(this.timeoutFrame)
+          .emitWithAck('sendToRoom', { token: paralegalToken, roomName })
+        console.log('Paralegal is in, waiting for client to connect.')
+        for (let attempt = 0; attempt < 2; attempt++) {
+          try {
+            await client
+              .timeout(this.timeoutFrame)
+              .emitWithAck('sendToRoom', { token: clientToken, roomName })
+            this.activeParalegals.add(paralegal)
+            const participants = [client, paralegal]
+            const room: ActiveRoom = { roomName: roomName, participants: participants }
+            this.memberToRoomMapping.set(client, room)
+            this.memberToRoomMapping.set(paralegal, room)
+            return true
+          } catch (err) {
+            console.log('Client Failed to acknowledge sendToRoom.', err)
+            if (attempt === 0) {
+              console.log('Reconnecting after 1 second.')
+              await new Promise(res => setTimeout(res, 1000))
+            }
+          }
+        }
+      } catch (err) {
+        console.log('Paralegal failed to acknowledge send to room. ', err)
+        if (i === 0) {
+          console.log('Paralegal econnecting after 1 second')
+          await new Promise(res => setTimeout(res, 1000))
+        }
+      }
     }
+    paralegal.emit('endCall')
+    this.enqueueParalegal(paralegal)
+    return false
   }
 
-  public pullLawyer(paralegal: UserSocket): boolean {
-    if (this.waitingLawyers.length !== 0) {
-      const room: ActiveRoom | undefined = this.memberToRoomMapping.get(paralegal)
-      if (room === undefined) {
-        console.log(`WARNING: Lawyer request from paralegal who is not in a room {${paralegal.id}}`)
-        return
-      }
-      const lawyer = this.waitingLawyers.shift()
-      console.log(`Removed a lawyer from queue, new length: ${this.waitingLawyers.length}`)
-      const lawyerToken = this.twilioManager.getAccessToken(room.roomName)
-      lawyer.emit('sendToRoom', { token: lawyerToken, roomName: room.roomName })
-      this.activeLawyers.add(lawyer)
-      room.participants.push(lawyer)
-      this.memberToRoomMapping.set(lawyer, room)
-      return true
-    } else {
-      return false
+  public async pullLawyer(paralegal: UserSocket): Promise<boolean> {
+    if (this.waitingLawyers.length === 0) return false
+    const room: ActiveRoom | undefined = this.memberToRoomMapping.get(paralegal)
+    if (room === undefined) {
+      console.log(`WARNING: Lawyer request from paralegal who is not in a room {${paralegal.id}}`)
+      return
     }
+    const lawyer = this.waitingLawyers.shift()
+    console.log(`Removed a lawyer from queue, new length: ${this.waitingLawyers.length}`)
+    const lawyerToken = this.twilioManager.getAccessToken(room.roomName)
+    const lawyerToRoom = async (): Promise<boolean> => {
+      try {
+        await lawyer
+          .timeout(this.timeoutFrame)
+          .emitWithAck('sendToRoom', { token: lawyerToken, roomName: room.roomName })
+        return true
+      } catch (err) {
+        console.log('Lawyer did not acknowledge sendToRoom:', err)
+        return false
+      }
+    }
+
+    // reconnecting
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const roomEnter = await lawyerToRoom()
+      if (roomEnter) {
+        this.activeLawyers.add(lawyer)
+        room.participants.push(lawyer)
+        this.memberToRoomMapping.set(lawyer, room)
+        return true
+      } else if (attempt === 0) {
+        // retrying after first  fail attempt
+        console.log('Reconnecting after 1 second')
+        await new Promise(res => setTimeout(res, 1000))
+      }
+    }
+    console.log('Reconnecting Lawyer Failed.')
+    this.handleHangUp(paralegal)
+    return false
   }
 
   public enqueueParalegal(paralegal: UserSocket): UserType {
@@ -123,5 +173,9 @@ export default class CallCenter {
       }
       this.memberToRoomMapping.delete(participant)
     })
+  }
+
+  public getRoomByUserId(userId: string): ActiveRoom | undefined {
+    return this.userIdToRoom.get(userId)
   }
 }

@@ -14,7 +14,7 @@
   "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",
-    "dotenv": "^16.4.7",
+    "dotenv": "^16.5.0",
     "@prisma/client": "^6.5.0",
     "@supabase/supabase-js": "^2.49.1",
     "eslint": "^9.21.0",
@@ -34,6 +34,7 @@
     "uuid": "^11.1.0"
   },
   "devDependencies": {
+    "@types/dotenv": "^6.1.1",
     "@types/express": "^5.0.0"
   }
 }

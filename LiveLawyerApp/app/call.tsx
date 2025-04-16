@@ -14,10 +14,14 @@ export default function Call() {
   const [disconnectSignal, setDisconnectSignal] = useState<boolean>(false)
 
   useEffect(() => {
-    const onSendToRoom = async ({ token, roomName }: { token: string; roomName: string }) => {
+    const onSendToRoom = async (
+      { token, roomName }: { token: string; roomName: string },
+      callback: (acknowledged: boolean) => void,
+    ) => {
       setToken(token)
       setRoomName(roomName)
       setInCall(true)
+      callback(true)
     }
 
     const onEndCall = () => {

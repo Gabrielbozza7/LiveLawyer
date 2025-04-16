@@ -46,7 +46,7 @@ export default function Resources() {
           />
         </View>
         <View>
-            <Text>{userId}</Text>
+          <Text>{userId}</Text>
         </View>
       </SafeAreaView>
     </SafeAreaProvider>
