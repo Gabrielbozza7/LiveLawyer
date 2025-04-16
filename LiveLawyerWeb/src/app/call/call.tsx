@@ -22,12 +22,22 @@ export function Call({ backendUrl }: { backendUrl: string }) {
   const [socket] = useState<Socket<ServerToClientEvents, ClientToServerEvents>>(io(backendUrl))
 
   useEffect(() => {
-    const onSendToRoom = async ({ token, roomName }: { token: string; roomName: string }) => {
-      await videoRoom.joinRoom(token, roomName)
+    const onSendToRoom = async (
+      { token, roomName }: { token: string; roomName: string },
+      callback: (acknowledged: boolean) => void,
+    ) => {
+      try {
+        await videoRoom.joinRoom(token, roomName)
 
-      videoRoom.setupListeners(updatedParticipants => {
-        setParticipants(updatedParticipants)
-      })
+        videoRoom.setupListeners(updatedParticipants => {
+          setParticipants(updatedParticipants)
+        })
+
+        callback(true)
+      } catch (err) {
+        console.log('Error joining room:', err)
+        callback(false)
+      }
     }
 
     const onEndCall = () => {
