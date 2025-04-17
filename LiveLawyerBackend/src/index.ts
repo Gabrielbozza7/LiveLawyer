@@ -28,7 +28,6 @@ const callCenter: CallCenter = new CallCenter(twilioManager)
 
 app.use(cors())
 app.use(express.json())
-twilioManager.setupPostRoute(app)
 
 app.get('/test', async (req, res) => {
   res.status(200).json({ it: 'works' })
@@ -84,7 +83,7 @@ io.on('connection', socket => {
     const token = twilioManager.getAccessToken(room.roomName)
     try {
       await socket.timeout(5000).emitWithAck('sendToRoom', { token, roomName: room.roomName })
-      room.participants.push(socket)
+      room.addConnectedParticipant(socket)
       callback(true)
       console.log(`User ${userId} successfully rejoined room ${room.roomName}`)
     } catch (err) {

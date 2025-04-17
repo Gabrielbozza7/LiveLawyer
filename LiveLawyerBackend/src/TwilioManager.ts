@@ -1,15 +1,15 @@
 // Most of the code on this page is from: https://www.twilio.com/docs/video/tutorials/get-started-with-twilio-video-node-express-server
 
 import dotenv from 'dotenv'
-import twilio from 'twilio'
+import twilio, { Twilio, jwt } from 'twilio'
+import { RoomInstance } from 'twilio/lib/rest/video/v1/room'
 import { v4 as uuidv4 } from 'uuid'
-import { Express } from 'express'
 
-const AccessToken = twilio.jwt.AccessToken
+const AccessToken = jwt.AccessToken
 const VideoGrant = AccessToken.VideoGrant
 
 export default class TwilioManager {
-  private readonly twilioClient: twilio.Twilio
+  private readonly twilioClient: Twilio
 
   constructor() {
     dotenv.config()
@@ -18,7 +18,7 @@ export default class TwilioManager {
     })
   }
 
-  public async findOrCreateRoom(roomName: string): Promise<void> {
+  public async findOrCreateRoom(roomName: string): Promise<RoomInstance> {
     try {
       // see if the room exists already. If it doesn't, this will throw
       // error 20404.
@@ -26,9 +26,11 @@ export default class TwilioManager {
     } catch (error) {
       // the room was not found, so create it
       if (error.code == 20404) {
-        await this.twilioClient.video.v1.rooms.create({
+        return await this.twilioClient.video.v1.rooms.create({
           uniqueName: roomName,
           type: 'group',
+          emptyRoomTimeout: 1,
+          recordParticipantsOnConnect: true,
         })
       } else {
         // let other errors bubble up
@@ -56,24 +58,5 @@ export default class TwilioManager {
     console.log('Handed out a token!')
     // serialize the token and return it
     return token.toJwt()
-  }
-
-  public setupPostRoute(app: Express): void {
-    // For this next line, I have no idea how to get this to work with the type system. Feel free to change it if you know a way.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    app.post('/join-room', async (req: any, res: any) => {
-      // return 400 if the request has an empty body or no roomName
-      if (!req.body || !req.body.roomName) {
-        return res.status(400).send('Must include roomName argument.')
-      }
-      const roomName = req.body.roomName
-      // find or create a room with the given roomName
-      this.findOrCreateRoom(roomName)
-      // generate an Access Token for a participant in this room
-      const token = this.getAccessToken(roomName)
-      res.send({
-        token: token,
-      })
-    })
   }
 }

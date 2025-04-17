@@ -17,7 +17,6 @@ export default class CallCenter {
   private readonly activeLawyers: Set<UserSocket>
   private readonly memberToRoomMapping: Map<UserSocket, ActiveRoom>
   private readonly timeoutFrame: number = 5000
-  private roomNameCounter: number = 0
   private readonly userIdToSocket: Map<string, UserSocket> = new Map()
   private readonly userIdToRoom: Map<string, ActiveRoom> = new Map()
 
@@ -32,7 +31,20 @@ export default class CallCenter {
 
   public async connectClient(client: UserSocket): Promise<boolean> {
     if (this.waitingParalegals.length === 0) return false
-    const roomName = `room${this.roomNameCounter++}`
+    const room = new ActiveRoom(this.twilioManager)
+    try {
+      await room.setup()
+    } catch (error) {
+      console.log(
+        `There was a problem setting up a new room: ${
+          error instanceof Error
+            ? `${(error as Error).name}: ${(error as Error).message}`
+            : error.toString()
+        }`,
+      )
+      return false
+    }
+    const roomName = room.roomName
     const paralegal = this.waitingParalegals.shift()
     console.log(`Removed a paralegal from queue, new length: ${this.waitingParalegals.length}`)
 
@@ -50,8 +62,8 @@ export default class CallCenter {
               .timeout(this.timeoutFrame)
               .emitWithAck('sendToRoom', { token: clientToken, roomName })
             this.activeParalegals.add(paralegal)
-            const participants = [client, paralegal]
-            const room: ActiveRoom = { roomName: roomName, participants: participants }
+            room.addConnectedParticipant(client)
+            room.addConnectedParticipant(paralegal)
             this.memberToRoomMapping.set(client, room)
             this.memberToRoomMapping.set(paralegal, room)
             return true
@@ -103,7 +115,7 @@ export default class CallCenter {
       const roomEnter = await lawyerToRoom()
       if (roomEnter) {
         this.activeLawyers.add(lawyer)
-        room.participants.push(lawyer)
+        room.addConnectedParticipant(lawyer)
         this.memberToRoomMapping.set(lawyer, room)
         return true
       } else if (attempt === 0) {
@@ -161,8 +173,7 @@ export default class CallCenter {
       console.log(`WARNING: Hang up attempt from member who is not in a room {${user.id}}`)
       return
     }
-    room.participants.forEach(participant => {
-      participant.emit('endCall')
+    room.endCall().forEach(participant => {
       if (this.activeParalegals.has(participant)) {
         this.activeParalegals.delete(participant)
         this.enqueueParalegal(participant)
