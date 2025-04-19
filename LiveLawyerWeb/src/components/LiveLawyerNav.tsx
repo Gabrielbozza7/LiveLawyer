@@ -14,6 +14,9 @@ export default function LiveLawyerNav() {
           <Nav.Link as={Link} href={'/account'}>
             Account
           </Nav.Link>
+          <Nav.Link as={Link} href={'/history'}>
+            History
+          </Nav.Link>
         </Nav>
       </Navbar.Collapse>
     </Navbar>

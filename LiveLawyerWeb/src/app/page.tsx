@@ -2,6 +2,8 @@
 import 'bootstrap/dist/css/bootstrap.min.css'
 import LiveLawyerNav from '@/components/LiveLawyerNav'
 import { Card, Container } from 'react-bootstrap'
+import Image from 'next/image'
+import mainCallImage from '@/assets/images/main-call-image.jpeg'
 
 export default function App() {
   return (
@@ -13,6 +15,8 @@ export default function App() {
           <Card.Header>Live Lawyer Web</Card.Header>
           <Card.Body>
             <Card.Title>This is the base page.</Card.Title>
+            <Image src={mainCallImage} alt="Main Call" layout="intrinsic" />
+
             <Card.Text>Yeah.</Card.Text>
           </Card.Body>
         </Card>
