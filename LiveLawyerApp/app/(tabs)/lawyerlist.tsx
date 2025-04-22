@@ -1,8 +1,9 @@
 import { Styles } from '@/constants/Styles'
 import React, { useState, useEffect } from 'react'
-import { FlatList, Text, TouchableOpacity, View } from 'react-native'
+import { Alert, FlatList, Text, TouchableOpacity, Platform, Linking } from 'react-native'
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context'
 import LawyerInfo from '../lawyer_info/lawyer_info'
+import * as Location from 'expo-location'
 
 type ItemData = {
   id: string
@@ -46,13 +47,14 @@ export function getBackendVariables(): [ip: string, port: string] {
 
 export default function LawyerView() {
   const [lawyer, setLawyer] = useState<ItemData | null>(null)
-  const [users, setUsers] = useState<User[]>([])
+  const [, setUsers] = useState<User[]>([])
+  const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(null)
 
   useEffect(() => {
     async function getDB() {
       try {
         const response = await fetch(`http://${BACKEND_IP}:${BACKEND_PORT}/users`, {
-          method: 'GET'
+          method: 'GET',
         })
         if (!response.ok) {
           throw new Error(`Failed to fetch: ${response.status} ${response.statusText}`)
@@ -67,6 +69,18 @@ export default function LawyerView() {
       }
     }
 
+    const getLocation = async () => {
+      const { status } = await Location.getForegroundPermissionsAsync()
+      if (status === 'granted') {
+        const loc = await Location.getCurrentPositionAsync({})
+        console.log(`lat: ${loc.coords.latitude}, lon: ${loc.coords.longitude}`)
+        setCoords({ lat: loc.coords.latitude, lon: loc.coords.longitude })
+      } else {
+        console.log('Permission not granted')
+      }
+    }
+
+    getLocation()
     getDB()
   }, [])
 
@@ -81,8 +95,36 @@ export default function LawyerView() {
     </TouchableOpacity>
   )
 
+  const openMapWithQuery = (query: string) => {
+    const encodedQuery = encodeURIComponent(query)
+    const url = Platform.select({
+      ios: `http://maps.apple.com/?q=${encodedQuery}`,
+      android: `geo:0,0?q=${encodedQuery}`,
+    })
+    if (url) {
+      Linking.openURL(url).catch(err => console.error('An error occurred ', err))
+    }
+  }
+  /*
+    Fetches Coordinates
+
+    // In the future use the coordinates to map to nearest lawyer that is part of livelawyer
+  
+  */
+  const showCoordinatesAlert = () => {
+    if (coords) {
+      Alert.alert(`Latitude: ${coords.lat}\nLongitude: ${coords.lon}`)
+      openMapWithQuery(`Lawyers near me`)
+    } else {
+      Alert.alert('Coordinates not available')
+    }
+  }
+
   return (
     <SafeAreaProvider>
+      <TouchableOpacity onPress={showCoordinatesAlert} style={Styles.localLawyerButton}>
+        <Text style={Styles.localText}>Local Lawfirms</Text>
+      </TouchableOpacity>
       {lawyer ? (
         <LawyerInfo onPressBack={() => setLawyer(null)} lawyer={lawyer}></LawyerInfo>
       ) : (

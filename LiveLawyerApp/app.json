@@ -34,6 +34,12 @@
     },
     "plugins": [
       [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
+        }
+      ],
+      [
         "react-native-twilio-video-webrtc",
         {
           "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
