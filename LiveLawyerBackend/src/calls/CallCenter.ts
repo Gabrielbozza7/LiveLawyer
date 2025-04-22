@@ -173,17 +173,19 @@ export default class CallCenter {
       console.log(`WARNING: Hang up attempt from member who is not in a room {${user.id}}`)
       return
     }
-    room.endCall().forEach(participant => {
-      if (this.activeParalegals.has(participant)) {
-        this.activeParalegals.delete(participant)
-        this.enqueueParalegal(participant)
-      }
-      if (this.activeLawyers.has(participant)) {
-        this.activeLawyers.delete(participant)
-        this.enqueueLawyer(participant)
-      }
-      this.memberToRoomMapping.delete(participant)
-    })
+    ;(async () => {
+      ;(await room.endCall()).forEach(participant => {
+        if (this.activeParalegals.has(participant)) {
+          this.activeParalegals.delete(participant)
+          this.enqueueParalegal(participant)
+        }
+        if (this.activeLawyers.has(participant)) {
+          this.activeLawyers.delete(participant)
+          this.enqueueLawyer(participant)
+        }
+        this.memberToRoomMapping.delete(participant)
+      })
+    })()
   }
 
   public getRoomByUserId(userId: string): ActiveRoom | undefined {
