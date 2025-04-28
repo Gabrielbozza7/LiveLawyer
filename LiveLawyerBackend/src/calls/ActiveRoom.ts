@@ -93,15 +93,8 @@ export default class ActiveRoom {
     // First, deal with inserting recordings into database:
     console.log(`Final length of recordings for ${this._roomName}: ${this._room.recordings.length}`)
     this._room.recordings().each(recording => {
-      console.log(
-        'Identified recorded track:\n' +
-          `\tRoom SID: ${recording.roomSid}\n` +
-          `\tSID: ${recording.sid}\n` +
-          `\tType: ${recording.type}\n` +
-          `\tTrack Name: ${recording.trackName}\n` +
-          `\tDate: ${recording.dateCreated.toString()}\n` +
-          `\tURL: ${recording.url}`,
-      )
+      console.log(`Identified recorded track with SID of ${recording.sid}`)
+      this._twilioManager.recordingProcessor.downloadRecording(recording)
     })
     return removedParticipants
   }

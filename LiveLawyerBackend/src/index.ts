@@ -1,3 +1,4 @@
+import fs from 'fs'
 import express from 'express'
 import cors from 'cors'
 import { createServer } from 'node:http'
@@ -13,6 +14,7 @@ import {
   ServerToClientEvents,
 } from 'livelawyerlibrary/SocketEventDefinitions'
 import { BACKEND_IP, BACKEND_PORT, BACKEND_URL } from 'livelawyerlibrary'
+import { RECORDING_DIR_NAME } from './RecordingProcessor'
 
 const app = express()
 const httpServer = createServer(app)
@@ -25,6 +27,10 @@ const io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
 })
 const twilioManager: TwilioManager = new TwilioManager()
 const callCenter: CallCenter = new CallCenter(twilioManager)
+
+if (!fs.existsSync(RECORDING_DIR_NAME)) {
+  fs.mkdirSync(RECORDING_DIR_NAME)
+}
 
 app.use(cors())
 app.use(express.json())
