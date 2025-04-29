@@ -67,9 +67,29 @@ export default function TwilioParticipant({ participant, room }: TwilioVideoPart
   }, [trackUpdateFlag])
 
   return (
-    <div style={{ borderStyle: 'solid', borderColor: 'blue', margin: 5 }}>
+    <div
+      style={{
+        width: 360,
+        height: 640,
+        overflow: 'hidden',
+        position: 'relative',
+        border: '2px solid blue',
+        margin: 5,
+      }}
+    >
       {renderTracks.map(track => (
-        <TwilioTrack key={track.kind} track={track} />
+        <div
+          key={track.kind}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            height: '100%',
+          }}
+        >
+          <TwilioTrack track={track} />
+        </div>
       ))}
     </div>
   )
