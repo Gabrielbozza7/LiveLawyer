@@ -4,6 +4,7 @@ import { Alert, FlatList, Text, TouchableOpacity, Platform, Linking } from 'reac
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context'
 import LawyerInfo from '../lawyer_info/lawyer_info'
 import * as Location from 'expo-location'
+import { setCoordinates } from '@/components/locationStore'
 
 type ItemData = {
   id: string
@@ -75,6 +76,7 @@ export default function LawyerView() {
         const loc = await Location.getCurrentPositionAsync({})
         console.log(`lat: ${loc.coords.latitude}, lon: ${loc.coords.longitude}`)
         setCoords({ lat: loc.coords.latitude, lon: loc.coords.longitude })
+        setCoordinates({ lat: loc.coords.latitude, lon: loc.coords.longitude })
       } else {
         console.log('Permission not granted')
       }
