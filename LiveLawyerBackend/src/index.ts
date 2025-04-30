@@ -1,3 +1,4 @@
+import fs from 'fs'
 import express from 'express'
 import cors from 'cors'
 import { createServer } from 'node:http'
@@ -13,6 +14,7 @@ import {
   ServerToClientEvents,
 } from 'livelawyerlibrary/SocketEventDefinitions'
 import { BACKEND_IP, BACKEND_PORT, BACKEND_URL } from 'livelawyerlibrary'
+import { RECORDING_DIR_NAME } from './RecordingProcessor'
 
 const app = express()
 const httpServer = createServer(app)
@@ -26,9 +28,12 @@ const io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
 const twilioManager: TwilioManager = new TwilioManager()
 const callCenter: CallCenter = new CallCenter(twilioManager)
 
+if (!fs.existsSync(RECORDING_DIR_NAME)) {
+  fs.mkdirSync(RECORDING_DIR_NAME)
+}
+
 app.use(cors())
 app.use(express.json())
-twilioManager.setupPostRoute(app)
 
 app.get('/test', async (req, res) => {
   res.status(200).json({ it: 'works' })
@@ -84,7 +89,7 @@ io.on('connection', socket => {
     const token = twilioManager.getAccessToken(room.roomName)
     try {
       await socket.timeout(5000).emitWithAck('sendToRoom', { token, roomName: room.roomName })
-      room.participants.push(socket)
+      room.addConnectedParticipant(socket)
       callback(true)
       console.log(`User ${userId} successfully rejoined room ${room.roomName}`)
     } catch (err) {

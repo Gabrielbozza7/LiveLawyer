@@ -12,6 +12,8 @@ import {
   ServerToClientEvents,
 } from 'livelawyerlibrary/SocketEventDefinitions'
 
+let socket: Socket<ServerToClientEvents, ClientToServerEvents>
+
 export function Call({ backendUrl }: { backendUrl: string }) {
   const [videoRoom] = useState<TwilioVideoRoom>(new TwilioVideoRoom())
   const [participants, setParticipants] = useState<Participant[]>([])
@@ -19,7 +21,6 @@ export function Call({ backendUrl }: { backendUrl: string }) {
   const [isLawyer, setIsLawyer] = useState<boolean>(false)
   const [showToastNoLawyers, setShowToastNoLawyers] = useState<boolean>(false)
   const [hasLawyerInCall, setHasLawyerInCall] = useState<boolean>(false)
-  const [socket] = useState<Socket<ServerToClientEvents, ClientToServerEvents>>(io(backendUrl))
 
   useEffect(() => {
     const onSendToRoom = async (
@@ -46,6 +47,7 @@ export function Call({ backendUrl }: { backendUrl: string }) {
       setParticipants([])
     }
 
+    socket = io(backendUrl)
     socket.on('sendToRoom', onSendToRoom)
     socket.on('endCall', onEndCall)
 

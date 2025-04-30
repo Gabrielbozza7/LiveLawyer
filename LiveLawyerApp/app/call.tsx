@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { Button, View, Text, Alert } from 'react-native'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
+import { supabase } from './lib/supabase'
 
 export default function Call() {
   const router = useRouter()
@@ -35,7 +36,7 @@ export default function Call() {
       // only runs for initialization even with strict mode
       setInCall(false)
       ;(async (): Promise<void> => {
-        const isParalegalAvailable = await socket.emitWithAck('joinAsClient', { userId: '12345' })
+        const isParalegalAvailable = await socket.emitWithAck('joinAsClient', { userId: userId })
         if (!isParalegalAvailable) {
           Alert.alert('There are no paralegals currently available to take your call.')
           router.back()
@@ -52,6 +53,18 @@ export default function Call() {
   const hangUp = () => {
     socket.emit('hangUp')
   }
+
+  // Get User ID
+  var userId: string
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        userId = user?.id
+      } else {
+        userId = ''
+      }
+    })
+  }, [])
 
   return (
     <View style={Styles.videoContainer}>
