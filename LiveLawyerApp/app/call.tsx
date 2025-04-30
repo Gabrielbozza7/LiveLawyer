@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { Button, View, Text, Alert } from 'react-native'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { getCoordinates } from '@/components/locationStore'
+import { supabase } from './lib/supabase'
 export default function Call() {
   const coords = getCoordinates()
   const router = useRouter()
@@ -56,6 +57,19 @@ export default function Call() {
   const hangUp = () => {
     socket.emit('hangUp')
   }
+
+  // Get User ID
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  var userId: string
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        userId = user?.id
+      } else {
+        userId = ''
+      }
+    })
+  }, [])
 
   return (
     <View style={Styles.videoContainer}>

@@ -1,6 +1,8 @@
 import fs from 'fs/promises'
 import path from 'path'
 import { RoomRecordingInstance } from 'twilio/lib/rest/video/v1/room/roomRecording'
+import { supabase } from './database/supabase'
+import dotenv from 'dotenv'
 
 export const RECORDING_DIR_NAME = path.resolve('.', 'temp-recordings')
 
@@ -99,14 +101,40 @@ export default class RecordingProcessor {
   }
 
   private async _processUploadQueue() {
+    //Log in Backend account
+    await this._supabaseLogin
     while (this._uploadQueue.length > 0) {
       let uploadInfo = this._uploadQueue.shift()
-      console.log(
-        `Placeholder for Dan's upload procedure on recording with SID of ${uploadInfo.metadataBeforeDelete.sid}`,
-      )
+      //Upload call to bucket
+      const { data, error } = await supabase.storage
+        .from('call-recordings')
+        .upload(
+          `${uploadInfo.metadataBeforeDelete.roomSid}/${uploadInfo.metadataBeforeDelete.sid}.${uploadInfo.metadataBeforeDelete.containerFormat}`,
+          uploadInfo.recordedTrackBuffer,
+        )
+      if (error) {
+        console.log(error)
+      } else {
+        console.log(data)
+        //TODO: Delete video from local machine. Only if no error uploading.
+        const destination = path.resolve(
+          RECORDING_DIR_NAME,
+          `${uploadInfo.metadataBeforeDelete.sid}.${uploadInfo.metadataBeforeDelete.containerFormat}`,
+        )
+        fs.unlink(destination)
+      }
       console.log(
         `Note that the recording was deleted from Twilio, but this is its visible status: ${uploadInfo.metadataBeforeDelete.status}`,
       )
     }
+  }
+
+  private async _supabaseLogin() {
+    dotenv.config()
+    const { error } = await supabase.auth.signInWithPassword({
+      email: process.env.DATABASE_USER,
+      password: process.env.DATABASE_PASSWORD,
+    })
+    if (error) console.error(error.message)
   }
 }

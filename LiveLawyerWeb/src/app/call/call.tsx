@@ -37,6 +37,7 @@ export function Call({ backendUrl }: { backendUrl: string }) {
         callback(true)
       } catch (err) {
         console.log('Error joining room:', err)
+        alert('Unable to access webcam. Please check your browser settings and permissions.')
         callback(false)
       }
     }

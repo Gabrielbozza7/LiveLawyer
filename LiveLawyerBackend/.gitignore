@@ -19,3 +19,6 @@ yarn-error.*
 
 # credentials and such
 *.env
+
+# video/audio recordings
+temp-recordings/
