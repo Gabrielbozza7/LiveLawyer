@@ -26,7 +26,7 @@ export default function Resources() {
       Alert.alert('Failed to log out.', error.message)
     }
   }
-  const userId = JSON.stringify(user, ['id'])
+  const userId = user?.id
   return (
     <SafeAreaProvider>
       <SafeAreaView style={Styles.LawyerInfoContainer}>

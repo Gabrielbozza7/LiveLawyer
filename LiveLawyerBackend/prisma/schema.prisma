@@ -38,6 +38,42 @@ model Contact {
   @@schema("public")
 }
 
+model CallMetadata {
+  id          String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  clientId    String       @db.Uuid
+  paralegalId String       @db.Uuid
+  lawyerId    String?      @db.Uuid
+  twilioRoom  String
+  twilioSid   String
+  startTime   DateTime     @default(now()) // Assuming the row is created when the call is started
+  CallEvents  CallEvents[]
+  Recordings  Recordings[]
+
+  @@schema("public")
+}
+
+model CallEvents {
+  callId       String       @id @db.Uuid
+  userId       String       @db.Uuid
+  time         DateTime     @default(now()) // Row would be created when the event occurs
+  action       String // Could be an enumerated type if it's a better fit
+  callMetadata CallMetadata @relation(fields: [callId], references: [id])
+
+  @@schema("public")
+}
+
+model Recordings {
+  callId       String       @id @db.Uuid
+  clientId     String       @db.Uuid
+  lawyerId     String       @db.Uuid // Lawyer might need access to video.
+  startTime    DateTime     @default(now()) // Assuming the row is created when the call is started
+  trackType    TrackType
+  s3Ref        String
+  callMetadata CallMetadata @relation(fields: [callId], references: [id]) //Foreign key relation
+
+  @@schema("public")
+}
+
 /// We could not retrieve columns for the underlying table. Either it has none or you are missing rights to see them. Please check your privileges.
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -166,6 +202,13 @@ model Lawyer {
   phoneNum    String
   email       String  @unique
   picUrl      String?
+
+  @@schema("public")
+}
+
+enum TrackType {
+  Audio
+  Video
 
   @@schema("public")
 }
