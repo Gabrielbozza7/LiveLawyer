@@ -38,38 +38,14 @@ model Contact {
   @@schema("public")
 }
 
-model CallMetadata {
-  id          String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  clientId    String       @db.Uuid
-  paralegalId String       @db.Uuid
-  lawyerId    String?      @db.Uuid
-  twilioRoom  String
-  twilioSid   String
-  startTime   DateTime     @default(now()) // Assuming the row is created when the call is started
-  CallEvents  CallEvents[]
-  Recordings  Recordings[]
-
-  @@schema("public")
-}
-
-model CallEvents {
-  callId       String       @id @db.Uuid
-  userId       String       @db.Uuid
-  time         DateTime     @default(now()) // Row would be created when the event occurs
-  action       String // Could be an enumerated type if it's a better fit
-  callMetadata CallMetadata @relation(fields: [callId], references: [id])
-
-  @@schema("public")
-}
-
-model Recordings {
-  callId       String       @id @db.Uuid
-  clientId     String       @db.Uuid
-  lawyerId     String       @db.Uuid // Lawyer might need access to video.
-  startTime    DateTime     @default(now()) // Assuming the row is created when the call is started
-  trackType    TrackType
-  s3Ref        String
-  callMetadata CallMetadata @relation(fields: [callId], references: [id]) //Foreign key relation
+model Lawyer {
+  id          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String
+  description String?
+  address     String
+  phoneNum    String
+  email       String  @unique
+  picUrl      String?
 
   @@schema("public")
 }
@@ -193,25 +169,6 @@ model Recordings {
 // model users {
 // @@schema("auth")
 // }
-
-model Lawyer {
-  id          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name        String
-  description String?
-  address     String
-  phoneNum    String
-  email       String  @unique
-  picUrl      String?
-
-  @@schema("public")
-}
-
-enum TrackType {
-  Audio
-  Video
-
-  @@schema("public")
-}
 
 enum UserType {
   Paralegal

@@ -92,6 +92,44 @@ export const Styles = StyleSheet.create({
     color: Colors.blue,
     textDecorationLine: 'underline',
   },
+  // PROFILE PAGE STYLES
+  profPageContainer: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: Colors.containerBackground,
+  },
+  profPageTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: Colors.black,
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  profItemText: {
+    fontSize: 18,
+    marginBottom: 12,
+    paddingHorizontal: 10,
+    color: Colors.black,
+  },
+  profInput: {
+    height: 48,
+    borderColor: Colors.gray,
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    backgroundColor: Colors.white,
+    marginBottom: 16,
+    fontSize: 16,
+  },
+  profButtonGroup: {
+    marginTop: 20,
+    gap: 12,
+  },
+  profEditButton: {
+    marginTop: 20,
+    width: '50%',
+    alignSelf: 'center',
+  },
   videoContainer: {
     flex: 1,
     backgroundColor: Colors.black,
