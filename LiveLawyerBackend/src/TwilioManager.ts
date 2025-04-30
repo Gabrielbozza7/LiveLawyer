@@ -12,6 +12,7 @@ const VideoGrant = AccessToken.VideoGrant
 export default class TwilioManager {
   private readonly _twilioClient: Twilio
   private readonly _recordingProcessor: RecordingProcessor
+  private readonly _twilioPhoneNumber: string
 
   constructor() {
     dotenv.config()
@@ -23,10 +24,34 @@ export default class TwilioManager {
     ).toString('base64')}`
     console.log(twilioAuthHeader)
     this._recordingProcessor = new RecordingProcessor(twilioAuthHeader)
+    this._twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER
   }
 
   public get recordingProcessor() {
     return this._recordingProcessor
+  }
+
+  public async notifyEmergencyContact(
+    clientName: string,
+    emergencyContact: string,
+    lat: number,
+    lon: number,
+  ) {
+    const link = `https://www.google.com/maps?q=${lat},${lon}`
+    try {
+      const message = await this._twilioClient.messages.create({
+        body: `Hello from livelawyer, ${clientName} has been pulled over, view their location here ${link}`,
+        from: this._twilioPhoneNumber,
+        to: emergencyContact,
+      })
+      console.log(
+        `Client ${clientName}, pinged on ${message.dateSent}\nwith message: \n ${message.body}`,
+      )
+    } catch {
+      console.log(
+        `======= MESSAGE NOT SENT =======\nHello from livelawyer, ${clientName} has been pulled over, view their location here ${link}`,
+      )
+    }
   }
 
   public async findOrCreateRoom(roomName: string): Promise<RoomInstance> {
@@ -49,7 +74,6 @@ export default class TwilioManager {
       }
     }
   }
-
   public getAccessToken(roomName: string): string {
     // create an access token
     const token = new AccessToken(

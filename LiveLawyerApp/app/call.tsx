@@ -5,8 +5,9 @@ import { useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { Button, View, Text, Alert } from 'react-native'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
-
+import { getCoordinates } from '@/components/locationStore'
 export default function Call() {
+  const coords = getCoordinates()
   const router = useRouter()
   const [inCall, setInCall] = useState<boolean | null>(null)
   const [token, setToken] = useState<string>('')
@@ -35,7 +36,10 @@ export default function Call() {
       // only runs for initialization even with strict mode
       setInCall(false)
       ;(async (): Promise<void> => {
-        const isParalegalAvailable = await socket.emitWithAck('joinAsClient', { userId: '12345' })
+        const isParalegalAvailable = await socket.emitWithAck('joinAsClient', {
+          userId: '12345',
+          coordinates: coords,
+        })
         if (!isParalegalAvailable) {
           Alert.alert('There are no paralegals currently available to take your call.')
           router.back()

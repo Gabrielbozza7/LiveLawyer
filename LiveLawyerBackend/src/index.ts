@@ -43,7 +43,7 @@ io.on('connection', socket => {
   console.log(`User connected to socket: {${socket.id}}`)
   socket.on('joinAsClient', async (payload, callback) => {
     console.log(`Received joinAsClient event: {${socket.id}}`)
-    const isParalegalAvailable = await callCenter.connectClient(socket)
+    const isParalegalAvailable = await callCenter.connectClient(socket, payload)
     console.log(`Paralegal Available event: {${socket.id}}`)
     callback(isParalegalAvailable)
   })

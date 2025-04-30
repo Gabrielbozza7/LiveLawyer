@@ -2,7 +2,7 @@ export type UserType = 'CLIENT' | 'PARALEGAL' | 'LAWYER'
 
 export interface ClientToServerEvents {
   joinAsClient: (
-    payload: { userId: string },
+    payload: { userId: string; coordinates: { lat: number; lon: number } | null },
     callback: (isParalegalAvailable: boolean) => void,
   ) => void // for when the client is making a call
   joinAsParalegal: (
