@@ -20,7 +20,7 @@ export default class CallCenter {
   private readonly userIdToSocket: Map<string, UserSocket> = new Map()
   private readonly userIdToRoom: Map<string, ActiveRoom> = new Map()
 
-  private readonly emergencyContatList = ['2015544138']
+  private readonly emergencyContatList = ['5554443210']
 
   constructor(twilioManager: TwilioManager) {
     this.twilioManager = twilioManager
