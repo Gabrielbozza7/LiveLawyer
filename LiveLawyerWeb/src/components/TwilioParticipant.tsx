@@ -65,6 +65,8 @@ export default function TwilioParticipant({ participant, room }: TwilioVideoPart
     setRenderTracks([...tracks])
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [trackUpdateFlag])
+  // const getRoleFromIdentity = (identity: string) => identity.split('###')[0]
+  // const displayRole = getRoleFromIdentity(participant.identity)
 
   return (
     <div
@@ -77,6 +79,7 @@ export default function TwilioParticipant({ participant, room }: TwilioVideoPart
         margin: 5,
       }}
     >
+      {/* <div style={{ fontWeight: 'bold', marginBottom: 5 }}>{displayRole}</div> */}
       {renderTracks.map(track => (
         <div
           key={track.kind}
