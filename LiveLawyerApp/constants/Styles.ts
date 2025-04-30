@@ -99,14 +99,21 @@ export const Styles = StyleSheet.create({
     backgroundColor: Colors.containerBackground,
   },
   profPageTitle: {
-    fontSize: 28,
+    fontSize: 40,
     fontWeight: 'bold',
     color: Colors.black,
     marginBottom: 24,
     textAlign: 'center',
   },
   profItemText: {
-    fontSize: 18,
+    fontSize: 30,
+    marginBottom: 12,
+    paddingHorizontal: 10,
+    color: Colors.black,
+    textDecorationLine: 'underline',
+  },
+  profDisplay: {
+    fontSize: 40,
     marginBottom: 12,
     paddingHorizontal: 10,
     color: Colors.black,

@@ -111,9 +111,16 @@ export default function Profile() {
         </>
       ) : (
         <>
-          <Text style={Styles.profItemText}>First Name: {userInfo.firstName}</Text>
-          <Text style={Styles.profItemText}>Last Name: {userInfo.lastName}</Text>
-          <Text style={Styles.profItemText}>Phone: {userInfo.phoneNum}</Text>
+          <View style={Styles.profItemText}>
+            <Text style={Styles.profItemText}>Name:</Text>
+            <Text style={Styles.profDisplay}>
+              {userInfo.firstName} {userInfo.lastName}
+            </Text>
+          </View>
+          <View style={Styles.profItemText}>
+            <Text style={Styles.profItemText}>Phone:</Text>
+            <Text style={Styles.profDisplay}>{userInfo.phoneNum}</Text>
+          </View>
           <View style={Styles.profEditButton}>
             <Button title="Edit Profile" onPress={() => setEditing(true)} />
           </View>
