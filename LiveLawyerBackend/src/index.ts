@@ -13,7 +13,7 @@ import {
   ClientToServerEvents,
   ServerToClientEvents,
 } from 'livelawyerlibrary/SocketEventDefinitions'
-import { BACKEND_IP, BACKEND_PORT, BACKEND_URL } from 'livelawyerlibrary'
+import { BACKEND_IP, BACKEND_PORT, BACKEND_URL } from 'livelawyerlibrary/env'
 import { RECORDING_DIR_NAME } from './RecordingProcessor'
 
 const app = express()
