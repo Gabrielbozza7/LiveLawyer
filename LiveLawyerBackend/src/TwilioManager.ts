@@ -4,9 +4,9 @@ import dotenv from 'dotenv'
 import { resolve } from 'path'
 import twilio, { Twilio, jwt } from 'twilio'
 import { RoomInstance } from 'twilio/lib/rest/video/v1/room'
-import { v4 as uuidv4 } from 'uuid'
 import RecordingProcessor from './RecordingProcessor'
 import { defaultEnvironmentVariableWithWarning } from 'livelawyerlibrary'
+import { UserType } from 'livelawyerlibrary/SocketEventDefinitions'
 
 const AccessToken = jwt.AccessToken
 const VideoGrant = AccessToken.VideoGrant
@@ -84,13 +84,13 @@ export default class TwilioManager {
     }
   }
 
-  public getAccessToken(roomName: string): string {
+  public getAccessToken(roomName: string, userType: UserType, userId: string): string {
     // Creating an access token and room-specific video grant:
     const token = new AccessToken(this._accountSid, this._apiKeySid, this._apiKeySecret, {
-      identity: uuidv4(),
+      identity: `${userType} ${userId}`,
     })
     token.addGrant(new VideoGrant({ room: roomName }))
-    console.log('Handed out a token!')
+    console.log(`Created token for user with ID ${userId} for ${roomName}!`)
 
     // Returning that access token as a JWT:
     return token.toJwt()

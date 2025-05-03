@@ -19,7 +19,7 @@ export function Call({ backendUrl }: { backendUrl: string }) {
   const [participants, setParticipants] = useState<Participant[]>([])
   const [inQueueOrCall, setInQueueOrCall] = useState<boolean>(false)
   const [isLawyer, setIsLawyer] = useState<boolean>(false)
-  const [showToastNoLawyers, setShowToastNoLawyers] = useState<boolean>(false)
+  const [showToast, setShowToast] = useState<string | null>(null)
   const [hasLawyerInCall, setHasLawyerInCall] = useState<boolean>(false)
 
   useEffect(() => {
@@ -96,24 +96,12 @@ export function Call({ backendUrl }: { backendUrl: string }) {
                 if (isLawyerAvailable) {
                   setHasLawyerInCall(true)
                 } else {
-                  setShowToastNoLawyers(true)
+                  setShowToast('There are currently no lawyers available!')
                 }
               }}
             >
               Summon Lawyer
             </Button>
-            <Toast
-              bg="danger"
-              onClose={() => setShowToastNoLawyers(false)}
-              show={showToastNoLawyers}
-              delay={2500}
-              autohide
-            >
-              <Toast.Header>
-                <strong className="me-auto">Error</strong>
-              </Toast.Header>
-              <Toast.Body>There are currently no lawyers available!</Toast.Body>
-            </Toast>
           </div>
         ) : (
           <Card>
@@ -145,9 +133,14 @@ export function Call({ backendUrl }: { backendUrl: string }) {
                   onClick={async () => {
                     const queuedUserType = await socket.emitWithAck('joinAsParalegal', {
                       userId: '12345',
+                      userSecret: 'abc', // temporary
                     })
-                    setIsLawyer(queuedUserType === 'LAWYER')
-                    setInQueueOrCall(true)
+                    if (queuedUserType === 'INVALID_AUTH') {
+                      setShowToast('Your credentials are invalid!')
+                    } else {
+                      setIsLawyer(queuedUserType === 'LAWYER')
+                      setInQueueOrCall(true)
+                    }
                   }}
                 >
                   Join Queue as Paralegal
@@ -158,9 +151,14 @@ export function Call({ backendUrl }: { backendUrl: string }) {
                   onClick={async () => {
                     const queuedUserType = await socket.emitWithAck('joinAsLawyer', {
                       userId: '12345',
+                      userSecret: '', // temporary
                     })
-                    setIsLawyer(queuedUserType === 'LAWYER')
-                    setInQueueOrCall(true)
+                    if (queuedUserType === 'INVALID_AUTH') {
+                      setShowToast('Your credentials are invalid!')
+                    } else {
+                      setIsLawyer(queuedUserType === 'LAWYER')
+                      setInQueueOrCall(true)
+                    }
                   }}
                 >
                   Join Queue as Lawyer
@@ -169,6 +167,18 @@ export function Call({ backendUrl }: { backendUrl: string }) {
             )}
           </Card>
         )}
+        <Toast
+          bg="danger"
+          onClose={() => setShowToast(null)}
+          show={showToast !== null}
+          delay={2500}
+          autohide
+        >
+          <Toast.Header>
+            <strong className="me-auto">Error</strong>
+          </Toast.Header>
+          <Toast.Body>{showToast}</Toast.Body>
+        </Toast>
       </Container>
     </div>
   )
