@@ -1,15 +1,11 @@
-import { DefaultEventsMap, Socket } from 'socket.io'
 import TwilioManager from '../TwilioManager'
 import ActiveRoom from './ActiveRoom'
-import {
-  ClientToServerEvents,
-  ServerToClientEvents,
-  UserType,
-} from 'livelawyerlibrary/SocketEventDefinitions'
-
-type UserSocket = Socket<ClientToServerEvents, ServerToClientEvents, DefaultEventsMap, unknown>
+import { UserType } from 'livelawyerlibrary/SocketEventDefinitions'
+import { UserSocket } from '../ServerTypes'
+import IdentityMap from '../IdentityMap'
 
 export default class CallCenter {
+  private readonly _identityMap: IdentityMap
   private readonly twilioManager: TwilioManager
   private readonly waitingParalegals: UserSocket[]
   private readonly waitingLawyers: UserSocket[]
@@ -17,11 +13,10 @@ export default class CallCenter {
   private readonly activeLawyers: Set<UserSocket>
   private readonly memberToRoomMapping: Map<UserSocket, ActiveRoom>
   private readonly timeoutFrame: number = 5000
-  private roomNameCounter: number = 0
-  private readonly userIdToSocket: Map<string, UserSocket> = new Map()
   private readonly userIdToRoom: Map<string, ActiveRoom> = new Map()
 
-  constructor(twilioManager: TwilioManager) {
+  constructor(twilioManager: TwilioManager, identityMap: IdentityMap) {
+    this._identityMap = identityMap
     this.twilioManager = twilioManager
     this.waitingParalegals = []
     this.waitingLawyers = []
@@ -32,12 +27,33 @@ export default class CallCenter {
 
   public async connectClient(client: UserSocket): Promise<boolean> {
     if (this.waitingParalegals.length === 0) return false
-    const roomName = `room${this.roomNameCounter++}`
+    const room = new ActiveRoom(this.twilioManager)
+    try {
+      await room.setup()
+    } catch (error) {
+      console.log(
+        `There was a problem setting up a new room: ${
+          error instanceof Error
+            ? `${(error as Error).name}: ${(error as Error).message}`
+            : error.toString()
+        }`,
+      )
+      return false
+    }
+    const roomName = room.roomName
     const paralegal = this.waitingParalegals.shift()
     console.log(`Removed a paralegal from queue, new length: ${this.waitingParalegals.length}`)
 
-    const clientToken = this.twilioManager.getAccessToken(roomName)
-    const paralegalToken = this.twilioManager.getAccessToken(roomName)
+    const clientToken = this.twilioManager.getAccessToken(
+      roomName,
+      'CLIENT',
+      this._identityMap.userIdOf(client),
+    )
+    const paralegalToken = this.twilioManager.getAccessToken(
+      roomName,
+      'PARALEGAL',
+      this._identityMap.userIdOf(paralegal),
+    )
     for (let i = 0; i < 2; i++) {
       try {
         await paralegal
@@ -50,8 +66,8 @@ export default class CallCenter {
               .timeout(this.timeoutFrame)
               .emitWithAck('sendToRoom', { token: clientToken, roomName })
             this.activeParalegals.add(paralegal)
-            const participants = [client, paralegal]
-            const room: ActiveRoom = { roomName: roomName, participants: participants }
+            room.addConnectedParticipant(client)
+            room.addConnectedParticipant(paralegal)
             this.memberToRoomMapping.set(client, room)
             this.memberToRoomMapping.set(paralegal, room)
             return true
@@ -85,7 +101,11 @@ export default class CallCenter {
     }
     const lawyer = this.waitingLawyers.shift()
     console.log(`Removed a lawyer from queue, new length: ${this.waitingLawyers.length}`)
-    const lawyerToken = this.twilioManager.getAccessToken(room.roomName)
+    const lawyerToken = this.twilioManager.getAccessToken(
+      room.roomName,
+      'LAWYER',
+      this._identityMap.userIdOf(lawyer),
+    )
     const lawyerToRoom = async (): Promise<boolean> => {
       try {
         await lawyer
@@ -103,7 +123,7 @@ export default class CallCenter {
       const roomEnter = await lawyerToRoom()
       if (roomEnter) {
         this.activeLawyers.add(lawyer)
-        room.participants.push(lawyer)
+        room.addConnectedParticipant(lawyer)
         this.memberToRoomMapping.set(lawyer, room)
         return true
       } else if (attempt === 0) {
@@ -161,18 +181,19 @@ export default class CallCenter {
       console.log(`WARNING: Hang up attempt from member who is not in a room {${user.id}}`)
       return
     }
-    room.participants.forEach(participant => {
-      participant.emit('endCall')
-      if (this.activeParalegals.has(participant)) {
-        this.activeParalegals.delete(participant)
-        this.enqueueParalegal(participant)
-      }
-      if (this.activeLawyers.has(participant)) {
-        this.activeLawyers.delete(participant)
-        this.enqueueLawyer(participant)
-      }
-      this.memberToRoomMapping.delete(participant)
-    })
+    ;(async () => {
+      ;(await room.endCall()).forEach(participant => {
+        if (this.activeParalegals.has(participant)) {
+          this.activeParalegals.delete(participant)
+          this.enqueueParalegal(participant)
+        }
+        if (this.activeLawyers.has(participant)) {
+          this.activeLawyers.delete(participant)
+          this.enqueueLawyer(participant)
+        }
+        this.memberToRoomMapping.delete(participant)
+      })
+    })()
   }
 
   public getRoomByUserId(userId: string): ActiveRoom | undefined {

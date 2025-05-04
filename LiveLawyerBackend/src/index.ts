@@ -1,3 +1,4 @@
+import fs from 'fs'
 import express from 'express'
 import cors from 'cors'
 import { createServer } from 'node:http'
@@ -12,7 +13,9 @@ import {
   ClientToServerEvents,
   ServerToClientEvents,
 } from 'livelawyerlibrary/SocketEventDefinitions'
-import { BACKEND_IP, BACKEND_PORT, BACKEND_URL } from 'livelawyerlibrary'
+import { BACKEND_IP, BACKEND_PORT, BACKEND_URL } from 'livelawyerlibrary/env'
+import { RECORDING_DIR_NAME } from './RecordingProcessor'
+import IdentityMap from './IdentityMap'
 
 const app = express()
 const httpServer = createServer(app)
@@ -24,11 +27,15 @@ const io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
   },
 })
 const twilioManager: TwilioManager = new TwilioManager()
-const callCenter: CallCenter = new CallCenter(twilioManager)
+const identityMap: IdentityMap = new IdentityMap()
+const callCenter: CallCenter = new CallCenter(twilioManager, identityMap)
+
+if (!fs.existsSync(RECORDING_DIR_NAME)) {
+  fs.mkdirSync(RECORDING_DIR_NAME)
+}
 
 app.use(cors())
 app.use(express.json())
-twilioManager.setupPostRoute(app)
 
 app.get('/test', async (req, res) => {
   res.status(200).json({ it: 'works' })
@@ -38,20 +45,30 @@ io.on('connection', socket => {
   console.log(`User connected to socket: {${socket.id}}`)
   socket.on('joinAsClient', async (payload, callback) => {
     console.log(`Received joinAsClient event: {${socket.id}}`)
-    const isParalegalAvailable = await callCenter.connectClient(socket)
-    console.log(`Paralegal Available event: {${socket.id}}`)
-    callback(isParalegalAvailable)
+    if (await identityMap.register(socket, payload.userId, payload.userSecret, 'CLIENT')) {
+      const isParalegalAvailable = await callCenter.connectClient(socket)
+      callback(isParalegalAvailable ? 'OK' : 'NO_PARALEGALS')
+    } else {
+      callback('INVALID_AUTH')
+    }
   })
-  socket.on('joinAsParalegal', (payload, callback) => {
+  socket.on('joinAsParalegal', async (payload, callback) => {
     console.log(`Received joinAsParalegal event: {${socket.id}}`)
-    const queuedUserType = callCenter.enqueueParalegal(socket)
-    console.log(`queuedUserType = {${queuedUserType}}\nParalegal Available event: {${socket.id}}`)
-    callback(queuedUserType)
+    if (await identityMap.register(socket, payload.userId, payload.userSecret, 'PARALEGAL')) {
+      const queuedUserType = callCenter.enqueueParalegal(socket)
+      callback(queuedUserType)
+    } else {
+      callback('INVALID_AUTH')
+    }
   })
-  socket.on('joinAsLawyer', (payload, callback) => {
+  socket.on('joinAsLawyer', async (payload, callback) => {
     console.log(`Received joinAsLawyer event: {${socket.id}}`)
-    const queuedUserType = callCenter.enqueueLawyer(socket)
-    callback(queuedUserType)
+    if (await identityMap.register(socket, payload.userId, payload.userSecret, 'LAWYER')) {
+      const queuedUserType = callCenter.enqueueLawyer(socket)
+      callback(queuedUserType)
+    } else {
+      callback('INVALID_AUTH')
+    }
   })
   socket.on('summonLawyer', async (payload, callback) => {
     console.log(`Received summonLawyer event: {${socket.id}}`)
@@ -68,7 +85,8 @@ io.on('connection', socket => {
     callCenter.handleHangUp(socket)
   })
   socket.on('disconnect', reason => {
-    console.log(`User {${socket.id}} disconnected reason: ${reason}`)
+    identityMap.remove(socket)
+    console.log(`User disconnected from socket: {${socket.id}} (Reason: ${reason})`)
   })
 
   socket.on('rejoinRoomAttempt', async (payload, callback) => {
@@ -81,10 +99,10 @@ io.on('connection', socket => {
       callback(false)
       return
     }
-    const token = twilioManager.getAccessToken(room.roomName)
+    const token = twilioManager.getAccessToken(room.roomName, userType, userId)
     try {
       await socket.timeout(5000).emitWithAck('sendToRoom', { token, roomName: room.roomName })
-      room.participants.push(socket)
+      room.addConnectedParticipant(socket)
       callback(true)
       console.log(`User ${userId} successfully rejoined room ${room.roomName}`)
     } catch (err) {
