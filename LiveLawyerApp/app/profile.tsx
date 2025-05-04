@@ -1,65 +1,70 @@
-import { useEffect, useState } from 'react';
-import { View, Text, TextInput, Button, ActivityIndicator, Alert } from 'react-native';
-import { supabase } from './lib/supabase';
-import { Styles } from '@/constants/Styles';
+import { useEffect, useState } from 'react'
+import { View, Text, TextInput, Button, ActivityIndicator, Alert } from 'react-native'
+import { supabase } from './lib/supabase'
+import { Styles } from '@/constants/Styles'
 
 export default function Profile() {
-  const [userInfo, setUserInfo] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [editing, setEditing] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [userInfo, setUserInfo] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [editing, setEditing] = useState(false)
 
   useEffect(() => {
     const getUserInfo = async () => {
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      const {
+        data: { user },
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        error: authError,
+      } = await supabase.auth.getUser()
 
       if (user) {
         const { data: userData, error: userError } = await supabase
           .from('User')
           .select('*')
           .eq('id', user.id)
-          .single();
+          .single()
 
-        if (userData) setUserInfo(userData);
-        if (userError) console.error('User table error:', userError);
+        if (userData) setUserInfo(userData)
+        if (userError) console.error('User table error:', userError)
       }
 
-      setLoading(false);
-    };
+      setLoading(false)
+    }
 
-    getUserInfo();
-  }, []);
+    getUserInfo()
+  }, [])
 
   const handleSave = async () => {
-    if (!userInfo) return;
-    setSaving(true);
+    if (!userInfo) return
+    setSaving(true)
 
     const { error } = await supabase
       .from('User')
       .update({
         firstName: userInfo.firstName,
         lastName: userInfo.lastName,
-        phoneNum: userInfo.phoneNum
+        phoneNum: userInfo.phoneNum,
       })
-      .eq('id', userInfo.id);
+      .eq('id', userInfo.id)
 
-    setSaving(false);
+    setSaving(false)
 
     if (error) {
-      console.error('Update error:', error);
-      Alert.alert('Error', 'Could not update profile.');
+      console.error('Update error:', error)
+      Alert.alert('Error', 'Could not update profile.')
     } else {
-      Alert.alert('Success', 'Profile updated!');
-      setEditing(false);
+      Alert.alert('Success', 'Profile updated!')
+      setEditing(false)
     }
-  };
+  }
 
   if (loading) {
     return (
       <View style={Styles.LawyerInfoContainer}>
         <ActivityIndicator size="large" />
       </View>
-    );
+    )
   }
 
   if (!userInfo) {
@@ -67,7 +72,7 @@ export default function Profile() {
       <View style={Styles.LawyerInfoContainer}>
         <Text style={Styles.centeredText}>No user found.</Text>
       </View>
-    );
+    )
   }
 
   return (
@@ -80,36 +85,47 @@ export default function Profile() {
             style={Styles.profInput}
             placeholder="First Name"
             value={userInfo.firstName}
-            onChangeText={(text) => setUserInfo({ ...userInfo, firstName: text })}
+            onChangeText={text => setUserInfo({ ...userInfo, firstName: text })}
           />
           <TextInput
             style={Styles.profInput}
             placeholder="Last Name"
             value={userInfo.lastName}
-            onChangeText={(text) => setUserInfo({ ...userInfo, lastName: text })}
+            onChangeText={text => setUserInfo({ ...userInfo, lastName: text })}
           />
           <TextInput
             style={Styles.profInput}
             placeholder="Phone Number"
             value={userInfo.phoneNum}
-            onChangeText={(text) => setUserInfo({ ...userInfo, phoneNum: text })}
+            onChangeText={text => setUserInfo({ ...userInfo, phoneNum: text })}
             keyboardType="phone-pad"
           />
           <View style={Styles.profButtonGroup}>
-            <Button title={saving ? 'Saving...' : 'Save Changes'} onPress={handleSave} disabled={saving} />
+            <Button
+              title={saving ? 'Saving...' : 'Save Changes'}
+              onPress={handleSave}
+              disabled={saving}
+            />
             <Button title="Cancel" onPress={() => setEditing(false)} color="gray" />
           </View>
         </>
       ) : (
         <>
-          <Text style={Styles.profItemText}>First Name: {userInfo.firstName}</Text>
-          <Text style={Styles.profItemText}>Last Name: {userInfo.lastName}</Text>
-          <Text style={Styles.profItemText}>Phone: {userInfo.phoneNum}</Text>
+          <View style={Styles.profItemText}>
+            <Text style={Styles.profItemText}>Name:</Text>
+            <Text style={Styles.profDisplay}>
+              {userInfo.firstName} {userInfo.lastName}
+            </Text>
+          </View>
+          <View style={Styles.profItemText}>
+            <Text style={Styles.profItemText}>Phone:</Text>
+            <Text style={Styles.profDisplay}>{userInfo.phoneNum}</Text>
+          </View>
           <View style={Styles.profEditButton}>
             <Button title="Edit Profile" onPress={() => setEditing(true)} />
           </View>
         </>
       )}
     </View>
-  );
+  )
 }

@@ -1,15 +1,11 @@
-import { DefaultEventsMap, Socket } from 'socket.io'
 import TwilioManager from '../TwilioManager'
 import ActiveRoom from './ActiveRoom'
-import {
-  ClientToServerEvents,
-  ServerToClientEvents,
-  UserType,
-} from 'livelawyerlibrary/SocketEventDefinitions'
-
-type UserSocket = Socket<ClientToServerEvents, ServerToClientEvents, DefaultEventsMap, unknown>
+import { UserType } from 'livelawyerlibrary/SocketEventDefinitions'
+import { UserSocket } from '../ServerTypes'
+import IdentityMap from '../IdentityMap'
 
 export default class CallCenter {
+  private readonly _identityMap: IdentityMap
   private readonly twilioManager: TwilioManager
   private readonly waitingParalegals: UserSocket[]
   private readonly waitingLawyers: UserSocket[]
@@ -17,12 +13,11 @@ export default class CallCenter {
   private readonly activeLawyers: Set<UserSocket>
   private readonly memberToRoomMapping: Map<UserSocket, ActiveRoom>
   private readonly timeoutFrame: number = 5000
-  private readonly userIdToSocket: Map<string, UserSocket> = new Map()
   private readonly userIdToRoom: Map<string, ActiveRoom> = new Map()
 
   private readonly emergencyContatList = ['5554443210']
-
-  constructor(twilioManager: TwilioManager) {
+  constructor(twilioManager: TwilioManager, identityMap: IdentityMap) {
+    this._identityMap = identityMap
     this.twilioManager = twilioManager
     this.waitingParalegals = []
     this.waitingLawyers = []
@@ -53,8 +48,16 @@ export default class CallCenter {
     const paralegal = this.waitingParalegals.shift()
     console.log(`Removed a paralegal from queue, new length: ${this.waitingParalegals.length}`)
 
-    const clientToken = this.twilioManager.getAccessToken(roomName)
-    const paralegalToken = this.twilioManager.getAccessToken(roomName)
+    const clientToken = this.twilioManager.getAccessToken(
+      roomName,
+      'CLIENT',
+      this._identityMap.userIdOf(client),
+    )
+    const paralegalToken = this.twilioManager.getAccessToken(
+      roomName,
+      'PARALEGAL',
+      this._identityMap.userIdOf(paralegal),
+    )
     for (let i = 0; i < 2; i++) {
       try {
         await paralegal
@@ -108,7 +111,11 @@ export default class CallCenter {
     }
     const lawyer = this.waitingLawyers.shift()
     console.log(`Removed a lawyer from queue, new length: ${this.waitingLawyers.length}`)
-    const lawyerToken = this.twilioManager.getAccessToken(room.roomName)
+    const lawyerToken = this.twilioManager.getAccessToken(
+      room.roomName,
+      'LAWYER',
+      this._identityMap.userIdOf(lawyer),
+    )
     const lawyerToRoom = async (): Promise<boolean> => {
       try {
         await lawyer

@@ -1,25 +1,24 @@
-import dotenv from 'dotenv'
-
-function getBackendVariables(): [ip: string, port: string] {
-  let dir = __dirname
-  const NEXTJS_WRONG_PATH = /LiveLawyerWeb\/\.next\/server\/app\/.*$/
-  if (dir.match(NEXTJS_WRONG_PATH)) {
-    dir = dir.replace(NEXTJS_WRONG_PATH, 'LiveLawyerLibrary')
+/**
+ * Issues a warning to the console if the read environment variable is empty or undefined.
+ * @param readValue The value of the read environment variable (from `process.env`)
+ * @param envVariableName The name of the environment variable expected in the `.env` file
+ * @param envFilePath The path to the `.env` file in question
+ * @param defaultValue The value that the variable should take on if empty or undefined
+ * @param breaksIfUnset Whether functionality will definitely break if the default value is used
+ * @returns `defaultValue` if `readValue` is empty or undefined, otherwise `readValue`
+ */
+export function defaultEnvironmentVariableWithWarning(
+  readValue: string | undefined,
+  envVariableName: string,
+  envFilePath: string,
+  defaultValue: string,
+  breaksIfUnset: boolean,
+): string {
+  if (!readValue) {
+    console.log(
+      `WARNING: ${envVariableName} environment variable not set in '${envFilePath}', defaulting to '${defaultValue}'${breaksIfUnset ? ', which will not work' : ''}!`,
+    )
+    return defaultValue
   }
-  dotenv.config({ path: dir + '/.env' })
-  let ip = process.env.BACKEND_IP
-  let port = process.env.BACKEND_PORT
-  console.log(dir)
-  if (ip === undefined) {
-    console.log("WARNING: BACKEND_IP environment variable not set, defaulting to 'localhost'!")
-    ip = 'localhost'
-  }
-  if (port === undefined) {
-    console.log("WARNING: BACKEND_PORT environment variable not set, defaulting to '4000'!")
-    port = '4000'
-  }
-  return [ip, port]
+  return readValue
 }
-
-export const [BACKEND_IP, BACKEND_PORT] = getBackendVariables()
-export const BACKEND_URL = `http://${BACKEND_IP}:${BACKEND_PORT}`

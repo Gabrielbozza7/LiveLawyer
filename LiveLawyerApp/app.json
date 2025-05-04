@@ -4,7 +4,7 @@
     "slug": "LiveLawyerApp",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/appstore.png",
     "scheme": "livelawyerapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": false,
