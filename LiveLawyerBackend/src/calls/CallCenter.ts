@@ -15,6 +15,7 @@ export default class CallCenter {
   private readonly timeoutFrame: number = 5000
   private readonly userIdToRoom: Map<string, ActiveRoom> = new Map()
 
+  private readonly emergencyContatList = ['5554443210']
   constructor(twilioManager: TwilioManager, identityMap: IdentityMap) {
     this._identityMap = identityMap
     this.twilioManager = twilioManager
@@ -25,7 +26,10 @@ export default class CallCenter {
     this.memberToRoomMapping = new Map()
   }
 
-  public async connectClient(client: UserSocket): Promise<boolean> {
+  public async connectClient(
+    client: UserSocket,
+    payload: { userId: string; coordinates: { lat: number; lon: number } },
+  ): Promise<boolean> {
     if (this.waitingParalegals.length === 0) return false
     const room = new ActiveRoom(this.twilioManager)
     try {
@@ -70,6 +74,12 @@ export default class CallCenter {
             room.addConnectedParticipant(paralegal)
             this.memberToRoomMapping.set(client, room)
             this.memberToRoomMapping.set(paralegal, room)
+            const lat = payload.coordinates.lat
+            const lon = payload.coordinates.lon
+
+            // CHANGE TO SUPABASE ACCOUNT NAME, NOT SECURE
+            const name = payload.userId
+            this.notifyEmergencyContact(name, this.emergencyContatList, lat, lon)
             return true
           } catch (err) {
             console.log('Client Failed to acknowledge sendToRoom.', err)
@@ -198,5 +208,16 @@ export default class CallCenter {
 
   public getRoomByUserId(userId: string): ActiveRoom | undefined {
     return this.userIdToRoom.get(userId)
+  }
+
+  public async notifyEmergencyContact(
+    name: string,
+    emergencyList: string[],
+    lat: number,
+    lon: number,
+  ) {
+    emergencyList.forEach(number => {
+      this.twilioManager.notifyEmergencyContact(name, number, lat, lon)
+    })
   }
 }

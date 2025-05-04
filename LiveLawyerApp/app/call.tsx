@@ -5,9 +5,10 @@ import { useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { Button, View, Text, Alert } from 'react-native'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
+import { getCoordinates } from '@/components/locationStore'
 import { supabase } from './lib/supabase'
-
 export default function Call() {
+  const coords = getCoordinates()
   const router = useRouter()
   const [inCall, setInCall] = useState<boolean | null>(null)
   const [token, setToken] = useState<string>('')
@@ -47,7 +48,8 @@ export default function Call() {
         // Join call
         const clientJoinStatusCode = await socket.emitWithAck('joinAsClient', {
           userId: userId,
-          userSecret: 'abc', // temporary
+          userSecret: 'abc',
+          coordinates: coords ?? { lat: 0, lon: 0 },
         })
         if (clientJoinStatusCode === 'NO_PARALEGALS') {
           Alert.alert('There are no paralegals currently available to take your call.')

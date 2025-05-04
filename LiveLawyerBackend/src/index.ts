@@ -46,7 +46,7 @@ io.on('connection', socket => {
   socket.on('joinAsClient', async (payload, callback) => {
     console.log(`Received joinAsClient event: {${socket.id}}`)
     if (await identityMap.register(socket, payload.userId, payload.userSecret, 'CLIENT')) {
-      const isParalegalAvailable = await callCenter.connectClient(socket)
+      const isParalegalAvailable = await callCenter.connectClient(socket, payload)
       callback(isParalegalAvailable ? 'OK' : 'NO_PARALEGALS')
     } else {
       callback('INVALID_AUTH')

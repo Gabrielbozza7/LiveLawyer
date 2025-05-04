@@ -182,4 +182,16 @@ export const Styles = StyleSheet.create({
     color: Colors.white,
     fontWeight: 'bold',
   },
+  localLawyerButton: {
+    marginHorizontal: 30,
+    marginTop: 70,
+    backgroundColor: '#24d12f',
+    padding: 25,
+    marginBottom: 0,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  localText: {
+    fontSize: 30,
+  },
 })
