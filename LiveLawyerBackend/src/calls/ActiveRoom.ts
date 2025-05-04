@@ -88,14 +88,14 @@ export default class ActiveRoom {
       participant.emit('endCall')
       removedParticipants.push(participant)
     }
-    await new Promise(resolve => setTimeout(resolve, 5000))
-    // Do video storage code here!
-    // First, deal with inserting recordings into database:
-    console.log(`Final length of recordings for ${this._roomName}: ${this._room.recordings.length}`)
-    this._room.recordings().each(recording => {
-      console.log(`Identified recorded track with SID of ${recording.sid}`)
-      this._twilioManager.recordingProcessor.downloadRecording(recording)
-    })
+    ;(async () => {
+      // Recording management
+      await new Promise(resolve => setTimeout(resolve, 5000))
+      this._room.recordings().each(recording => {
+        console.log(`Identified recorded track with SID of ${recording.sid}`)
+        this._twilioManager.recordingProcessor.downloadRecording(recording)
+      })
+    })()
     return removedParticipants
   }
 }

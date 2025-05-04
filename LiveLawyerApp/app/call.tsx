@@ -36,9 +36,24 @@ export default function Call() {
       // only runs for initialization even with strict mode
       setInCall(false)
       ;(async (): Promise<void> => {
-        const isParalegalAvailable = await socket.emitWithAck('joinAsClient', { userId: userId })
-        if (!isParalegalAvailable) {
+        // Get User ID
+        let userId = ''
+        const {
+          data: { user },
+        } = await supabase.auth.getUser()
+        if (user) {
+          userId = user?.id
+        }
+        // Join call
+        const clientJoinStatusCode = await socket.emitWithAck('joinAsClient', {
+          userId: userId,
+          userSecret: 'abc', // temporary
+        })
+        if (clientJoinStatusCode === 'NO_PARALEGALS') {
           Alert.alert('There are no paralegals currently available to take your call.')
+          router.back()
+        } else if (clientJoinStatusCode === 'INVALID_AUTH') {
+          Alert.alert('Your credentials are invalid!')
           router.back()
         }
       })()
@@ -53,18 +68,6 @@ export default function Call() {
   const hangUp = () => {
     socket.emit('hangUp')
   }
-
-  // Get User ID
-  var userId: string
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) {
-        userId = user?.id
-      } else {
-        userId = ''
-      }
-    })
-  }, [])
 
   return (
     <View style={Styles.videoContainer}>
