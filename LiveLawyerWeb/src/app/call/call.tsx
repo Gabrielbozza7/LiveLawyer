@@ -151,7 +151,7 @@ export function Call({ backendUrl }: { backendUrl: string }) {
                   onClick={async () => {
                     const queuedUserType = await socket.emitWithAck('joinAsLawyer', {
                       userId: '12345',
-                      userSecret: '', // temporary
+                      userSecret: 'abc', // temporary
                     })
                     if (queuedUserType === 'INVALID_AUTH') {
                       setShowToast('Your credentials are invalid!')
