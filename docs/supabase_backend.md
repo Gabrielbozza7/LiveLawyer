@@ -16,7 +16,7 @@ After receiving access, you should be able to see everything in the database, mo
 ### `LiveLawyerApp/.env`
 1. On the Supabase project dashboard, click on the `Connect` button in the top.
 2. Navigate to `Mobile Frameworks`, and set the framework to `Expo React Native`.
-3. Copy the `EXPO_PUBLIC_SUPABASE_URL` and the `EXPO_PUBLIC_ANON_KEY` lines into the `.env` file.
+3. Copy the `EXPO_PUBLIC_SUPABASE_URL` and the `EXPO_PUBLIC_ANON_KEY` lines into the `LiveLawyerApp/.env` file.
 
 Example:
 ```env
