@@ -1,8 +1,3 @@
----
-title: Twilio
-
----
-
 # Twilio Information
 
 The repository makes uses of Twilio for its video call functionality. This document will explain how to retrieve the Twilio credentials you need for the video calls to work and how to set your environment up with those credentials.
@@ -24,7 +19,7 @@ This section explains how you should add Twilio credentials to the backend `.env
 3. Set the value of `TWILIO_API_KEY_SID` to the value you saw for the API key's SID in step 3 of the previous section.
 4. Set the value of `TWILIO_API_KEY_SECRET` to the value you saw for the API key's secret in step 3 of the previous section.
 
-An example of the variables in the file is as follows (note that there should be other variables too from other non-Twilio setup steps by the time you are done setting everything up):
+An example of these variables in the file is as follows (note that there should be other variables too from other non-Twilio setup steps by the time you are done setting everything up):
 
 ```env
 TWILIO_ACCOUNT_SID=abc123

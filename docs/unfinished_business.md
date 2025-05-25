@@ -1,8 +1,3 @@
----
-title: Things to Modify/Clean
-
----
-
 # Unfinished Business
 
 ### App Frontend To-Do

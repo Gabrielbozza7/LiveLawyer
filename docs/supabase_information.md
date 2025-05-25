@@ -1,11 +1,6 @@
----
-title: Supabase
+# Supabase Information
 
----
-
-# Supabase/Backend Information
-
-Supabase is the database solution that we used to store user data as well as call recordings and their metadata. 
+Supabase is the backend database solution that we used to store user data as well as call recordings and their metadata. 
 
 ## Utilizing Supabase
 1. Create an account for supabase, if you haven't already.

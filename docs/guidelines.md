@@ -1,4 +1,3 @@
-
 # Guidelines
 
 ## Branch Naming
@@ -72,5 +71,3 @@ Description:
 - Check for clear and descriptive commit messages
 -  Make sure no console logs or debug statements
 - Verify all new functionality is tested and documented if necessary
-
-	

@@ -1,9 +1,4 @@
----
-title: EAS Build Info
-
----
-
-# Expo EAS Setup Guide for IOS
+# EAS Setup for iOS
 
 ### Originally we were using Expo Go
 
