@@ -14,10 +14,11 @@ git clone --config core.autocrlf=input git@github.com:Gabrielbozza7/LiveLawyer.g
 
 When you are first setting up the repository to work with your computer, you should visit these guides in the following order:
 
-1. [Dev Container Setup](./docs/dev_container_setup.md)
-2. [Container Volume Setup](./docs/container_volume_setup.md)
-3. [Expo EAS Setup Guide for IOS](./docs/eas_set_up.md)
-4. [Twilio Information](./docs/twilio.md)
-5. [Supabase/Backend Information](./docs/supabase_backend.md)
+1. [GitHub SSH Key Setup](./docs/github_ssh_key_setup.md)
+2. [Dev Container Setup](./docs/dev_container_setup.md)
+3. [Container Volume Setup](./docs/container_volume_setup.md)
+4. [Expo EAS Setup Guide for IOS](./docs/eas_set_up.md)
+5. [Twilio Information](./docs/twilio.md)
+6. [Supabase/Backend Information](./docs/supabase_backend.md)
 
 You might also want to take a look at [Guidelines](./docs/guidelines.md) and [Unfinished Business](./docs/unfinished_business.md), but those are not part of the initial setup process.
