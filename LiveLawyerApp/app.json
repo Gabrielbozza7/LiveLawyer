@@ -58,6 +58,15 @@
         }
       ],
       "expo-build-properties",
+      [
+       "expo-build-properties",
+       {
+         "ios": {
+           "useFrameworks": "static",
+           "bitcode": false
+         }
+       }
+     ],
       "expo-secure-store"
     ],
     "experiments": {
