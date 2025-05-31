@@ -11,6 +11,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.gabetheman.LiveLawyerApp",
+      "buildNumber": "1.0.0",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
