@@ -53,7 +53,7 @@ target 'LiveLawyerApp' do
       :ccache_enabled => podfile_properties['apple.ccacheEnabled'] == 'true',
     )
 
-    # 2) Disable resource-bundle code signing
+    # 2) Disable resource-bundle code signing for Xcode 14+
     installer.target_installation_results.pod_target_installation_results.each do |pod_name, target_result|
       target_result.resource_bundle_targets.each do |bundle_target|
         bundle_target.build_configurations.each do |c|
@@ -80,6 +80,7 @@ target 'LiveLawyerApp' do
       if pod_target.name.include?("TwilioVideo")
         pod_target.build_configurations.each do |config|
           config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++17'
+          puts "🔧 Forcing C++17 on Pod target: #{pod_target.name}"
         end
       end
     end
