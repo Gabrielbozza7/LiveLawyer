@@ -1,6 +1,0 @@
-#!/bin/bash
-
-RETURN_PATH="$PWD"
-cd "$REPOSITORY_ROOT"/LiveLawyerApp
-npx expo start $1 $2 $3
-cd "$RETURN_PATH"

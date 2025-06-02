@@ -10,7 +10,7 @@ export interface ClientToServerEvents {
    * Fired when a client attempts to call a paralegal
    */
   joinAsClient: (
-    payload: AuthPayload,
+    payload: { coordinates: { lon: number; lat: number } } & AuthPayload,
     callback: (clientJoinStatusCode: 'OK' | 'NO_PARALEGALS' | 'INVALID_AUTH') => void,
   ) => void
   /**

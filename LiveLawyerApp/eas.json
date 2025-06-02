@@ -9,11 +9,13 @@
       "developmentClient": true,
       "distribution": "internal"
     },
+    "production": {
+      "ios": {
+        "distribution": "store"
+      }
+    },
     "preview": {
       "distribution": "internal"
-    },
-    "production": {
-      "autoIncrement": true
     }
   },
   "submit": {

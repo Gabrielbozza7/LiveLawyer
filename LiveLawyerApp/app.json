@@ -2,7 +2,7 @@
   "expo": {
     "name": "LiveLawyerApp",
     "slug": "LiveLawyerApp",
-    "version": "1.0.0",
+    "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/images/appstore.png",
     "scheme": "livelawyerapp",
@@ -11,6 +11,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.gabetheman.LiveLawyerApp",
+      "buildNumber": "1.0.3",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -34,6 +35,12 @@
     },
     "plugins": [
       [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
+        }
+      ],
+      [
         "react-native-twilio-video-webrtc",
         {
           "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
@@ -50,7 +57,15 @@
           "backgroundColor": "#ffffff"
         }
       ],
-      "expo-build-properties",
+      [
+       "expo-build-properties",
+       {
+         "ios": {
+           "useFrameworks": "static",
+           "bitcode": false
+         }
+       }
+     ],
       "expo-secure-store"
     ],
     "experiments": {
@@ -64,9 +79,7 @@
         "projectId": "b3b37051-c770-4c5d-afd1-de77444c190f"
       }
     },
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
+    "runtimeVersion": "1.0.3",
     "updates": {
       "url": "https://u.expo.dev/b3b37051-c770-4c5d-afd1-de77444c190f"
     },
