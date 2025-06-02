@@ -2,7 +2,7 @@
   "expo": {
     "name": "LiveLawyerApp",
     "slug": "LiveLawyerApp",
-    "version": "1.0.4",
+    "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/appstore.png",
     "scheme": "livelawyerapp",
@@ -11,7 +11,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.gabetheman.LiveLawyerApp",
-      "buildNumber": "1.0.4",
+      "buildNumber": "1.0.5",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
