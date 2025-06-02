@@ -16,7 +16,7 @@ prepare_react_native_project!
 target 'LiveLawyerApp' do
   use_expo_modules!
 
-  # ─── Auto-linking config for React Native modules ───
+  # ─── Auto-linking config ───
   if ENV['EXPO_USE_COMMUNITY_AUTOLINKING'] == '1'
     config_command = ['node', '-e', "process.argv=['', '', 'config'];require('@react-native-community/cli').run()"]
   else
@@ -33,10 +33,10 @@ target 'LiveLawyerApp' do
   end
   config = use_native_modules!(config_command)
 
-  # ─── Force static frameworks (so we can strip bitcode) ───
+  # ─── Force static frameworks for bitcode stripping ───
   use_frameworks! :linkage => :static
 
-  # ─── Standard React Native Pod install ───
+  # ─── React Native Pod install ───
   use_react_native!(
     :path => config[:reactNativePath],
     :hermes_enabled => podfile_properties['expo.jsEngine'].nil? || podfile_properties['expo.jsEngine'] == 'hermes',
@@ -45,7 +45,7 @@ target 'LiveLawyerApp' do
   )
 
   post_install do |installer|
-    # ─── React Native post-install helper ───
+    # 1) React Native post-install helper
     react_native_post_install(
       installer,
       config[:reactNativePath],
@@ -53,7 +53,7 @@ target 'LiveLawyerApp' do
       :ccache_enabled => podfile_properties['apple.ccacheEnabled'] == 'true',
     )
 
-    # ─── Disable resource-bundle code signing for Xcode 14+ ───
+    # 2) Disable resource-bundle code signing
     installer.target_installation_results.pod_target_installation_results.each do |pod_name, target_result|
       target_result.resource_bundle_targets.each do |bundle_target|
         bundle_target.build_configurations.each do |c|
@@ -62,27 +62,26 @@ target 'LiveLawyerApp' do
       end
     end
 
-    # ─── FIND & STRIP BITCODE from ANY TwilioVideo.framework ───
+    # 3) Strip bitcode from any TwilioVideo.framework
     bitcode_strip_path = `xcrun --find bitcode_strip`.chomp
-    if bitcode_strip_path.nil? || bitcode_strip_path.empty?
-      puts "⚠️  Warning: could not find 'bitcode_strip' tool. Skipping bitcode stripping."
-    else
-      # Dir.pwd is ios/, so Pods/ is under that.
+    if bitcode_strip_path && !bitcode_strip_path.empty?
       pods_folder = File.join(Dir.pwd, "Pods")
-      # Search for any TwilioVideo.framework/TwilioVideo binary
       Dir.glob("#{pods_folder}/**/TwilioVideo.framework/TwilioVideo").each do |framework_binary|
         command = "#{bitcode_strip_path} #{framework_binary} -r -o #{framework_binary}"
         puts "🔧 Stripping bitcode from: #{framework_binary}"
         system(command)
       end
+    else
+      puts "⚠️  Warning: bitcode_strip not found; skipping bitcode stripping."
     end
 
-    # ─── FORCE C++17 for ALL Pod targets ───
+    # 4) ONLY force C++17 for TwilioVideo targets
     installer.pods_project.targets.each do |pod_target|
-      pod_target.build_configurations.each do |config|
-        config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++17'
+      if pod_target.name.include?("TwilioVideo")
+        pod_target.build_configurations.each do |config|
+          config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++17'
+        end
       end
     end
-    # ───────────────────────────────────────────────────────────────────
   end
 end
