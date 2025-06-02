@@ -16,8 +16,9 @@ prepare_react_native_project!
 target 'LiveLawyerApp' do
   use_expo_modules!
 
+  # ─── Compute the autolinking config for React Native modules ───
   if ENV['EXPO_USE_COMMUNITY_AUTOLINKING'] == '1'
-    config_command = ['node', '-e', "process.argv=['', '', 'config'];require('@react-native-community/cli').run()"];
+    config_command = ['node', '-e', "process.argv=['', '', 'config'];require('@react-native-community/cli').run()"]
   else
     config_command = [
       'node',
@@ -31,20 +32,23 @@ target 'LiveLawyerApp' do
     ]
   end
 
+  # ─── Run autolinking to get the correct paths for all native modules ───
   config = use_native_modules!(config_command)
 
-  use_frameworks! :linkage => podfile_properties['ios.useFrameworks'].to_sym if podfile_properties['ios.useFrameworks']
-  use_frameworks! :linkage => ENV['USE_FRAMEWORKS'].to_sym if ENV['USE_FRAMEWORKS']
+  # ─── FORCE-STATIC FRAMEWORKS ───
+  # This unconditionally links all pods (including TwilioVideo) as static frameworks.
+  use_frameworks! :linkage => :static
 
+  # ─── Standard React Native Pod setup ───
   use_react_native!(
     :path => config[:reactNativePath],
-    :hermes_enabled => podfile_properties['expo.jsEngine'] == nil || podfile_properties['expo.jsEngine'] == 'hermes',
-    # An absolute path to your application root.
+    :hermes_enabled => podfile_properties['expo.jsEngine'].nil? || podfile_properties['expo.jsEngine'] == 'hermes',
     :app_path => "#{Pod::Config.instance.installation_root}/..",
     :privacy_file_aggregation_enabled => podfile_properties['apple.privacyManifestAggregationEnabled'] != 'false',
   )
 
   post_install do |installer|
+    # ─── Expo / React Native post-install helper ───
     react_native_post_install(
       installer,
       config[:reactNativePath],
@@ -52,15 +56,21 @@ target 'LiveLawyerApp' do
       :ccache_enabled => podfile_properties['apple.ccacheEnabled'] == 'true',
     )
 
-    # This is necessary for Xcode 14, because it signs resource bundles by default
-    # when building for devices.
-    installer.target_installation_results.pod_target_installation_results
-      .each do |pod_name, target_installation_result|
-      target_installation_result.resource_bundle_targets.each do |resource_bundle_target|
+    # ─── Disable resource‐bundle code signing for Xcode 14+ ───
+    installer.target_installation_results.pod_target_installation_results.each do |pod_name, target_inst_result|
+      target_inst_result.resource_bundle_targets.each do |resource_bundle_target|
         resource_bundle_target.build_configurations.each do |config|
           config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
         end
       end
     end
+
+    # ─── FORCE-DISABLE BITCODE FOR ALL PODS ───
+    installer.pods_project.targets.each do |pod_target|
+      pod_target.build_configurations.each do |config|
+        config.build_settings['ENABLE_BITCODE'] = 'NO'
+      end
+    end
+    # ───────────────────────────────────────────
   end
 end
