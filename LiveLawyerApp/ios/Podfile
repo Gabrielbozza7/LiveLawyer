@@ -76,6 +76,13 @@ target 'LiveLawyerApp' do
         system(command)
       end
     end
-    # ───────────────────────────────────────────────────────────
+
+    # ─── FORCE C++17 for ALL Pod targets ───
+    installer.pods_project.targets.each do |pod_target|
+      pod_target.build_configurations.each do |config|
+        config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++17'
+      end
+    end
+    # ───────────────────────────────────────────────────────────────────
   end
 end
