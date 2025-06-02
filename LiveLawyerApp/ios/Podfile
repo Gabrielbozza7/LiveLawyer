@@ -16,7 +16,7 @@ prepare_react_native_project!
 target 'LiveLawyerApp' do
   use_expo_modules!
 
-  # ─── Compute the autolinking config for React Native modules ───
+  # ─── Auto-linking config for React Native modules ───
   if ENV['EXPO_USE_COMMUNITY_AUTOLINKING'] == '1'
     config_command = ['node', '-e', "process.argv=['', '', 'config'];require('@react-native-community/cli').run()"]
   else
@@ -31,15 +31,12 @@ target 'LiveLawyerApp' do
       'ios'
     ]
   end
-
-  # ─── Run autolinking to get the correct paths for all native modules ───
   config = use_native_modules!(config_command)
 
-  # ─── FORCE-STATIC FRAMEWORKS ───
-  # This unconditionally links all pods (including TwilioVideo) as static frameworks.
+  # ─── Force static frameworks (so we can strip bitcode) ───
   use_frameworks! :linkage => :static
 
-  # ─── Standard React Native Pod setup ───
+  # ─── Standard React Native Pod install ───
   use_react_native!(
     :path => config[:reactNativePath],
     :hermes_enabled => podfile_properties['expo.jsEngine'].nil? || podfile_properties['expo.jsEngine'] == 'hermes',
@@ -48,7 +45,7 @@ target 'LiveLawyerApp' do
   )
 
   post_install do |installer|
-    # ─── Expo / React Native post-install helper ───
+    # ─── React Native post-install helper ───
     react_native_post_install(
       installer,
       config[:reactNativePath],
@@ -56,21 +53,32 @@ target 'LiveLawyerApp' do
       :ccache_enabled => podfile_properties['apple.ccacheEnabled'] == 'true',
     )
 
-    # ─── Disable resource‐bundle code signing for Xcode 14+ ───
-    installer.target_installation_results.pod_target_installation_results.each do |pod_name, target_inst_result|
-      target_inst_result.resource_bundle_targets.each do |resource_bundle_target|
-        resource_bundle_target.build_configurations.each do |config|
-          config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
+    # ─── Disable resource-bundle code signing (Xcode 14+) ───
+    installer.target_installation_results.pod_target_installation_results.each do |pod_name, target_result|
+      target_result.resource_bundle_targets.each do |bundle_target|
+        bundle_target.build_configurations.each do |c|
+          c.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
         end
       end
     end
 
-    # ─── FORCE-DISABLE BITCODE FOR ALL PODS ───
-    installer.pods_project.targets.each do |pod_target|
-      pod_target.build_configurations.each do |config|
-        config.build_settings['ENABLE_BITCODE'] = 'NO'
-      end
+    # ─── FORCE-STRIP BITCODE FROM TWILIOVIDEO FRAMEWORK ───
+    bitcode_strip_path = `xcrun --find bitcode_strip`.chomp
+    def strip_bitcode(bitcode_strip, framework_relative)
+      full_path = File.join(Dir.pwd, framework_relative)
+      command = "#{bitcode_strip} #{full_path} -r -o #{full_path}"
+      puts "Stripping bitcode: #{command}"
+      system(command)
     end
-    # ───────────────────────────────────────────
+
+    # **Adjust this path if necessary**, but for react-native-twilio-video-webrtc@3.x it's usually:
+    framework_paths = [
+      "Pods/TwilioVideo/TwilioVideo.framework/TwilioVideo"
+    ]
+
+    framework_paths.each do |rel_path|
+      strip_bitcode(bitcode_strip_path, rel_path)
+    end
+    # ───────────────────────────────────────────────────────────
   end
 end
