@@ -10,16 +10,8 @@
       "distribution": "internal"
     },
     "production": {
-      "distribution": "store",
       "ios": {
-        "buildConfiguration": "Release",
-        "simulator": false,
-        "image": "latest"
-      },
-      "env": {
-        "EXPO_PUBLIC_SUPABASE_URL": "https://jalyamjykxebqsixdwoi.supabase.co",
-        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.…",
-        "EXPO_PUBLIC_BACKEND_IP": "192.168.1.92"
+        "distribution": "store"
       }
     },
     "preview": {
