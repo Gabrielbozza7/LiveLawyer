@@ -16,7 +16,7 @@ If you are having issues with permissions, refer to the previous guide, [GitHub 
 
 ## Part 2: Running the Container
 
-1. Ensure that you have [Docker Engine](https://docs.docker.com/engine/install/) installed and running on your host machine. You do not have to separately install this if you already have installed [Docker Desktop](https://docs.docker.com/desktop/) because that comes with Docker Engine.
+1. Ensure that you have [Docker Engine](https://docs.docker.com/engine/install/) installed and running on your host machine. You do not have to separately install this if you already have installed [Docker Desktop](https://docs.docker.com/desktop/) because that comes with Docker Engine. Then close the File editor and reopen it.
 
 2. Build the container. If you are using the Dev Containers extension for Visual Studio Code, clicking the "Reopen in Container" prompt upon opening the **repository root** as a workspace should do this. Running the container without the Visual Studio Code extension has not been tested, but tools that support the [Development Container Specification](https://containers.dev/implementors/spec/) should work.
 
