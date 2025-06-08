@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  backend:
+    container_name: livelawyer-backend
+    # The build context is the current directory ('.').
+    # It will look for the Dockerfile inside the LiveLawyerBackend directory.
+    build:
+      context: .
+      dockerfile: LiveLawyerBackend/Dockerfile
+    ports:
+      # Maps port 3001 on your machine to port 3001 in the container.
+      # Change the first value if you need to use a different port on your host machine.
+      - "3001:3001"
+    volumes:
+      # Creates a named volume to persist call recordings outside the container's lifecycle.
+      - recordings_data:/usr/src/app/recordings
+    env_file:
+      # Tells Docker Compose to load environment variables from a .env file.
+      - LiveLawyerBackend/.env
+    restart: unless-stopped
+
+# Defines the named volume used by the backend service.
+volumes:
+  recordings_data:

@@ -5,10 +5,11 @@
 // SPECIFICALLY FOR THIS "devcontainer.json" FILE, note that the only difference between the host version of this file
 // and the one in version control should differ only in volume mounting if you are using a volume.
 {
-	"name": "LiveLawyer",
-	"forwardPorts": [8081],
-	"build": {
-		"dockerfile": "Dockerfile"
-	},
-	"runArgs": ["-p=8081:8081", "-p=3000:3000", "-p=4000:4000"]
+    "name": "LiveLawyer",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "containerUser": "root",
+    "remoteUser": "root",
+    "runArgs": ["-v", "livelawyer-source:/volume"]
 }

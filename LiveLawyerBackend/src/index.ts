@@ -13,7 +13,7 @@ import {
   ClientToServerEvents,
   ServerToClientEvents,
 } from 'livelawyerlibrary/SocketEventDefinitions'
-import { BACKEND_IP, BACKEND_PORT, BACKEND_URL } from 'livelawyerlibrary/env'
+import { BACKEND_IP_ADDRESS, BACKEND_PORT, BACKEND_URL } from 'livelawyerlibrary/env'
 import { RECORDING_DIR_NAME } from './RecordingProcessor'
 import IdentityMap from './IdentityMap'
 
@@ -22,7 +22,7 @@ const httpServer = createServer(app)
 const io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
   connectionStateRecovery: {},
   cors: {
-    origin: ['http://localhost:3000', `http://${BACKEND_IP}:3000`, 'http://localhost:8081'],
+    origin: ['http://localhost:3000', `http://${BACKEND_IP_ADDRESS}:3000`, 'http://localhost:8081'],
     methods: ['GET', 'POST'],
   },
 })
