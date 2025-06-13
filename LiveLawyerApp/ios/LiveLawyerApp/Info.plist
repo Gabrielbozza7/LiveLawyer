@@ -19,7 +19,7 @@
     <key>CFBundlePackageType</key>
     <string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.0.0</string>
+    <string>1.0.5</string>
     <key>CFBundleSignature</key>
     <string>????</string>
     <key>CFBundleURLTypes</key>
@@ -40,6 +40,14 @@
     </array>
     <key>CFBundleVersion</key>
     <string>3.0.5</string>
+    <key>EXUpdatesURL</key>
+    <string>https://u.expo.dev/b3b37051-c770-4c5d-afd1-de77444c190f</string>
+    <key>EXUpdatesReleaseChannel</key>
+    <string>production</string>
+    <key>EXUpdatesRuntimeVersion</key>
+    <string>1.0.5</string>
+    <key>ITSAppUsesNonExemptEncryption</key>
+    <false/>
     <key>ITSAppUsesNonExemptEncryption</key>
     <false/>
     <key>LSMinimumSystemVersion</key>
