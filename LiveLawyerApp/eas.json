@@ -16,7 +16,7 @@
       },
       "env": {
         "EXPO_PUBLIC_SUPABASE_URL": "https://jalyamjykxebqsixdwoi.supabase.co",
-        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.…",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImphbHlhbWp5a3hlYnFzaXhkd29pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MjY2MTEsImV4cCI6MjA1NzMwMjYxMX0.AScuXEU60mJtWAggEeq3HB-LzNDQPp16yj1h-yJbj5s",
         "EXPO_PUBLIC_BACKEND_IP": "192.168.1.92"
       }
     },
