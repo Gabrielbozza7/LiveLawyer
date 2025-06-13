@@ -2,7 +2,7 @@
   "expo": {
     "name": "LiveLawyerApp",
     "slug": "LiveLawyerApp",
-    "version": "1.0.0",
+    "version": "1.0.5",
     "orientation": "portrait",
     "icon": "./assets/images/appstore.png",
     "scheme": "livelawyerapp",
@@ -43,6 +43,12 @@
           "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
         }
       ],
+      [
+       "expo-updates",
+       {
+         "fallbackToCacheTimeout": 0
+       }
+     ],
       [
         "react-native-twilio-video-webrtc",
         {

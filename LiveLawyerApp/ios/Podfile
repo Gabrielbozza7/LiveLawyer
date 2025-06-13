@@ -16,9 +16,8 @@ prepare_react_native_project!
 target 'LiveLawyerApp' do
   use_expo_modules!
 
-  # ─── Auto-linking config ───
   if ENV['EXPO_USE_COMMUNITY_AUTOLINKING'] == '1'
-    config_command = ['node', '-e', "process.argv=['', '', 'config'];require('@react-native-community/cli').run()"]
+    config_command = ['node', '-e', "process.argv=['', '', 'config'];require('@react-native-community/cli').run()"];
   else
     config_command = [
       'node',
@@ -31,21 +30,21 @@ target 'LiveLawyerApp' do
       'ios'
     ]
   end
+
   config = use_native_modules!(config_command)
 
-  # ─── Force static frameworks for bitcode stripping ───
-  use_frameworks! :linkage => :static
+  use_frameworks! :linkage => podfile_properties['ios.useFrameworks'].to_sym if podfile_properties['ios.useFrameworks']
+  use_frameworks! :linkage => ENV['USE_FRAMEWORKS'].to_sym if ENV['USE_FRAMEWORKS']
 
-  # ─── React Native Pod install ───
   use_react_native!(
     :path => config[:reactNativePath],
-    :hermes_enabled => podfile_properties['expo.jsEngine'].nil? || podfile_properties['expo.jsEngine'] == 'hermes',
+    :hermes_enabled => podfile_properties['expo.jsEngine'] == nil || podfile_properties['expo.jsEngine'] == 'hermes',
+    # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/..",
     :privacy_file_aggregation_enabled => podfile_properties['apple.privacyManifestAggregationEnabled'] != 'false',
   )
 
   post_install do |installer|
-    # 1) React Native post-install helper
     react_native_post_install(
       installer,
       config[:reactNativePath],
@@ -53,34 +52,13 @@ target 'LiveLawyerApp' do
       :ccache_enabled => podfile_properties['apple.ccacheEnabled'] == 'true',
     )
 
-    # 2) Disable resource-bundle code signing for Xcode 14+
-    installer.target_installation_results.pod_target_installation_results.each do |pod_name, target_result|
-      target_result.resource_bundle_targets.each do |bundle_target|
-        bundle_target.build_configurations.each do |c|
-          c.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
-        end
-      end
-    end
-
-    # 3) Strip bitcode from any TwilioVideo.framework
-    bitcode_strip_path = `xcrun --find bitcode_strip`.chomp
-    if bitcode_strip_path && !bitcode_strip_path.empty?
-      pods_folder = File.join(Dir.pwd, "Pods")
-      Dir.glob("#{pods_folder}/**/TwilioVideo.framework/TwilioVideo").each do |framework_binary|
-        command = "#{bitcode_strip_path} #{framework_binary} -r -o #{framework_binary}"
-        puts "🔧 Stripping bitcode from: #{framework_binary}"
-        system(command)
-      end
-    else
-      puts "⚠️  Warning: bitcode_strip not found; skipping bitcode stripping."
-    end
-
-    # 4) ONLY force C++17 for TwilioVideo targets
-    installer.pods_project.targets.each do |pod_target|
-      if pod_target.name.include?("TwilioVideo")
-        pod_target.build_configurations.each do |config|
-          config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++17'
-          puts "🔧 Forcing C++17 on Pod target: #{pod_target.name}"
+    # This is necessary for Xcode 14, because it signs resource bundles by default
+    # when building for devices.
+    installer.target_installation_results.pod_target_installation_results
+      .each do |pod_name, target_installation_result|
+      target_installation_result.resource_bundle_targets.each do |resource_bundle_target|
+        resource_bundle_target.build_configurations.each do |config|
+          config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
         end
       end
     end
