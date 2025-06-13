@@ -11,7 +11,7 @@
     "ios": {
   "supportsTablet": true,
   "bundleIdentifier": "com.gabetheman.LiveLawyerApp",
-  "buildNumber": "3.0.4",
+  "buildNumber": "3.0.5",
   "infoPlist": {
     "ITSAppUsesNonExemptEncryption": false,
     "NSCameraUsageDescription": "We need access to your camera for video calls.",
