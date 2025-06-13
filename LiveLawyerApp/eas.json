@@ -11,6 +11,7 @@
     },
     "production": {
       "distribution": "store",
+      "channel": "production",
       "ios": {
       },
       "env": {
