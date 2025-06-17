@@ -16,18 +16,28 @@ interface AccountProps {
 }
 
 interface AccountFormData {
-  name: string
+  firstName: string
+  lastName: string
   email: string
-  phone: string
-  address: string
+  phoneNum: string
 }
 
 export default function Account({ supabaseUrl, supabaseAnonKey }: AccountProps) {
   const [loading, setLoading] = useState<boolean>(true)
   const [session, setSession] = useState<Session | undefined>()
+  const [userType, setUserType] = useState<string>('')
   const [statusMessage, setStatusMessage] = useState<string>('')
   const [initializedSupabaseClient, setInitializedSupabaseClient] = useState<boolean>(false)
 
+  // There is blank data here because the value gets updated before ever being used.
+  const [account, setAccount] = useState<AccountFormData>({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phoneNum: '',
+  })
+
+  // Reading the session if the user is already logged in or logs in:
   useEffect(() => {
     supabase = createClient(supabaseUrl, supabaseAnonKey)
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -43,6 +53,7 @@ export default function Account({ supabaseUrl, supabaseAnonKey }: AccountProps) 
     return () => subscription.unsubscribe()
   }, [supabaseAnonKey, supabaseUrl])
 
+  // Filling the form with the user's existing data before presenting it for editing:
   useEffect(() => {
     if (initializedSupabaseClient && session !== undefined) {
       ;(async () => {
@@ -58,9 +69,8 @@ export default function Account({ supabaseUrl, supabaseAnonKey }: AccountProps) 
           )
           return
         }
-        setAccount(template => {
-          return { ...template, name: data.firstName }
-        })
+        setAccount(data)
+        setUserType(data.userType)
         setLoading(false)
       })()
     } else if (initializedSupabaseClient && session === undefined) {
@@ -68,30 +78,25 @@ export default function Account({ supabaseUrl, supabaseAnonKey }: AccountProps) 
     }
   }, [initializedSupabaseClient, session])
 
-  const [account, setAccount] = useState<AccountFormData>({
-    name: '',
-    email: 'Goodman@GoodmanLaw.com',
-    phone: '123-456-7890',
-    address: 'Goodman Law Office',
-  })
-
+  // Dynamically syncing the form changes to the account model:
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setAccount(prev => ({ ...prev, [name]: value }))
   }
 
+  // Updating the database based on the new account model when the form is submitted:
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
     const { error } = await supabase
       .from('User')
-      .update({ firstName: account.name })
+      .update(account)
       .eq('id', session?.user.id ?? '')
       .single()
     setStatusMessage(
       error
         ? 'Something went wrong when trying to fetch your account information! Try again later.'
-        : 'Update succesful!',
+        : 'Update successful!',
     )
     setLoading(false)
   }
@@ -122,13 +127,24 @@ export default function Account({ supabaseUrl, supabaseAnonKey }: AccountProps) 
                 {statusMessage === '' ? (
                   <Card.Body>
                     <h4 className="mb-4">Account Information</h4>
+
                     <Form onSubmit={handleSubmit}>
-                      <Form.Group controlId="formName">
-                        <Form.Label>Name</Form.Label>
+                      <Form.Group controlId="formFirstName" className="mt-3">
+                        <Form.Label>First Name</Form.Label>
                         <Form.Control
                           type="text"
-                          name="name"
-                          value={account.name}
+                          name="firstName"
+                          value={account.firstName}
+                          onChange={handleChange}
+                        />
+                      </Form.Group>
+
+                      <Form.Group controlId="formLastName" className="mt-3">
+                        <Form.Label>Last Name</Form.Label>
+                        <Form.Control
+                          type="text"
+                          name="lastName"
+                          value={account.lastName}
                           onChange={handleChange}
                         />
                       </Form.Group>
@@ -143,28 +159,18 @@ export default function Account({ supabaseUrl, supabaseAnonKey }: AccountProps) 
                         />
                       </Form.Group>
 
-                      <Form.Group controlId="formPhone" className="mt-3">
-                        <Form.Label>Phone</Form.Label>
+                      <Form.Group controlId="formPhoneNum" className="mt-3">
+                        <Form.Label>Phone Number</Form.Label>
                         <Form.Control
-                          type="text"
-                          name="phone"
-                          value={account.phone}
+                          type="tel"
+                          name="phoneNum"
+                          value={account.phoneNum}
                           onChange={handleChange}
                         />
                       </Form.Group>
 
-                      <Form.Group controlId="formAddress" className="mt-3">
-                        <Form.Label>Office</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="address"
-                          value={account.address}
-                          onChange={handleChange}
-                        />
-                      </Form.Group>
-
-                      <br />
-                      <Card.Text>Your User ID: {session.user.id}</Card.Text>
+                      <Card.Text className="mt-3">Your User Type: {userType}</Card.Text>
+                      <Card.Text className="mt-3">Your User ID: {session.user.id}</Card.Text>
 
                       <Button variant="primary" type="submit">
                         Save Changes
