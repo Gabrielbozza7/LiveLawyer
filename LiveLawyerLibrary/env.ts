@@ -1,7 +1,7 @@
 import dotenv from 'dotenv'
 import { defaultEnvironmentVariableWithWarning } from '.'
 
-function getBackendVariables(): [ip: string, port: string] {
+function getBackendVariables(): [ip: string, port: string, url: string, anonKey: string] {
   let dir = __dirname
   const NEXTJS_WRONG_PATH = /LiveLawyerWeb\/\.next\/server\/app\/.*$/
   if (dir.match(NEXTJS_WRONG_PATH)) {
@@ -23,8 +23,22 @@ function getBackendVariables(): [ip: string, port: string] {
     '4000',
     false,
   )
-  return [ip, port]
+  const url = defaultEnvironmentVariableWithWarning(
+    process.env.SUPABASE_URL,
+    'SUPABASE_URL',
+    path,
+    '',
+    true,
+  )
+  const anonKey = defaultEnvironmentVariableWithWarning(
+    process.env.SUPABASE_ANON_KEY,
+    'SUPABASE_ANON_KEY',
+    path,
+    '',
+    true,
+  )
+  return [ip, port, url, anonKey]
 }
 
-export const [BACKEND_IP, BACKEND_PORT] = getBackendVariables()
+export const [BACKEND_IP, BACKEND_PORT, SUPABASE_URL, SUPABASE_ANON_KEY] = getBackendVariables()
 export const BACKEND_URL = BACKEND_IP ? `http://${BACKEND_IP}:${BACKEND_PORT}` : ''
