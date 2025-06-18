@@ -20,8 +20,7 @@ export default function Creator({
   const [passwordsMatch, setPasswordsMatch] = useState<boolean>(true)
   const [passwordsLongEnough, setPasswordsLongEnough] = useState<boolean>(false)
 
-  // There is blank data here because the value gets updated before ever being used.
-  const [form, setForm] = useState<FormModel>({
+  const [formModel, setFormModel] = useState<FormModel>({
     firstName: '',
     lastName: '',
     email: '',
@@ -33,9 +32,9 @@ export default function Creator({
   // Dynamically syncing the form changes to the account model:
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
-    let password = form.password
-    let confirmPassword = form.confirmPassword
-    setForm(prev => ({ ...prev, [name]: value }))
+    let password = formModel.password
+    let confirmPassword = formModel.confirmPassword
+    setFormModel(prev => ({ ...prev, [name]: value }))
     if (name === 'password' || name === 'confirmPassword') {
       if (name === 'password') {
         password = value
@@ -52,8 +51,8 @@ export default function Creator({
     e.preventDefault()
     setLoading(true)
     const { error: signUpError } = await supabase.auth.signUp({
-      email: form.email,
-      password: form.password,
+      email: formModel.email,
+      password: formModel.password,
     })
     if (signUpError) {
       setStatusMessage('Something went wrong when trying to sign up! Try again.')
@@ -70,10 +69,10 @@ export default function Creator({
     const { error: updateError } = await supabase
       .from('User')
       .update({
-        firstName: form.firstName,
-        lastName: form.lastName,
-        email: form.email,
-        phoneNum: form.phoneNum,
+        firstName: formModel.firstName,
+        lastName: formModel.lastName,
+        email: formModel.email,
+        phoneNum: formModel.phoneNum,
       })
       .eq('id', session.user.id)
       .single()
@@ -95,7 +94,7 @@ export default function Creator({
             <Form.Control
               type="text"
               name="firstName"
-              value={form.firstName}
+              value={formModel.firstName}
               onChange={handleChange}
             />
           </Form.Group>
@@ -105,14 +104,19 @@ export default function Creator({
             <Form.Control
               type="text"
               name="lastName"
-              value={form.lastName}
+              value={formModel.lastName}
               onChange={handleChange}
             />
           </Form.Group>
 
           <Form.Group controlId="formEmail" className="mt-3">
             <Form.Label>Email</Form.Label>
-            <Form.Control type="email" name="email" value={form.email} onChange={handleChange} />
+            <Form.Control
+              type="email"
+              name="email"
+              value={formModel.email}
+              onChange={handleChange}
+            />
           </Form.Group>
 
           <Form.Group controlId="formPhoneNum" className="mt-3">
@@ -120,7 +124,7 @@ export default function Creator({
             <Form.Control
               type="tel"
               name="phoneNum"
-              value={form.phoneNum}
+              value={formModel.phoneNum}
               onChange={handleChange}
             />
           </Form.Group>
@@ -130,7 +134,7 @@ export default function Creator({
             <Form.Control
               type="password"
               name="password"
-              value={form.password}
+              value={formModel.password}
               onChange={handleChange}
             />
           </Form.Group>
@@ -140,7 +144,7 @@ export default function Creator({
             <Form.Control
               type="password"
               name="confirmPassword"
-              value={form.confirmPassword}
+              value={formModel.confirmPassword}
               onChange={handleChange}
             />
           </Form.Group>
