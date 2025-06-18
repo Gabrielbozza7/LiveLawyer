@@ -197,6 +197,35 @@ export type Database = {
           },
         ]
       }
+      LawOffice: {
+        Row: {
+          administrator: string
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          administrator: string
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          administrator?: string
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'LawOffice_administrator_fkey'
+            columns: ['administrator']
+            isOneToOne: false
+            referencedRelation: 'User'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       Lawyer: {
         Row: {
           address: string
@@ -262,6 +291,36 @@ export type Database = {
           userType?: Database['public']['Enums']['UserType']
         }
         Relationships: []
+      }
+      UserLawyer: {
+        Row: {
+          id: string
+          officeId: string | null
+        }
+        Insert: {
+          id: string
+          officeId?: string | null
+        }
+        Update: {
+          id?: string
+          officeId?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'UserLawyer_id_fkey'
+            columns: ['id']
+            isOneToOne: true
+            referencedRelation: 'User'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'UserLawyer_officeId_fkey'
+            columns: ['officeId']
+            isOneToOne: false
+            referencedRelation: 'LawOffice'
+            referencedColumns: ['id']
+          },
+        ]
       }
     }
     Views: {

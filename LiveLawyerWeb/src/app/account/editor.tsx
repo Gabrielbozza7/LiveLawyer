@@ -1,12 +1,15 @@
 import { FormEvent, useEffect, useState } from 'react'
-import { Button, Card, Form } from 'react-bootstrap'
+import { Button, Card, Container, Form, Toast } from 'react-bootstrap'
 import { AccountSubFormProps } from './account'
+import OfficeSelector, { OfficeOption, OfficeSelection } from './office-selector'
+import { PostgrestError } from '@supabase/supabase-js'
 
 interface FormModel {
   firstName: string
   lastName: string
   email: string
   phoneNum: string
+  officeId?: string
 }
 
 export default function Editor({
@@ -16,7 +19,10 @@ export default function Editor({
   supabase,
   session,
 }: AccountSubFormProps) {
-  const [userType, setUserType] = useState<string>('')
+  const [showToast, setShowToast] = useState<string | null>(null)
+  const [userType, setUserType] = useState<'Paralegal' | 'Lawyer' | 'Civilian' | 'Dev'>('Civilian')
+  const [openChangeOffice, setOpenChangeOffice] = useState<boolean>(false)
+  const [currentOffice, setCurrentOffice] = useState<OfficeOption | undefined>()
 
   const [formModel, setFormModel] = useState<FormModel>({
     firstName: '',
@@ -24,6 +30,7 @@ export default function Editor({
     email: '',
     phoneNum: '',
   })
+  const [officeSelection, setOfficeSelection] = useState<OfficeSelection | undefined>()
 
   // Filling the form with the user's existing data before presenting it for editing:
   useEffect(() => {
@@ -42,6 +49,21 @@ export default function Editor({
         } else {
           setFormModel(data)
           setUserType(data.userType)
+          if (data.userType === 'Lawyer') {
+            const { data: lawyerData, error: lawyerError } = await supabase
+              .from('UserLawyer')
+              .select('officeId(id, name)')
+              .eq('id', session?.user.id ?? '')
+              .single()
+            if (lawyerError) {
+              setStatusMessage(
+                'Something went wrong when trying to fetch your lawyer information! Try again later.',
+              )
+            }
+            if (lawyerData?.officeId) {
+              setCurrentOffice({ id: lawyerData.officeId.id, name: lawyerData.officeId.name })
+            }
+          }
         }
         setLoading(false)
       })()
@@ -59,16 +81,85 @@ export default function Editor({
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
-    const { error } = await supabase
-      .from('User')
-      .update(formModel)
-      .eq('id', session?.user.id ?? '')
-      .single()
-    setStatusMessage(
-      error
-        ? 'Something went wrong when trying to fetch your account information! Try again later.'
-        : 'Update successful!',
-    )
+    let failed = false
+    // Creating law office and updating lawyer profile if specified:
+    if (
+      officeSelection !== undefined &&
+      officeSelection?.selectedOfficeId === undefined &&
+      session !== undefined
+    ) {
+      const { data, error: insertError } = await supabase
+        .from('LawOffice')
+        .insert({
+          administrator: session.user.id,
+          name: officeSelection.newOfficeName,
+        })
+        .select()
+        .single()
+      let upsertError: PostgrestError | null = null
+      if (data !== null) {
+        // Updating lawyer profile:
+        const { error: upsertInnerError } = await supabase
+          .from('UserLawyer')
+          .upsert({ id: session.user.id, officeId: data.id }, { onConflict: 'id' })
+          .single()
+        upsertError = upsertInnerError
+        setCurrentOffice({ id: data.id, name: officeSelection.newOfficeName })
+      }
+      if (insertError || upsertError) {
+        failed = true
+        setStatusMessage(
+          'Something went wrong when trying to create the new office! Try again later.',
+        )
+      }
+    } else if (
+      officeSelection !== undefined &&
+      officeSelection?.selectedOfficeId !== undefined &&
+      session !== undefined
+    ) {
+      // Updating lawyer profile to existing law office if specified:
+      const { error: upsertError } = await supabase
+        .from('UserLawyer')
+        .upsert(
+          { id: session.user.id, officeId: officeSelection.selectedOfficeId },
+          { onConflict: 'id' },
+        )
+        .single()
+      setCurrentOffice({
+        id: officeSelection.selectedOfficeId,
+        name: officeSelection.newOfficeName,
+      })
+      if (upsertError) {
+        failed = true
+        setStatusMessage(
+          'Something went wrong when trying to add you to the office! Try again later.',
+        )
+      }
+    }
+    // Updating profile:
+    if (!failed) {
+      const { error: updateError } = await supabase
+        .from('User')
+        .update({
+          firstName: formModel.firstName,
+          lastName: formModel.lastName,
+          email: formModel.email,
+          phoneNum: formModel.phoneNum,
+        })
+        .eq('id', session?.user.id ?? '')
+        .single()
+      if (updateError) {
+        failed = true
+        setStatusMessage(
+          'Something went wrong when trying to update your account! Try again later.',
+        )
+      }
+    }
+    if (!failed) {
+      setOpenChangeOffice(false)
+      setOfficeSelection(undefined)
+      setShowToast('Update successful!')
+    }
     setLoading(false)
   }
 
@@ -130,6 +221,32 @@ export default function Editor({
             />
           </Form.Group>
 
+          {userType === 'Lawyer' ? (
+            <Container className="mt-3">
+              {!openChangeOffice ? (
+                <Button variant="primary" type="button" onClick={() => setOpenChangeOffice(true)}>
+                  Change Office
+                </Button>
+              ) : (
+                <OfficeSelector
+                  currentOffice={currentOffice}
+                  setSelection={setOfficeSelection}
+                  supabase={supabase}
+                />
+              )}
+            </Container>
+          ) : (
+            <></>
+          )}
+
+          {currentOffice ? (
+            <div>
+              <Card.Text className="mt-3">Your Office Name: {currentOffice.name}</Card.Text>
+              <Card.Text className="mt-3">Your Office ID: {currentOffice.id}</Card.Text>
+            </div>
+          ) : (
+            <></>
+          )}
           <Card.Text className="mt-3">Your User Type: {userType}</Card.Text>
           <Card.Text className="mt-3">Your User ID: {session?.user.id}</Card.Text>
 
@@ -142,6 +259,15 @@ export default function Editor({
           </Button>
         </Form>
       </Card.Body>
+      <Toast
+        bg="primary"
+        onClose={() => setShowToast(null)}
+        show={showToast !== null}
+        delay={2500}
+        autohide
+      >
+        <Toast.Body>{showToast}</Toast.Body>
+      </Toast>
     </Card>
   )
 }

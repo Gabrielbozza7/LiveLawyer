@@ -1,0 +1,145 @@
+import React, { useEffect, useState } from 'react'
+import { Card, Form } from 'react-bootstrap'
+import { SupabaseClient } from '@supabase/supabase-js'
+import { Database } from 'livelawyerlibrary/SupabaseTypes'
+
+export interface OfficeOption {
+  id: string
+  name: string
+}
+
+export interface OfficeSelection {
+  newOfficeName: string
+  selectedOfficeId?: string
+}
+
+interface OfficeSelectorProps {
+  currentOffice: OfficeOption | undefined
+  setSelection: (selection: OfficeSelection) => void
+  supabase: SupabaseClient<Database>
+}
+
+export default function OfficeSelector({
+  currentOffice,
+  setSelection,
+  supabase,
+}: OfficeSelectorProps) {
+  const [placeholder, setPlaceholder] = useState<string>('Loading...')
+  const [offices, setOffices] = useState<OfficeOption[]>([])
+  const [selectionType, setSelectionType] = useState<'Existing Office' | 'New Office'>(
+    'Existing Office',
+  )
+  const [selectedOfficeIndex, setSelectedOfficeIndex] = useState<number>(0)
+  const [newOfficeName, setNewOfficeName] = useState<string>('')
+
+  // Fetching the existing offices:
+  useEffect(() => {
+    ;(async () => {
+      const { data, error } = await supabase.from('LawOffice').select()
+      if (error || data === null) {
+        setPlaceholder('Unable to find law offices right now! Try again later')
+      } else {
+        const formattedOffices = data.map(office => {
+          return { id: office.id, name: office.name }
+        })
+        setOffices(formattedOffices)
+        if (formattedOffices.length > 0) {
+          if (currentOffice === undefined) {
+            setSelectedOfficeIndex(0)
+            setSelection({
+              selectedOfficeId: formattedOffices[0].id,
+              newOfficeName: formattedOffices[0].name,
+            })
+          } else {
+            setSelectedOfficeIndex(
+              Math.max(
+                formattedOffices.findIndex(value => currentOffice.id === value.id),
+                0,
+              ),
+            )
+            setSelection({ selectedOfficeId: currentOffice.id, newOfficeName: currentOffice.name })
+          }
+        } else {
+          setSelectionType('New Office')
+          setSelection({ newOfficeName: '' })
+        }
+        setPlaceholder('')
+      }
+    })()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentOffice])
+
+  // Dynamically syncing the form changes to the account model:
+  const handleChangeSelectionType = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const { value } = e.target
+    setSelectionType(value as 'Existing Office' | 'New Office')
+  }
+
+  const handleChangeSelectedOffice = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const { value } = e.target
+    const index = Number(value)
+    const office = offices[index]
+    setSelectedOfficeIndex(index)
+    setSelection({ selectedOfficeId: office.id, newOfficeName: office.name })
+  }
+
+  const handleChangeNewOfficeName = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target
+    setNewOfficeName(value)
+    setSelection({ newOfficeName: value })
+  }
+
+  return (
+    <Card>
+      <Card.Body>
+        {placeholder !== '' ? (
+          <Card.Text className="mt-3">{placeholder}</Card.Text>
+        ) : (
+          <div>
+            <Form.Group controlId="formSelectionType" className="mt-3">
+              <Form.Select
+                name="userType"
+                value={selectionType}
+                onChange={handleChangeSelectionType}
+              >
+                <option value={'Existing Office'}>Existing Office</option>
+                <option value={'New Office'}>New Office</option>
+              </Form.Select>
+            </Form.Group>
+            {selectionType === 'Existing Office' ? (
+              <div>
+                <Form.Group controlId="formUserType" className="mt-3">
+                  <Form.Label>Existing Office Name</Form.Label>
+                  <Form.Select
+                    name="selectedOfficeId"
+                    value={selectedOfficeIndex}
+                    onChange={handleChangeSelectedOffice}
+                  >
+                    {offices.map((office, index) => (
+                      <option key={index} value={index}>
+                        {office.name}
+                      </option>
+                    ))}
+                  </Form.Select>
+                </Form.Group>
+                <Card.Text className="mt-3">Office ID: {offices[selectedOfficeIndex].id}</Card.Text>
+              </div>
+            ) : (
+              <div>
+                <Form.Group controlId="formNewOfficeName" className="mt-3">
+                  <Form.Label>New Office Name</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="newOfficeName"
+                    value={newOfficeName}
+                    onChange={handleChangeNewOfficeName}
+                  />
+                </Form.Group>
+              </div>
+            )}
+          </div>
+        )}
+      </Card.Body>
+    </Card>
+  )
+}
