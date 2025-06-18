@@ -9,6 +9,7 @@ interface FormModel {
   phoneNum: string
   password: string
   confirmPassword: string
+  userType: 'Paralegal' | 'Lawyer'
 }
 
 export default function Creator({
@@ -27,10 +28,11 @@ export default function Creator({
     phoneNum: '',
     password: '',
     confirmPassword: '',
+    userType: 'Paralegal',
   })
 
   // Dynamically syncing the form changes to the account model:
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChangeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     let password = formModel.password
     let confirmPassword = formModel.confirmPassword
@@ -44,6 +46,12 @@ export default function Creator({
       setPasswordsMatch(password === confirmPassword)
       setPasswordsLongEnough(password.length >= 8 && confirmPassword.length >= 8)
     }
+  }
+
+  // Dynamically syncing the form changes to the account model:
+  const handleChangeSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const { name, value } = e.target
+    setFormModel(prev => ({ ...prev, [name]: value }))
   }
 
   // Signing up based on the new account model when the form is submitted:
@@ -73,6 +81,7 @@ export default function Creator({
         lastName: formModel.lastName,
         email: formModel.email,
         phoneNum: formModel.phoneNum,
+        userType: formModel.userType,
       })
       .eq('id', session.user.id)
       .single()
@@ -95,7 +104,7 @@ export default function Creator({
               type="text"
               name="firstName"
               value={formModel.firstName}
-              onChange={handleChange}
+              onChange={handleChangeInput}
             />
           </Form.Group>
 
@@ -105,7 +114,7 @@ export default function Creator({
               type="text"
               name="lastName"
               value={formModel.lastName}
-              onChange={handleChange}
+              onChange={handleChangeInput}
             />
           </Form.Group>
 
@@ -115,7 +124,7 @@ export default function Creator({
               type="email"
               name="email"
               value={formModel.email}
-              onChange={handleChange}
+              onChange={handleChangeInput}
             />
           </Form.Group>
 
@@ -125,7 +134,7 @@ export default function Creator({
               type="tel"
               name="phoneNum"
               value={formModel.phoneNum}
-              onChange={handleChange}
+              onChange={handleChangeInput}
             />
           </Form.Group>
 
@@ -135,7 +144,7 @@ export default function Creator({
               type="password"
               name="password"
               value={formModel.password}
-              onChange={handleChange}
+              onChange={handleChangeInput}
             />
           </Form.Group>
 
@@ -145,8 +154,16 @@ export default function Creator({
               type="password"
               name="confirmPassword"
               value={formModel.confirmPassword}
-              onChange={handleChange}
+              onChange={handleChangeInput}
             />
+          </Form.Group>
+
+          <Form.Group controlId="formUserType" className="mt-3">
+            <Form.Label>User Type</Form.Label>
+            <Form.Select name="userType" value={formModel.userType} onChange={handleChangeSelect}>
+              <option>Paralegal</option>
+              <option>Lawyer</option>
+            </Form.Select>
           </Form.Group>
 
           <Card.Text className="mt-3">
