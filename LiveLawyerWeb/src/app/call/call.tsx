@@ -11,10 +11,11 @@ import {
   ClientToServerEvents,
   ServerToClientEvents,
 } from 'livelawyerlibrary/SocketEventDefinitions'
+import { PublicEnv } from '@/classes/PublicEnv'
 
 let socket: Socket<ServerToClientEvents, ClientToServerEvents>
 
-export function Call({ backendUrl }: { backendUrl: string }) {
+export function Call({ env }: { env: PublicEnv }) {
   const [videoRoom] = useState<TwilioVideoRoom>(new TwilioVideoRoom())
   const [participants, setParticipants] = useState<Participant[]>([])
   const [inQueueOrCall, setInQueueOrCall] = useState<boolean>(false)
@@ -47,7 +48,7 @@ export function Call({ backendUrl }: { backendUrl: string }) {
       setParticipants([])
     }
 
-    socket = io(backendUrl)
+    socket = io(env.backendUrl)
     socket.on('sendToRoom', onSendToRoom)
     socket.on('endCall', onEndCall)
 
@@ -61,7 +62,7 @@ export function Call({ backendUrl }: { backendUrl: string }) {
   return (
     <div>
       <title>Call</title>
-      <LiveLawyerNav />
+      <LiveLawyerNav env={env} />
       <Container fluid="md" style={{ margin: 24 }}>
         {videoRoom.inARoom ? (
           <div>

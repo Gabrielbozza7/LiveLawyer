@@ -1,13 +1,14 @@
 'use client'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import { Card, Container } from 'react-bootstrap'
-import LiveLawyerNav from '@/components/LiveLawyerNav'
+import LiveLawyerNav, { SessionReadyCallbackArg } from '@/components/LiveLawyerNav'
 import { useEffect, useRef, useState } from 'react'
-import { createClient, Session, SupabaseClient } from '@supabase/supabase-js'
+import { Session, Subscription, SupabaseClient } from '@supabase/supabase-js'
 import { Database } from 'livelawyerlibrary/SupabaseTypes'
 import Creator from './creator'
 import Login from './login'
 import Editor from './editor'
+import { PublicEnv } from '@/classes/PublicEnv'
 
 export type ActiveForm = 'Login' | 'Editor' | 'Creator'
 
@@ -19,49 +20,46 @@ export interface AccountSubFormProps {
   session: Session | undefined
 }
 
-interface AccountProps {
-  supabaseUrl: string
-  supabaseAnonKey: string
-}
-
-export default function Account({ supabaseUrl, supabaseAnonKey }: AccountProps) {
-  const supabaseClientRef = useRef<SupabaseClient<Database>>(null)
+export default function Account({ env }: { env: PublicEnv }) {
+  const supabaseRef = useRef<SupabaseClient<Database>>(null)
   const [loading, setLoading] = useState<boolean>(true)
-  const [session, setSession] = useState<Session | undefined>()
+  // const [session, setSession] = useState<Session | undefined>()
+  const sessionRef = useRef<Session>(null)
   const [statusMessage, setStatusMessage] = useState<string>('')
-  const [initializedSupabaseClient, setInitializedSupabaseClient] = useState<boolean>(false)
+  const [initialized, setInitialized] = useState<boolean>(false)
   const [activeForm, setActiveForm] = useState<ActiveForm>('Login')
+  const loginSubscriptionRef = useRef<Subscription>(null)
 
-  // Reading the session if the user is logged in already:
-  useEffect(() => {
-    if (supabaseClientRef.current === null) {
-      supabaseClientRef.current = createClient(supabaseUrl, supabaseAnonKey)
-    }
-    supabaseClientRef.current.auth.getSession().then(({ data: { session } }) => {
-      setSession(session ?? undefined)
-      setInitializedSupabaseClient(true)
-      setLoading(false)
-    })
-  }, [supabaseAnonKey, supabaseUrl])
+  const sessionReadyCallback = ({ supabase, session }: SessionReadyCallbackArg) => {
+    supabaseRef.current = supabase
+    sessionRef.current = session
 
-  // Reading the session if the user logs in:
-  useEffect(() => {
-    if (supabaseClientRef.current === null) {
-      return
-    }
+    // Reading the session if the user logs in:
     const {
       data: { subscription },
-    } = supabaseClientRef.current.auth.onAuthStateChange((_event, session) => {
-      setSession(session ?? undefined)
-      setInitializedSupabaseClient(true)
+    } = supabaseRef.current.auth.onAuthStateChange((_event, session) => {
+      sessionRef.current = session
+      setInitialized(true)
     })
-    return () => subscription.unsubscribe()
+    loginSubscriptionRef.current = subscription
+
+    setInitialized(true)
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    return () => {
+      if (loginSubscriptionRef.current !== null) {
+        loginSubscriptionRef.current.unsubscribe()
+        loginSubscriptionRef.current = null
+      }
+    }
   }, [])
 
   return (
     <div>
-      <LiveLawyerNav />
-      <div hidden={!(loading || supabaseClientRef.current === null || !initializedSupabaseClient)}>
+      <LiveLawyerNav env={env} sessionReadyCallback={sessionReadyCallback} />
+      <div hidden={!(loading || supabaseRef.current === null || !initialized)}>
         <h1>Loading...</h1>
       </div>
       {statusMessage !== '' ? (
@@ -71,32 +69,32 @@ export default function Account({ supabaseUrl, supabaseAnonKey }: AccountProps) 
           </Card>
         </Container>
       ) : (
-        <div hidden={loading || supabaseClientRef.current === null || !initializedSupabaseClient}>
-          {supabaseClientRef.current !== null && initializedSupabaseClient && (
+        <div hidden={loading || supabaseRef.current === null || !initialized}>
+          {supabaseRef.current !== null && initialized && (
             <Container fluid="md" style={{ margin: 24 }}>
               {activeForm === 'Editor' ? (
                 <Editor
                   setLoading={setLoading}
                   setStatusMessage={setStatusMessage}
                   setActiveForm={setActiveForm}
-                  supabase={supabaseClientRef.current}
-                  session={session}
+                  supabase={supabaseRef.current}
+                  session={sessionRef.current ?? undefined}
                 />
               ) : activeForm === 'Login' ? (
                 <Login
                   setLoading={setLoading}
                   setStatusMessage={setStatusMessage}
                   setActiveForm={setActiveForm}
-                  supabase={supabaseClientRef.current}
-                  session={session}
+                  supabase={supabaseRef.current}
+                  session={sessionRef.current ?? undefined}
                 />
               ) : activeForm === 'Creator' ? (
                 <Creator
                   setLoading={setLoading}
                   setStatusMessage={setStatusMessage}
                   setActiveForm={setActiveForm}
-                  supabase={supabaseClientRef.current}
-                  session={session}
+                  supabase={supabaseRef.current}
+                  session={sessionRef.current ?? undefined}
                 />
               ) : (
                 <p>Uh oh.</p>

@@ -1,6 +1,8 @@
-import { SUPABASE_ANON_KEY, SUPABASE_URL } from 'livelawyerlibrary/env'
 import Account from './account'
+import { fetchPublicEnv } from '@/classes/PublicEnv'
+
+const env = fetchPublicEnv()
 
 export default async function Page() {
-  return <Account supabaseUrl={SUPABASE_URL} supabaseAnonKey={SUPABASE_ANON_KEY} />
+  return <Account env={env} />
 }
