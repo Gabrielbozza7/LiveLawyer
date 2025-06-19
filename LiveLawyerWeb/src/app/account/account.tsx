@@ -22,10 +22,9 @@ export interface AccountSubFormProps {
 
 export default function Account({ env }: { env: PublicEnv }) {
   const supabaseRef = useRef<SupabaseClient<Database>>(null)
-  const [loading, setLoading] = useState<boolean>(true)
-  // const [session, setSession] = useState<Session | undefined>()
   const sessionRef = useRef<Session>(null)
   const [statusMessage, setStatusMessage] = useState<string>('')
+  const [loading, setLoading] = useState<boolean>(true)
   const [initialized, setInitialized] = useState<boolean>(false)
   const [activeForm, setActiveForm] = useState<ActiveForm>('Login')
   const loginSubscriptionRef = useRef<Subscription>(null)
