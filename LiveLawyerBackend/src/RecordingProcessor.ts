@@ -1,8 +1,7 @@
 import fs from 'fs/promises'
 import path from 'path'
 import { RoomRecordingInstance } from 'twilio/lib/rest/video/v1/room/roomRecording'
-import { supabase } from './database/supabase'
-import dotenv from 'dotenv'
+import { getSupabaseClient } from './database/supabase'
 
 export const RECORDING_DIR_NAME = path.resolve('.', 'temp-recordings')
 
@@ -102,7 +101,7 @@ export default class RecordingProcessor {
 
   private async _processUploadQueue() {
     //Log in Backend account
-    await this._supabaseLogin
+    const supabase = await getSupabaseClient()
     while (this._uploadQueue.length > 0) {
       let uploadInfo = this._uploadQueue.shift()
       //Upload call to bucket
@@ -127,14 +126,5 @@ export default class RecordingProcessor {
         `Note that the recording was deleted from Twilio, but this is its visible status: ${uploadInfo.metadataBeforeDelete.status}`,
       )
     }
-  }
-
-  private async _supabaseLogin() {
-    dotenv.config()
-    const { error } = await supabase.auth.signInWithPassword({
-      email: process.env.DATABASE_USER,
-      password: process.env.DATABASE_PASSWORD,
-    })
-    if (error) console.error(error.message)
   }
 }

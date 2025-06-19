@@ -7,7 +7,6 @@ import TwilioManager from './TwilioManager'
 import userRoutes from './database/routes/users'
 import contactsRoutes from './database/routes/contacts'
 import lawyerRoutes from './database/routes/lawyers'
-import { supabase } from './database/supabase'
 import CallCenter from './calls/CallCenter'
 import {
   ClientToServerEvents,
@@ -16,6 +15,7 @@ import {
 import { BACKEND_IP, BACKEND_PORT, BACKEND_URL } from 'livelawyerlibrary/env'
 import { RECORDING_DIR_NAME } from './RecordingProcessor'
 import IdentityMap from './IdentityMap'
+import { getSupabaseClient } from './database/supabase'
 
 const app = express()
 const httpServer = createServer(app)
@@ -118,6 +118,7 @@ app.use('/contacts', contactsRoutes)
 app.use('/lawyers', lawyerRoutes)
 
 app.post('/signup', async (req, res) => {
+  const supabase = await getSupabaseClient()
   const { email, password } = req.body
   const { data, error } = await supabase.auth.signUp({ email: email, password: password })
   if (error) {
@@ -128,6 +129,7 @@ app.post('/signup', async (req, res) => {
 })
 
 app.post('/login', async (req, res) => {
+  const supabase = await getSupabaseClient()
   const { email, password } = req.body
   const { data, error } = await supabase.auth.signInWithPassword({
     email: email,

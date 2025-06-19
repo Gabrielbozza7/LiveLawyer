@@ -9,17 +9,17 @@ const router = express.Router()
  * Fetch all users.
  */
 router.get('/', async (req, res) => {
-    try {
-        const users = await prisma.user.findMany()
-        if (!users) {
-            res.status(404).json({ error: 'No Users Exist or Found' })
-        }
-        res.status(200).json({ message: 'Successfully Fetched Users', users })
-        //console.log(users)
-    } catch (error) {
-        console.error(error)
-        res.status(500).json({ error: 'Error Fetching Users' })
+  try {
+    const users = await prisma.user.findMany()
+    if (!users) {
+      res.status(404).json({ error: 'No Users Exist or Found' })
     }
+    res.status(200).json({ message: 'Successfully Fetched Users', users })
+    //console.log(users)
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ error: 'Error Fetching Users' })
+  }
 })
 
 /**
@@ -28,20 +28,20 @@ router.get('/', async (req, res) => {
  * Fetches one user.
  */
 router.get('/:id', async (req, res) => {
-    const { id } = req.params
-    try {
-        const user = await prisma.user.findUnique({
-            where: { id }
-        })
-        if (!user) {
-            res.status(404).json({ error: 'User not Found' })
-        }
-        res.status(200).json({ message: 'Successfully Fetched User', user })
-        //console.log(user)
-    } catch (error) {
-        console.error(error)
-        res.status(404).json({ error: 'User Not Found or Does Not Exist' })
+  const { id } = req.params
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id },
+    })
+    if (!user) {
+      res.status(404).json({ error: 'User not Found' })
     }
+    res.status(200).json({ message: 'Successfully Fetched User', user })
+    //console.log(user)
+  } catch (error) {
+    console.error(error)
+    res.status(404).json({ error: 'User Not Found or Does Not Exist' })
+  }
 })
 
 /**
@@ -50,24 +50,24 @@ router.get('/:id', async (req, res) => {
  * Creates a new user row.
  */
 router.post('/', async (req, res) => {
-    const { id, firstName, lastName, email, phoneNum, userType, profPicUrl } = req.body
-    try {
-        const newUser = await prisma.user.create({
-            data: {
-                id,
-                firstName,
-                lastName,
-                email,
-                phoneNum,
-                userType,
-                profPicUrl,
-            },
-        })
-        res.status(201).json({ message: 'Successfully Created A New User: ', newUser })
-    } catch (error) {
-        console.error(error)
-        res.status(400).json({ error: 'Failed to create user' })
-    }
+  const { id, firstName, lastName, email, phoneNum, userType, profPicUrl } = req.body
+  try {
+    const newUser = await prisma.user.create({
+      data: {
+        id,
+        firstName,
+        lastName,
+        email,
+        phoneNum,
+        userType,
+        profPicUrl,
+      },
+    })
+    res.status(201).json({ message: 'Successfully Created A New User: ', newUser })
+  } catch (error) {
+    console.error(error)
+    res.status(400).json({ error: 'Failed to create user' })
+  }
 })
 
 /**
@@ -76,25 +76,25 @@ router.post('/', async (req, res) => {
  * Updates an existing user by ID.
  */
 router.put('/:id', async (req, res) => {
-    const { id } = req.params
-    const { firstName, lastName, phoneNum, userType, profPicUrl } = req.body
+  const { id } = req.params
+  const { firstName, lastName, phoneNum, userType, profPicUrl } = req.body
 
-    try {
-        const updatedUser = await prisma.user.update({
-            where: { id },
-            data: {
-                firstName,
-                lastName,
-                phoneNum,
-                userType,
-                profPicUrl,
-            },
-        })
-        res.status(200).json({ message: 'Successfully Updated User', updatedUser })
-    } catch (error) {
-        console.error(error)
-        res.status(404).json({ error: 'User not found or update failed' })
-    }
+  try {
+    const updatedUser = await prisma.user.update({
+      where: { id },
+      data: {
+        firstName,
+        lastName,
+        phoneNum,
+        userType,
+        profPicUrl,
+      },
+    })
+    res.status(200).json({ message: 'Successfully Updated User', updatedUser })
+  } catch (error) {
+    console.error(error)
+    res.status(404).json({ error: 'User not found or update failed' })
+  }
 })
 
 /**
@@ -103,16 +103,16 @@ router.put('/:id', async (req, res) => {
  * Deletes a User by ID.
  */
 router.delete('/:id', async (req, res) => {
-    const { id } = req.params
-    try {
-        const deletedUser = await prisma.user.delete({
-            where: { id }
-        })
-        res.status(200).json({ message: 'User Deleted Successfully', deletedUser })
-    } catch (error) {
-        console.error(error)
-        res.status(404).json({ error: 'User not found or deletion failed.' })
-    }
+  const { id } = req.params
+  try {
+    const deletedUser = await prisma.user.delete({
+      where: { id },
+    })
+    res.status(200).json({ message: 'User Deleted Successfully', deletedUser })
+  } catch (error) {
+    console.error(error)
+    res.status(404).json({ error: 'User not found or deletion failed.' })
+  }
 })
 
 export default router
