@@ -26,14 +26,20 @@ export default class CallCenter {
     this.memberToRoomMapping = new Map()
   }
 
+  // Handler for event: joinAsClient
   public async connectClient(
     client: UserSocket,
     payload: { userId: string; coordinates: { lat: number; lon: number } },
   ): Promise<boolean> {
     if (this.waitingParalegals.length === 0) return false
-    const room = new ActiveRoom(this.twilioManager)
+    const paralegal = this.waitingParalegals.shift()
+    console.log(`Removed a paralegal from queue, new length: ${this.waitingParalegals.length}`)
+    const clientId = payload.userId
+    const paralegalId = this._identityMap.userIdOf(paralegal)
+
+    const room = new ActiveRoom(this.twilioManager, this._identityMap)
     try {
-      await room.setup()
+      await room.setup(clientId, paralegalId)
     } catch (error) {
       console.log(
         `There was a problem setting up a new room: ${
@@ -44,62 +50,43 @@ export default class CallCenter {
       )
       return false
     }
-    const roomName = room.roomName
-    const paralegal = this.waitingParalegals.shift()
-    console.log(`Removed a paralegal from queue, new length: ${this.waitingParalegals.length}`)
+    const clientTokenPromise = this.twilioManager.getAccessToken(room, 'CLIENT', clientId)
+    const paralegalTokenPromise = this.twilioManager.getAccessToken(room, 'PARALEGAL', paralegalId)
+    const [clientToken, paralegalToken] = await Promise.all([
+      clientTokenPromise,
+      paralegalTokenPromise,
+    ])
 
-    const clientToken = this.twilioManager.getAccessToken(
-      roomName,
-      'CLIENT',
-      this._identityMap.userIdOf(client),
+    let clientSendPromise = room.connectParticipant(client, clientToken, this.timeoutFrame)
+    let paralegalSendPromise = room.connectParticipant(paralegal, paralegalToken, this.timeoutFrame)
+    let success = (await Promise.all([clientSendPromise, paralegalSendPromise])).reduce(
+      (successfulSoFar, successfulThis) => successfulSoFar && successfulThis,
     )
-    const paralegalToken = this.twilioManager.getAccessToken(
-      roomName,
-      'PARALEGAL',
-      this._identityMap.userIdOf(paralegal),
-    )
-    for (let i = 0; i < 2; i++) {
-      try {
-        await paralegal
-          .timeout(this.timeoutFrame)
-          .emitWithAck('sendToRoom', { token: paralegalToken, roomName })
-        console.log('Paralegal is in, waiting for client to connect.')
-        for (let attempt = 0; attempt < 2; attempt++) {
-          try {
-            await client
-              .timeout(this.timeoutFrame)
-              .emitWithAck('sendToRoom', { token: clientToken, roomName })
-            this.activeParalegals.add(paralegal)
-            room.addConnectedParticipant(client)
-            room.addConnectedParticipant(paralegal)
-            this.memberToRoomMapping.set(client, room)
-            this.memberToRoomMapping.set(paralegal, room)
-            const lat = payload.coordinates.lat
-            const lon = payload.coordinates.lon
 
-            // CHANGE TO SUPABASE ACCOUNT NAME, NOT SECURE
-            const name = payload.userId
-            this.notifyEmergencyContact(name, this.emergencyContatList, lat, lon)
-            return true
-          } catch (err) {
-            console.log('Client Failed to acknowledge sendToRoom.', err)
-            if (attempt === 0) {
-              console.log('Reconnecting after 1 second.')
-              await new Promise(res => setTimeout(res, 1000))
-            }
-          }
-        }
-      } catch (err) {
-        console.log('Paralegal failed to acknowledge send to room. ', err)
-        if (i === 0) {
-          console.log('Paralegal econnecting after 1 second')
-          await new Promise(res => setTimeout(res, 1000))
-        }
-      }
+    // TODO: At some point, there should be better logic for handling a disconnected client, such as returning the paralegal to the queue.
+    // The error-handling code following these comments is definitely not ready for production whatsoever.
+
+    if (success) {
+      console.log(`Successfully sent participants to ${room.roomName}!`)
+      this.activeParalegals.add(paralegal)
+      this.memberToRoomMapping.set(client, room)
+      this.memberToRoomMapping.set(paralegal, room)
+
+      const lat = payload.coordinates.lat
+      const lon = payload.coordinates.lon
+
+      // CHANGE TO SUPABASE ACCOUNT NAME, NOT SECURE
+      const name = payload.userId
+      this.notifyEmergencyContact(name, this.emergencyContatList, lat, lon)
+      return true
+    } else {
+      console.log(
+        `Note: Paralegal with user ID '${paralegalId}' not flagged as active due to connection failure!`,
+      )
+      paralegal.emit('endCall')
+      this.enqueueParalegal(paralegal)
+      return false
     }
-    paralegal.emit('endCall')
-    this.enqueueParalegal(paralegal)
-    return false
   }
 
   public async pullLawyer(paralegal: UserSocket): Promise<boolean> {
@@ -111,40 +98,26 @@ export default class CallCenter {
     }
     const lawyer = this.waitingLawyers.shift()
     console.log(`Removed a lawyer from queue, new length: ${this.waitingLawyers.length}`)
-    const lawyerToken = this.twilioManager.getAccessToken(
-      room.roomName,
+    const lawyerToken = await this.twilioManager.getAccessToken(
+      room,
       'LAWYER',
       this._identityMap.userIdOf(lawyer),
     )
-    const lawyerToRoom = async (): Promise<boolean> => {
-      try {
-        await lawyer
-          .timeout(this.timeoutFrame)
-          .emitWithAck('sendToRoom', { token: lawyerToken, roomName: room.roomName })
-        return true
-      } catch (err) {
-        console.log('Lawyer did not acknowledge sendToRoom:', err)
-        return false
-      }
-    }
+    let success: boolean = await room.connectParticipant(lawyer, lawyerToken, this.timeoutFrame)
 
-    // reconnecting
-    for (let attempt = 0; attempt < 2; attempt++) {
-      const roomEnter = await lawyerToRoom()
-      if (roomEnter) {
-        this.activeLawyers.add(lawyer)
-        room.addConnectedParticipant(lawyer)
-        this.memberToRoomMapping.set(lawyer, room)
-        return true
-      } else if (attempt === 0) {
-        // retrying after first  fail attempt
-        console.log('Reconnecting after 1 second')
-        await new Promise(res => setTimeout(res, 1000))
-      }
+    // TODO: At some point, there should be better logic for handling a failed lawyer connection.
+    // The error-handling code following these comments is definitely not ready for production whatsoever.
+
+    if (success) {
+      this.activeLawyers.add(lawyer)
+      this.memberToRoomMapping.set(lawyer, room)
+      return true
+    } else {
+      console.log(
+        `Note: Lawyer with user ID '${this._identityMap.userIdOf(lawyer)}' not flagged as active due to connection failure!`,
+      )
+      return false
     }
-    console.log('Reconnecting Lawyer Failed.')
-    this.handleHangUp(paralegal)
-    return false
   }
 
   public enqueueParalegal(paralegal: UserSocket): UserType {
@@ -192,7 +165,7 @@ export default class CallCenter {
       return
     }
     ;(async () => {
-      ;(await room.endCall()).forEach(participant => {
+      ;(await room.endCall(user)).forEach(participant => {
         if (this.activeParalegals.has(participant)) {
           this.activeParalegals.delete(participant)
           this.enqueueParalegal(participant)

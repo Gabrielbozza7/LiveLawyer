@@ -7,6 +7,9 @@ import { RoomInstance } from 'twilio/lib/rest/video/v1/room'
 import RecordingProcessor from './RecordingProcessor'
 import { defaultEnvironmentVariableWithWarning } from 'livelawyerlibrary'
 import { UserType } from 'livelawyerlibrary/SocketEventDefinitions'
+import { getSupabaseClient } from './database/supabase'
+import ActiveRoom from './calls/ActiveRoom'
+import { ParticipantInstance } from 'twilio/lib/rest/video/v1/room/participant'
 
 const AccessToken = jwt.AccessToken
 const VideoGrant = AccessToken.VideoGrant
@@ -40,7 +43,7 @@ export default class TwilioManager {
       true,
     )
     const twilioAuthHeader = `Basic ${Buffer.from(`${this._accountSid}:${this._password}`).toString('base64')}`
-    this._recordingProcessor = new RecordingProcessor(twilioAuthHeader)
+    this._recordingProcessor = new RecordingProcessor(this, twilioAuthHeader)
     this._twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER
     // Authentication for the REST API:
     this._apiKeySid = defaultEnvironmentVariableWithWarning(
@@ -109,13 +112,39 @@ export default class TwilioManager {
     }
   }
 
-  public getAccessToken(roomName: string, userType: UserType, userId: string): string {
+  public async downloadParticipant(
+    roomSid: string,
+    participantSid: string,
+  ): Promise<ParticipantInstance> {
+    return await this._twilioClient.video.v1.rooms(roomSid).participants(participantSid).fetch()
+  }
+
+  public async getAccessToken(
+    room: ActiveRoom,
+    userType: UserType,
+    userId: string,
+  ): Promise<string> {
+    const timestamp = new Date().toISOString()
+    const supabase = await getSupabaseClient()
+    const { error } = await supabase
+      .from('CallEvent')
+      .insert({
+        callId: room.callId,
+        userId,
+        action: 'Token Issued',
+        timestamp,
+      })
+      .single()
+    if (error) {
+      console.log(`Critical error: Unable to document call event (Token Issued): ${error.message}`)
+    }
+
     // Creating an access token and room-specific video grant:
     const token = new AccessToken(this._accountSid, this._apiKeySid, this._apiKeySecret, {
       identity: `${userType} ${userId}`,
     })
-    token.addGrant(new VideoGrant({ room: roomName }))
-    console.log(`Created token for user with ID ${userId} for ${roomName}!`)
+    token.addGrant(new VideoGrant({ room: room.roomName }))
+    console.log(`Created token for user with ID '${userId}' for ${room.roomName}!`)
 
     // Returning that access token as a JWT:
     return token.toJwt()

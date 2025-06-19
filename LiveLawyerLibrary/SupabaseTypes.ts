@@ -63,28 +63,31 @@ export type Database = {
       }
       CallEvent: {
         Row: {
-          action: Database['public']['Enums']['Action'] | null
-          callId: string | null
-          timestamp: string | null
-          userId: string | null
+          action: Database['public']['Enums']['Action']
+          callId: string
+          id: string
+          timestamp: string
+          userId: string
         }
         Insert: {
-          action?: Database['public']['Enums']['Action'] | null
-          callId?: string | null
-          timestamp?: string | null
-          userId?: string | null
+          action: Database['public']['Enums']['Action']
+          callId: string
+          id?: string
+          timestamp: string
+          userId: string
         }
         Update: {
-          action?: Database['public']['Enums']['Action'] | null
-          callId?: string | null
-          timestamp?: string | null
-          userId?: string | null
+          action?: Database['public']['Enums']['Action']
+          callId?: string
+          id?: string
+          timestamp?: string
+          userId?: string
         }
         Relationships: [
           {
             foreignKeyName: 'CallEvent_callId_fkey'
             columns: ['callId']
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: 'CallMetadata'
             referencedColumns: ['id']
           },
@@ -108,7 +111,7 @@ export type Database = {
         }
         Insert: {
           clientId: string
-          id: string
+          id?: string
           lawyerId?: string | null
           paralegalId: string
           startTime: string
@@ -122,11 +125,34 @@ export type Database = {
           startTime?: string
           twilioRoomSid?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: 'CallMetadata_clientId_fkey'
+            columns: ['clientId']
+            isOneToOne: false
+            referencedRelation: 'User'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'CallMetadata_lawyerId_fkey'
+            columns: ['lawyerId']
+            isOneToOne: false
+            referencedRelation: 'User'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'CallMetadata_paralegalId_fkey'
+            columns: ['paralegalId']
+            isOneToOne: false
+            referencedRelation: 'User'
+            referencedColumns: ['id']
+          },
+        ]
       }
       CallRecording: {
         Row: {
           callId: string
+          id: string
           s3Ref: string | null
           startTime: string
           trackType: Database['public']['Enums']['TrackType']
@@ -134,6 +160,7 @@ export type Database = {
         }
         Insert: {
           callId: string
+          id?: string
           s3Ref?: string | null
           startTime: string
           trackType: Database['public']['Enums']['TrackType']
@@ -141,6 +168,7 @@ export type Database = {
         }
         Update: {
           callId?: string
+          id?: string
           s3Ref?: string | null
           startTime?: string
           trackType?: Database['public']['Enums']['TrackType']
@@ -150,8 +178,15 @@ export type Database = {
           {
             foreignKeyName: 'CallRecording_callId_fkey'
             columns: ['callId']
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: 'CallMetadata'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'CallRecording_userId_fkey'
+            columns: ['userId']
+            isOneToOne: false
+            referencedRelation: 'User'
             referencedColumns: ['id']
           },
         ]

@@ -88,8 +88,8 @@ io.on('connection', socket => {
     identityMap.remove(socket)
     console.log(`User disconnected from socket: {${socket.id}} (Reason: ${reason})`)
   })
-
   socket.on('rejoinRoomAttempt', async (payload, callback) => {
+    // NOTE: THIS HANDLER IS COMPLETELY UNTESTED BECAUSE THERE IS NO WAY TO FIRE THIS EVENT FROM A CLIENT YET
     const { userId, userType } = payload
     console.log(`Received rejoinRoomAttempt from ${userType} {${userId}}, socket {${socket.id}}`)
     const room = callCenter.getRoomByUserId(userId)
@@ -99,10 +99,10 @@ io.on('connection', socket => {
       callback(false)
       return
     }
-    const token = twilioManager.getAccessToken(room.roomName, userType, userId)
+    const token = await twilioManager.getAccessToken(room, userType, userId)
     try {
       await socket.timeout(5000).emitWithAck('sendToRoom', { token, roomName: room.roomName })
-      room.addConnectedParticipant(socket)
+      await room.connectParticipant(socket, token, 5000)
       callback(true)
       console.log(`User ${userId} successfully rejoined room ${room.roomName}`)
     } catch (err) {

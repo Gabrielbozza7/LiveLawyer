@@ -41,6 +41,7 @@ export async function getSupabaseClient(): Promise<SupabaseClient<Database>> {
     true,
   )
 
+  supabase = createClient(supabaseUrl, supabaseKey)
   const { error } = await supabase.auth.signInWithPassword({
     email: databaseUser,
     password: databasePassword,
@@ -49,6 +50,5 @@ export async function getSupabaseClient(): Promise<SupabaseClient<Database>> {
     throw error
   }
 
-  supabase = createClient(supabaseUrl, supabaseKey)
   return supabase
 }
