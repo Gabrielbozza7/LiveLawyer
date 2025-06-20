@@ -7,6 +7,7 @@ import TwilioManager from './TwilioManager'
 import userRoutes from './database/routes/users'
 import contactsRoutes from './database/routes/contacts'
 import lawyerRoutes from './database/routes/lawyers'
+import callHistoryRoutes from './database/routes/call-history'
 import CallCenter from './calls/CallCenter'
 import {
   ClientToServerEvents,
@@ -116,6 +117,8 @@ io.on('connection', socket => {
 app.use('/users', userRoutes)
 app.use('/contacts', contactsRoutes)
 app.use('/lawyers', lawyerRoutes)
+
+app.use('/', callHistoryRoutes)
 
 app.post('/signup', async (req, res) => {
   const supabase = await getSupabaseClient()

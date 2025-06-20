@@ -3,6 +3,7 @@ import ActiveRoom from './ActiveRoom'
 import { UserType } from 'livelawyerlibrary/SocketEventDefinitions'
 import { UserSocket } from '../ServerTypes'
 import IdentityMap from '../IdentityMap'
+import { getSupabaseClient } from '../database/supabase'
 
 export default class CallCenter {
   private readonly _identityMap: IdentityMap
@@ -98,11 +99,8 @@ export default class CallCenter {
     }
     const lawyer = this.waitingLawyers.shift()
     console.log(`Removed a lawyer from queue, new length: ${this.waitingLawyers.length}`)
-    const lawyerToken = await this.twilioManager.getAccessToken(
-      room,
-      'LAWYER',
-      this._identityMap.userIdOf(lawyer),
-    )
+    const lawyerId = this._identityMap.userIdOf(lawyer)
+    const lawyerToken = await this.twilioManager.getAccessToken(room, 'LAWYER', lawyerId)
     let success: boolean = await room.connectParticipant(lawyer, lawyerToken, this.timeoutFrame)
 
     // TODO: At some point, there should be better logic for handling a failed lawyer connection.
@@ -111,10 +109,21 @@ export default class CallCenter {
     if (success) {
       this.activeLawyers.add(lawyer)
       this.memberToRoomMapping.set(lawyer, room)
+      const supabase = await getSupabaseClient()
+      const { error } = await supabase
+        .from('CallMetadata')
+        .update({ lawyerId })
+        .eq('id', room.callId)
+        .single()
+      if (error) {
+        console.log(
+          `Critical error: Unable to associate lawyer with call in ${room.roomName}: ${error.message}`,
+        )
+      }
       return true
     } else {
       console.log(
-        `Note: Lawyer with user ID '${this._identityMap.userIdOf(lawyer)}' not flagged as active due to connection failure!`,
+        `Note: Lawyer with user ID '${lawyerId}' not flagged as active due to connection failure!`,
       )
       return false
     }
