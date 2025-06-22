@@ -1,6 +1,9 @@
 import {
+  RequestParamsCallHistoryDetails,
   RequestParamsCallHistoryList,
+  RequestResponseCallHistoryDetails,
   RequestResponseCallHistoryList,
+  ROUTE_CALL_HISTORY_DETAILS,
   ROUTE_CALL_HISTORY_LIST,
   ROUTER_CALL_HISTORY,
 } from './types/call-history'
@@ -38,5 +41,12 @@ export default class LiveLawyerApi {
       {},
       this._accessToken,
     )
+  }
+
+  public async fetchCallDetails(callId: string): Promise<RequestResponseCallHistoryDetails> {
+    return await this.fetchFromApi<
+      RequestParamsCallHistoryDetails,
+      RequestResponseCallHistoryDetails
+    >(ROUTER_CALL_HISTORY, ROUTE_CALL_HISTORY_DETAILS, { id: callId }, this._accessToken)
   }
 }

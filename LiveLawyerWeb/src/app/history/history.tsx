@@ -3,26 +3,22 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 import { Card, Container, ListGroup, Toast } from 'react-bootstrap'
 import LiveLawyerNav, { SessionReadyCallbackArg } from '@/components/LiveLawyerNav'
 import { PublicEnv } from '@/classes/PublicEnv'
-import { Session, SupabaseClient } from '@supabase/supabase-js'
-import { Database } from 'livelawyerlibrary/database-types'
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import LiveLawyerApi from 'livelawyerlibrary/api/LiveLawyerApi'
 import { CallHistorySingle } from 'livelawyerlibrary/api/types/call-history'
+import { HistoryEntry } from './history-entry'
 
 export function History({ env }: { env: PublicEnv }) {
-  const supabaseRef = useRef<SupabaseClient<Database>>(null)
-  const sessionRef = useRef<Session>(null)
+  const [api, setApi] = useState<LiveLawyerApi | undefined>(undefined)
   const [history, setHistory] = useState<CallHistorySingle[]>([])
   const [placeholder, setPlaceholder] = useState<string | undefined>('Loading...')
   const [showToast, setShowToast] = useState<string | null>(null)
 
-  const sessionReadyCallback = async ({ supabase, session }: SessionReadyCallbackArg) => {
-    supabaseRef.current = supabase
-    sessionRef.current = session
-
+  const sessionReadyCallback = async ({ session }: SessionReadyCallbackArg) => {
     // Fetching call history for the logged in user (if any):
-    if (sessionRef.current !== null) {
-      const api = new LiveLawyerApi(env.backendUrl, sessionRef.current.access_token)
+    if (session !== null) {
+      const api = new LiveLawyerApi(env.backendUrl, session.access_token)
+      setApi(api)
       try {
         const response = await api.fetchCallHistory()
         if (response.history) {
@@ -54,19 +50,12 @@ export function History({ env }: { env: PublicEnv }) {
               <h4 className="mb-3">Call History</h4>
               {history.length > 0 ? (
                 <ListGroup>
-                  {history.map((entry, index) => (
-                    <ListGroup.Item key={index}>
-                      <strong>Date/Time:</strong> {new Date(entry.startTime).toLocaleString()}
-                      <br />
-                      <strong>Client:</strong> {entry.clientName}
-                      <br />
-                      <strong>Paralegal:</strong> {entry.observerName}
-                      <br />
-                      <strong>Lawyer:</strong> {entry.lawyerName ?? <i>None</i>}
-                      <br />
-                      <strong>ID:</strong> {entry.id}
-                    </ListGroup.Item>
-                  ))}
+                  {api !== undefined &&
+                    history.map((entry, index) => (
+                      <ListGroup.Item key={index}>
+                        <HistoryEntry entry={entry} api={api}></HistoryEntry>
+                      </ListGroup.Item>
+                    ))}
                 </ListGroup>
               ) : (
                 <Card.Text>Your call history is empty.</Card.Text>
