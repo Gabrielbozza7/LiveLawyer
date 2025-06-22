@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Card, Form } from 'react-bootstrap'
 import { SupabaseClient } from '@supabase/supabase-js'
-import { Database } from 'livelawyerlibrary/SupabaseTypes'
+import { Database } from 'livelawyerlibrary/database-types'
 
 export interface OfficeOption {
   id: string

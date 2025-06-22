@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { Nav, Navbar } from 'react-bootstrap'
 import Image from 'next/image'
 import { createClient, Session, SupabaseClient } from '@supabase/supabase-js'
-import { Database } from 'livelawyerlibrary/SupabaseTypes'
+import { Database } from 'livelawyerlibrary/database-types'
 import { useEffect, useRef, useState } from 'react'
 import { PublicEnv } from '@/classes/PublicEnv'
 

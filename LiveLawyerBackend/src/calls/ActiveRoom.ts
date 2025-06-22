@@ -1,12 +1,12 @@
 import {
   ClientToServerEvents,
   ServerToClientEvents,
-} from 'livelawyerlibrary/SocketEventDefinitions'
+} from 'livelawyerlibrary/socket-event-definitions'
 import { Socket, DefaultEventsMap } from 'socket.io'
 import TwilioManager from '../TwilioManager'
 import { RoomInstance } from 'twilio/lib/rest/video/v1/room'
 import { SupabaseClient } from '@supabase/supabase-js'
-import { Database } from 'livelawyerlibrary/SupabaseTypes'
+import { Database } from 'livelawyerlibrary/database-types'
 import { getSupabaseClient } from '../database/supabase'
 import IdentityMap from '../IdentityMap'
 
@@ -49,7 +49,7 @@ export default class ActiveRoom {
   /**
    * Should always run after object construction
    */
-  public async setup(clientId: string, paralegalId: string): Promise<void> {
+  public async setup(clientId: string, observerId: string): Promise<void> {
     const timestamp = new Date().toISOString()
     this._room = await this._twilioManager.findOrCreateRoom(this._roomName)
     console.log(`Started room with room name: ${this._roomName}`)
@@ -58,7 +58,7 @@ export default class ActiveRoom {
       .from('CallMetadata')
       .insert({
         clientId,
-        paralegalId,
+        observerId,
         twilioRoomSid: this._room.sid,
         startTime: timestamp,
       })

@@ -3,25 +3,25 @@ import { Request } from 'express'
 import { authenticate, getSupabaseClient } from '../supabase'
 import {
   CallHistorySingle,
-  RequestParamsCallHistory,
-  RequestResponseCallHistory,
-  ROUTE_CALL_HISTORY,
+  RequestParamsCallHistoryList,
+  RequestResponseCallHistoryList,
+  ROUTE_CALL_HISTORY_LIST,
 } from 'livelawyerlibrary/api/types/call-history'
 import { ApiResponse, WithAccessToken } from 'livelawyerlibrary/api/types/general'
 
 const router = express.Router()
 
-type RequestCallHistory = Request<
+type RequestCallHistoryList = Request<
   never,
-  ApiResponse<RequestResponseCallHistory>,
+  ApiResponse<RequestResponseCallHistoryList>,
   never,
-  WithAccessToken<RequestParamsCallHistory>
+  WithAccessToken<RequestParamsCallHistoryList>
 >
 
 /**
- * Fetch call history for a paralegal/lawyer.
+ * Fetch call history for an observer/lawyer.
  */
-router.get(ROUTE_CALL_HISTORY, async (req: RequestCallHistory, res) => {
+router.get(ROUTE_CALL_HISTORY_LIST, async (req: RequestCallHistoryList, res) => {
   const supabase = await getSupabaseClient()
   let userId: string
   try {
@@ -42,13 +42,13 @@ router.get(ROUTE_CALL_HISTORY, async (req: RequestCallHistory, res) => {
     }
     let records: CallHistorySingle[] = []
     switch (user.userType) {
-      case 'Paralegal': {
+      case 'Observer': {
         const { data, error } = await supabase
           .from('CallMetadata')
           .select(
             'id, clientId:User!CallMetadata_clientId_fkey(firstName, lastName), lawyerId:User!CallMetadata_lawyerId_fkey(firstName, lastName), startTime',
           )
-          .eq('paralegalId', user.id)
+          .eq('observerId', user.id)
         if (error) {
           res.status(500).json({ success: false, error: 'Database error' })
           console.log(`Database error: ${(error as Error).message}`)
@@ -58,7 +58,7 @@ router.get(ROUTE_CALL_HISTORY, async (req: RequestCallHistory, res) => {
           return {
             id: record.id,
             clientName: `${record.clientId.firstName} ${record.clientId.lastName}`,
-            paralegalName: `${user.firstName} ${user.lastName}`,
+            observerName: `${user.firstName} ${user.lastName}`,
             lawyerName: record.lawyerId
               ? `${record.lawyerId.firstName} ${record.lawyerId.lastName}`
               : null,
@@ -71,7 +71,7 @@ router.get(ROUTE_CALL_HISTORY, async (req: RequestCallHistory, res) => {
         const { data, error } = await supabase
           .from('CallMetadata')
           .select(
-            'id, clientId:User!CallMetadata_clientId_fkey(firstName, lastName), paralegalId:User!CallMetadata_paralegalId_fkey(firstName, lastName), startTime',
+            'id, clientId:User!CallMetadata_clientId_fkey(firstName, lastName), observerId:User!CallMetadata_observerId_fkey(firstName, lastName), startTime',
           )
           .eq('lawyerId', user.id)
         if (error) {
@@ -83,7 +83,7 @@ router.get(ROUTE_CALL_HISTORY, async (req: RequestCallHistory, res) => {
           return {
             id: record.id,
             clientName: `${record.clientId.firstName} ${record.clientId.lastName}`,
-            paralegalName: `${record.paralegalId.firstName} ${record.paralegalId.lastName}`,
+            observerName: `${record.observerId.firstName} ${record.observerId.lastName}`,
             lawyerName: `${user.firstName} ${user.lastName}`,
             startTime: record.startTime,
           }

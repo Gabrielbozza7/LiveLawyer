@@ -1,7 +1,8 @@
 import {
-  RequestParamsCallHistory,
-  RequestResponseCallHistory,
-  ROUTE_CALL_HISTORY,
+  RequestParamsCallHistoryList,
+  RequestResponseCallHistoryList,
+  ROUTE_CALL_HISTORY_LIST,
+  ROUTER_CALL_HISTORY,
 } from './types/call-history'
 import { ApiResponse } from './types/general'
 
@@ -15,12 +16,13 @@ export default class LiveLawyerApi {
   }
 
   private async fetchFromApi<Q extends object, R extends object>(
+    router: string,
     route: string,
     queryParams: Q,
     accessToken: string,
   ): Promise<R> {
     const encodedQueryParams = `${new URLSearchParams({ accessToken, ...queryParams })}`
-    const response = await fetch(new URL(`${route}?${encodedQueryParams}`, this._baseUrl))
+    const response = await fetch(new URL(`${router + route}?${encodedQueryParams}`, this._baseUrl))
     const json = (await response.json()) as ApiResponse<R>
     if (json.success === true) {
       return json.result
@@ -29,9 +31,10 @@ export default class LiveLawyerApi {
     }
   }
 
-  public async fetchCallHistory(): Promise<RequestResponseCallHistory> {
-    return await this.fetchFromApi<RequestParamsCallHistory, RequestResponseCallHistory>(
-      ROUTE_CALL_HISTORY,
+  public async fetchCallHistory(): Promise<RequestResponseCallHistoryList> {
+    return await this.fetchFromApi<RequestParamsCallHistoryList, RequestResponseCallHistoryList>(
+      ROUTER_CALL_HISTORY,
+      ROUTE_CALL_HISTORY_LIST,
       {},
       this._accessToken,
     )

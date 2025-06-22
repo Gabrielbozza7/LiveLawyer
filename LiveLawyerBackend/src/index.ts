@@ -12,11 +12,12 @@ import CallCenter from './calls/CallCenter'
 import {
   ClientToServerEvents,
   ServerToClientEvents,
-} from 'livelawyerlibrary/SocketEventDefinitions'
+} from 'livelawyerlibrary/socket-event-definitions'
 import { BACKEND_IP, BACKEND_PORT, BACKEND_URL } from 'livelawyerlibrary/env'
 import { RECORDING_DIR_NAME } from './RecordingProcessor'
 import IdentityMap from './IdentityMap'
 import { getSupabaseClient } from './database/supabase'
+import { ROUTER_CALL_HISTORY } from 'livelawyerlibrary/api/types/call-history'
 
 const app = express()
 const httpServer = createServer(app)
@@ -46,17 +47,17 @@ io.on('connection', socket => {
   console.log(`User connected to socket: {${socket.id}}`)
   socket.on('joinAsClient', async (payload, callback) => {
     console.log(`Received joinAsClient event: {${socket.id}}`)
-    if (await identityMap.register(socket, payload.userId, payload.userSecret, 'Civilian')) {
-      const isParalegalAvailable = await callCenter.connectClient(socket, payload)
-      callback(isParalegalAvailable ? 'OK' : 'NO_PARALEGALS')
+    if (await identityMap.register(socket, payload.userId, payload.userSecret, 'Client')) {
+      const isObserverAvailable = await callCenter.connectClient(socket, payload)
+      callback(isObserverAvailable ? 'OK' : 'NO_OBSERVERS')
     } else {
       callback('INVALID_AUTH')
     }
   })
-  socket.on('joinAsParalegal', async (payload, callback) => {
-    console.log(`Received joinAsParalegal event: {${socket.id}}`)
-    if (await identityMap.register(socket, payload.userId, payload.userSecret, 'Paralegal')) {
-      const queuedUserType = callCenter.enqueueParalegal(socket)
+  socket.on('joinAsObserver', async (payload, callback) => {
+    console.log(`Received joinAsObserver event: {${socket.id}}`)
+    if (await identityMap.register(socket, payload.userId, payload.userSecret, 'Observer')) {
+      const queuedUserType = callCenter.enqueueObserver(socket)
       callback(queuedUserType)
     } else {
       callback('INVALID_AUTH')
@@ -118,7 +119,7 @@ app.use('/users', userRoutes)
 app.use('/contacts', contactsRoutes)
 app.use('/lawyers', lawyerRoutes)
 
-app.use('/', callHistoryRoutes)
+app.use(ROUTER_CALL_HISTORY, callHistoryRoutes)
 
 app.post('/signup', async (req, res) => {
   const supabase = await getSupabaseClient()

@@ -9,7 +9,7 @@ interface FormModel {
   phoneNum: string
   password: string
   confirmPassword: string
-  userType: 'Paralegal' | 'Lawyer'
+  userType: 'Observer' | 'Lawyer'
 }
 
 export default function Creator({
@@ -28,7 +28,7 @@ export default function Creator({
     phoneNum: '',
     password: '',
     confirmPassword: '',
-    userType: 'Paralegal',
+    userType: 'Observer',
   })
 
   // Dynamically syncing the form changes to the account model:
@@ -161,7 +161,7 @@ export default function Creator({
           <Form.Group controlId="formUserType" className="mt-3">
             <Form.Label>User Type</Form.Label>
             <Form.Select name="userType" value={formModel.userType} onChange={handleChangeSelect}>
-              <option>Paralegal</option>
+              <option>Observer</option>
               <option>Lawyer</option>
             </Form.Select>
           </Form.Group>

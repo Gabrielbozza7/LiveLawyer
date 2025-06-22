@@ -1,6 +1,6 @@
 import * as SecureStore from 'expo-secure-store'
 import { createClient } from '@supabase/supabase-js'
-import { Database } from 'livelawyerlibrary/SupabaseTypes'
+import { Database } from 'livelawyerlibrary/database-types'
 
 const ExpoSecureStoreAdapter = {
   getItem: (key: string) => {

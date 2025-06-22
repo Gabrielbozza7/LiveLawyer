@@ -10,10 +10,10 @@ import { io, Socket } from 'socket.io-client'
 import {
   ClientToServerEvents,
   ServerToClientEvents,
-} from 'livelawyerlibrary/SocketEventDefinitions'
+} from 'livelawyerlibrary/socket-event-definitions'
 import { PublicEnv } from '@/classes/PublicEnv'
 import { Session, SupabaseClient } from '@supabase/supabase-js'
-import { Database } from 'livelawyerlibrary/SupabaseTypes'
+import { Database } from 'livelawyerlibrary/database-types'
 import { twilioIdentityToInfo, UserType } from 'livelawyerlibrary'
 
 let socket: Socket<ServerToClientEvents, ClientToServerEvents>
@@ -26,7 +26,7 @@ export function Call({ env }: { env: PublicEnv }) {
   const videoRoomRef = useRef<TwilioVideoRoom>(new TwilioVideoRoom())
   const [participants, setParticipants] = useState<Participant[]>([])
   const [clientParticipant, setClientParticipant] = useState<Participant | null>(null)
-  const [paralegalParticipant, setParalegalParticipant] = useState<Participant | null>(null)
+  const [observerParticipant, setObserverParticipant] = useState<Participant | null>(null)
   const [lawyerParticipant, setLawyerParticipant] = useState<Participant | null>(null)
   const [inQueueOrCall, setInQueueOrCall] = useState<boolean>(false)
   const [showToast, setShowToast] = useState<string | null>(null)
@@ -49,9 +49,9 @@ export function Call({ env }: { env: PublicEnv }) {
       }
       setUserData(data)
       setPlaceholder(
-        data.userType === 'Paralegal' || data.userType === 'Lawyer'
+        data.userType === 'Observer' || data.userType === 'Lawyer'
           ? undefined
-          : 'You must be either a paralegal or a lawyer to take calls on the website',
+          : 'You must be either an observer or a lawyer to take calls on the website',
       )
     } else {
       setPlaceholder('You must be logged in to use this page.')
@@ -83,7 +83,6 @@ export function Call({ env }: { env: PublicEnv }) {
       setParticipants([])
     }
 
-    console.log('setup socket')
     socket = io(env.backendUrl)
     socket.on('sendToRoom', onSendToRoom)
     socket.on('endCall', onEndCall)
@@ -101,19 +100,19 @@ export function Call({ env }: { env: PublicEnv }) {
     participants.forEach(participant => {
       const userInfo = twilioIdentityToInfo(participant.identity)
       foundUserTypes.add(userInfo.userType)
-      if (clientParticipant === null && userInfo.userType === 'Civilian') {
+      if (clientParticipant === null && userInfo.userType === 'Client') {
         setClientParticipant(participant)
-      } else if (paralegalParticipant === null && userInfo.userType === 'Paralegal') {
-        setParalegalParticipant(participant)
+      } else if (observerParticipant === null && userInfo.userType === 'Observer') {
+        setObserverParticipant(participant)
       } else if (lawyerParticipant === null && userInfo.userType === 'Lawyer') {
         setLawyerParticipant(participant)
       }
     })
-    if (!foundUserTypes.has('Civilian')) {
+    if (!foundUserTypes.has('Client')) {
       setClientParticipant(null)
     }
-    if (!foundUserTypes.has('Paralegal')) {
-      setParalegalParticipant(null)
+    if (!foundUserTypes.has('Observer')) {
+      setObserverParticipant(null)
     }
     if (!foundUserTypes.has('Lawyer')) {
       setLawyerParticipant(null)
@@ -146,11 +145,11 @@ export function Call({ env }: { env: PublicEnv }) {
                           />
                         </td>
                       )}
-                      {paralegalParticipant && (
+                      {observerParticipant && (
                         <td>
                           <TwilioParticipant
                             room={videoRoomRef.current}
-                            participant={paralegalParticipant}
+                            participant={observerParticipant}
                           />
                         </td>
                       )}
@@ -196,8 +195,8 @@ export function Call({ env }: { env: PublicEnv }) {
                 {inQueueOrCall ? (
                   <Card.Body>
                     <Card.Text>
-                      You are now in the queue, waiting for a{' '}
-                      {userData.userType === 'Lawyer' ? 'paralegal to summon you' : 'client'}!
+                      You are now in the queue, waiting for{' '}
+                      {userData.userType === 'Lawyer' ? 'an observer to summon you' : 'a client'}!
                     </Card.Text>
                     <Button
                       variant="danger"
@@ -214,13 +213,13 @@ export function Call({ env }: { env: PublicEnv }) {
                   </Card.Body>
                 ) : (
                   <Card.Body>
-                    {(userData.userType === 'Paralegal' || userData.userType === 'Lawyer') && (
+                    {(userData.userType === 'Observer' || userData.userType === 'Lawyer') && (
                       <Button
                         variant="primary"
                         type="submit"
                         onClick={async () => {
                           const queuedUserType = await socket.emitWithAck(
-                            userData.userType === 'Paralegal' ? 'joinAsParalegal' : 'joinAsLawyer',
+                            userData.userType === 'Observer' ? 'joinAsObserver' : 'joinAsLawyer',
                             {
                               userId: userData.id,
                               userSecret: 'abc', // temporary

@@ -4,7 +4,7 @@ import { Card, Container, ListGroup, Toast } from 'react-bootstrap'
 import LiveLawyerNav, { SessionReadyCallbackArg } from '@/components/LiveLawyerNav'
 import { PublicEnv } from '@/classes/PublicEnv'
 import { Session, SupabaseClient } from '@supabase/supabase-js'
-import { Database } from 'livelawyerlibrary/SupabaseTypes'
+import { Database } from 'livelawyerlibrary/database-types'
 import { useRef, useState } from 'react'
 import LiveLawyerApi from 'livelawyerlibrary/api/LiveLawyerApi'
 import { CallHistorySingle } from 'livelawyerlibrary/api/types/call-history'
@@ -60,7 +60,7 @@ export function History({ env }: { env: PublicEnv }) {
                       <br />
                       <strong>Client:</strong> {entry.clientName}
                       <br />
-                      <strong>Paralegal:</strong> {entry.paralegalName}
+                      <strong>Paralegal:</strong> {entry.observerName}
                       <br />
                       <strong>Lawyer:</strong> {entry.lawyerName ?? <i>None</i>}
                       <br />

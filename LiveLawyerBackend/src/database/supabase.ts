@@ -2,7 +2,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import dotenv from 'dotenv'
 import { defaultEnvironmentVariableWithWarning } from 'livelawyerlibrary'
 import { resolve } from 'path'
-import { Database } from 'livelawyerlibrary/SupabaseTypes'
+import { Database } from 'livelawyerlibrary/database-types'
 
 let supabase: SupabaseClient<Database> | undefined = undefined
 

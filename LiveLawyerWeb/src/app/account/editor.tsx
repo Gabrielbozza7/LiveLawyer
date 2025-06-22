@@ -3,6 +3,7 @@ import { Button, Card, Container, Form, Toast } from 'react-bootstrap'
 import { AccountSubFormProps } from './account'
 import OfficeSelector, { OfficeOption, OfficeSelection } from './office-selector'
 import { PostgrestError } from '@supabase/supabase-js'
+import { UserType } from 'livelawyerlibrary'
 
 interface FormModel {
   firstName: string
@@ -20,7 +21,7 @@ export default function Editor({
   session,
 }: AccountSubFormProps) {
   const [showToast, setShowToast] = useState<string | null>(null)
-  const [userType, setUserType] = useState<'Paralegal' | 'Lawyer' | 'Civilian' | 'Dev'>('Civilian')
+  const [userType, setUserType] = useState<UserType>('Client')
   const [openChangeOffice, setOpenChangeOffice] = useState<boolean>(false)
   const [currentOffice, setCurrentOffice] = useState<OfficeOption | undefined>()
 

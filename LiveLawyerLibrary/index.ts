@@ -1,4 +1,4 @@
-import { Database } from './SupabaseTypes'
+import { Database } from './database-types'
 
 /**
  * Issues a warning to the console if the read environment variable is empty or undefined.

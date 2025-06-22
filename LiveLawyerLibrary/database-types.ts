@@ -105,7 +105,7 @@ export type Database = {
           clientId: string
           id: string
           lawyerId: string | null
-          paralegalId: string
+          observerId: string
           startTime: string
           twilioRoomSid: string
         }
@@ -113,7 +113,7 @@ export type Database = {
           clientId: string
           id?: string
           lawyerId?: string | null
-          paralegalId: string
+          observerId: string
           startTime: string
           twilioRoomSid: string
         }
@@ -121,7 +121,7 @@ export type Database = {
           clientId?: string
           id?: string
           lawyerId?: string | null
-          paralegalId?: string
+          observerId?: string
           startTime?: string
           twilioRoomSid?: string
         }
@@ -141,8 +141,8 @@ export type Database = {
             referencedColumns: ['id']
           },
           {
-            foreignKeyName: 'CallMetadata_paralegalId_fkey'
-            columns: ['paralegalId']
+            foreignKeyName: 'CallMetadata_observerId_fkey'
+            columns: ['observerId']
             isOneToOne: false
             referencedRelation: 'User'
             referencedColumns: ['id']
@@ -300,7 +300,6 @@ export type Database = {
           lastName: string
           phoneNum: string
           profPicUrl: string | null
-          sessionToken: string | null
           userType: Database['public']['Enums']['UserType']
         }
         Insert: {
@@ -311,7 +310,6 @@ export type Database = {
           lastName: string
           phoneNum: string
           profPicUrl?: string | null
-          sessionToken?: string | null
           userType?: Database['public']['Enums']['UserType']
         }
         Update: {
@@ -322,7 +320,6 @@ export type Database = {
           lastName?: string
           phoneNum?: string
           profPicUrl?: string | null
-          sessionToken?: string | null
           userType?: Database['public']['Enums']['UserType']
         }
         Relationships: []
@@ -367,7 +364,7 @@ export type Database = {
     Enums: {
       Action: 'Ended Call' | 'Token Issued' | 'Connected' | 'Disconnected'
       TrackType: 'Audio' | 'Video'
-      UserType: 'Paralegal' | 'Lawyer' | 'Civilian' | 'Dev'
+      UserType: 'Observer' | 'Lawyer' | 'Client' | 'Dev'
     }
     CompositeTypes: {
       [_ in never]: never
@@ -484,7 +481,7 @@ export const Constants = {
     Enums: {
       Action: ['Ended Call', 'Token Issued', 'Connected', 'Disconnected'],
       TrackType: ['Audio', 'Video'],
-      UserType: ['Paralegal', 'Lawyer', 'Civilian', 'Dev'],
+      UserType: ['Observer', 'Lawyer', 'Client', 'Dev'],
     },
   },
 } as const

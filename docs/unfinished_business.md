@@ -7,7 +7,7 @@
 
 ### Web Frontend To-Do
 * Port Auth workflow from app to web view
-* Allow call history logic to show on paralegal side
+* Allow call history logic to show on observer side
     * Storage of call history should be setup already
 * Web UI could also use some touching up
 

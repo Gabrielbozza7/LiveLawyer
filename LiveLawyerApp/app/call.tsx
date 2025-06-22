@@ -51,8 +51,8 @@ export default function Call() {
           userSecret: 'abc',
           coordinates: coords ?? { lat: 0, lon: 0 },
         })
-        if (clientJoinStatusCode === 'NO_PARALEGALS') {
-          Alert.alert('There are no paralegals currently available to take your call.')
+        if (clientJoinStatusCode === 'NO_OBSERVERS') {
+          Alert.alert('There are no observers currently available to take your call.')
           router.back()
         } else if (clientJoinStatusCode === 'INVALID_AUTH') {
           Alert.alert('Your credentials are invalid!')

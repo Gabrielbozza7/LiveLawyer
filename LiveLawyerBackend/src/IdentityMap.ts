@@ -1,5 +1,5 @@
 import { UserType } from 'livelawyerlibrary'
-import { UserSocket } from './ServerTypes'
+import { UserSocket } from './server-types'
 
 export default class IdentityMap {
   // Maps socket.io Socket IDs to user IDs

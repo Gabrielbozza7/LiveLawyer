@@ -7,16 +7,16 @@ export interface AuthPayload {
 
 export interface ClientToServerEvents {
   /**
-   * Fired when a client attempts to call a paralegal
+   * Fired when a client attempts to call an observer
    */
   joinAsClient: (
     payload: { coordinates: { lon: number; lat: number } } & AuthPayload,
-    callback: (clientJoinStatusCode: 'OK' | 'NO_PARALEGALS' | 'INVALID_AUTH') => void,
+    callback: (clientJoinStatusCode: 'OK' | 'NO_OBSERVERS' | 'INVALID_AUTH') => void,
   ) => void
   /**
-   * Fired when a paralegal tries to join the queue
+   * Fired when an observer tries to join the queue
    */
-  joinAsParalegal: (
+  joinAsObserver: (
     payload: AuthPayload,
     callback: (queuedUserType: UserType | 'INVALID_AUTH') => void,
   ) => void
@@ -28,11 +28,11 @@ export interface ClientToServerEvents {
     callback: (queuedUserType: UserType | 'INVALID_AUTH') => void,
   ) => void
   /**
-   * Fired when a paralegal tries to pull a lawyer into the call
+   * Fired when an observer tries to pull a lawyer into the call
    */
   summonLawyer: (payload: null, callback: (isLawyerAvailable: boolean) => void) => void
   /**
-   * Fired when a paralegal or lawyer tries to leave the queue
+   * Fired when an observer or lawyer tries to leave the queue
    */
   dequeue: (payload: null, callback: (didExitQueue: boolean) => void) => void
   /**
