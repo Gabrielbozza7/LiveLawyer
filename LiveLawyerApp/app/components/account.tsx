@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { StyleSheet, View, Alert } from 'react-native'
 import { Button, Input } from '@rneui/themed'
-import { Session } from '@supabase/supabase-js'
+import { Session, SupabaseClient } from '@supabase/supabase-js'
 
 export default function Account({ session }: { session: Session }) {
   const [loading, setLoading] = useState(true)
@@ -19,7 +19,9 @@ export default function Account({ session }: { session: Session }) {
       setLoading(true)
       if (!session?.user) throw new Error('No user on the session!')
 
-      const { data, error, status } = await supabase
+      // We don't have a table called 'profiles', so I think that this logic is unfinished.
+      // I noticed it when switching the app over to use the type-safe Supabase client.
+      const { data, error, status } = await (supabase as SupabaseClient)
         .from('profiles')
         .select(`username, website, avatar_url`)
         .eq('id', session?.user.id)
@@ -63,7 +65,7 @@ export default function Account({ session }: { session: Session }) {
         updated_at: new Date(),
       }
 
-      const { error } = await supabase.from('profiles').upsert(updates)
+      const { error } = await (supabase as SupabaseClient).from('profiles').upsert(updates)
 
       if (error) {
         throw error
