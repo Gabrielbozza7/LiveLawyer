@@ -1,6 +1,6 @@
 import TwilioManager from '../TwilioManager'
 import ActiveRoom from './ActiveRoom'
-import { UserType } from 'livelawyerlibrary/SocketEventDefinitions'
+import { UserType } from 'livelawyerlibrary'
 import { UserSocket } from '../ServerTypes'
 import IdentityMap from '../IdentityMap'
 import { getSupabaseClient } from '../database/supabase'
@@ -51,8 +51,8 @@ export default class CallCenter {
       )
       return false
     }
-    const clientTokenPromise = this.twilioManager.getAccessToken(room, 'CLIENT', clientId)
-    const paralegalTokenPromise = this.twilioManager.getAccessToken(room, 'PARALEGAL', paralegalId)
+    const clientTokenPromise = this.twilioManager.getAccessToken(room, 'Civilian', clientId)
+    const paralegalTokenPromise = this.twilioManager.getAccessToken(room, 'Paralegal', paralegalId)
     const [clientToken, paralegalToken] = await Promise.all([
       clientTokenPromise,
       paralegalTokenPromise,
@@ -100,7 +100,7 @@ export default class CallCenter {
     const lawyer = this.waitingLawyers.shift()
     console.log(`Removed a lawyer from queue, new length: ${this.waitingLawyers.length}`)
     const lawyerId = this._identityMap.userIdOf(lawyer)
-    const lawyerToken = await this.twilioManager.getAccessToken(room, 'LAWYER', lawyerId)
+    const lawyerToken = await this.twilioManager.getAccessToken(room, 'Lawyer', lawyerId)
     let success: boolean = await room.connectParticipant(lawyer, lawyerToken, this.timeoutFrame)
 
     // TODO: At some point, there should be better logic for handling a failed lawyer connection.
@@ -132,13 +132,13 @@ export default class CallCenter {
   public enqueueParalegal(paralegal: UserSocket): UserType {
     this.waitingParalegals.push(paralegal)
     console.log(`Added a paralegal to queue, new length: ${this.waitingParalegals.length}`)
-    return 'PARALEGAL'
+    return 'Paralegal'
   }
 
   public enqueueLawyer(lawyer: UserSocket): UserType {
     this.waitingLawyers.push(lawyer)
     console.log(`Added a lawyer to queue, new length: ${this.waitingLawyers.length}`)
-    return 'LAWYER'
+    return 'Lawyer'
   }
 
   public dequeueWorker(worker: UserSocket): boolean {

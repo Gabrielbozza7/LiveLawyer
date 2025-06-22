@@ -102,6 +102,7 @@ export default class ActiveRoom {
           .timeout(timeout)
           .emitWithAck('sendToRoom', { token, roomName: this._roomName })
         successfulSend = true
+        break
       } catch (error) {
         console.log(
           `User {${participant.id}} failed to acknowledge sendToRoom properly (attempt ${i}/3) with error: ${error}`,

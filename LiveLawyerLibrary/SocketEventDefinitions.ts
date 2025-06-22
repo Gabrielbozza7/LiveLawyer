@@ -1,4 +1,4 @@
-export type UserType = 'CLIENT' | 'PARALEGAL' | 'LAWYER'
+import { UserType } from '.'
 
 export interface AuthPayload {
   userId: string

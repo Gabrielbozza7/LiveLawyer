@@ -1,4 +1,4 @@
-import { UserType } from 'livelawyerlibrary/SocketEventDefinitions'
+import { UserType } from 'livelawyerlibrary'
 import { UserSocket } from './ServerTypes'
 
 export default class IdentityMap {

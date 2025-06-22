@@ -5,8 +5,8 @@ import { resolve } from 'path'
 import twilio, { Twilio, jwt } from 'twilio'
 import { RoomInstance } from 'twilio/lib/rest/video/v1/room'
 import RecordingProcessor from './RecordingProcessor'
-import { defaultEnvironmentVariableWithWarning } from 'livelawyerlibrary'
-import { UserType } from 'livelawyerlibrary/SocketEventDefinitions'
+import { defaultEnvironmentVariableWithWarning, twilioIdentityFromInfo } from 'livelawyerlibrary'
+import { UserType } from 'livelawyerlibrary'
 import { getSupabaseClient } from './database/supabase'
 import ActiveRoom from './calls/ActiveRoom'
 import { ParticipantInstance } from 'twilio/lib/rest/video/v1/room/participant'
@@ -141,7 +141,7 @@ export default class TwilioManager {
 
     // Creating an access token and room-specific video grant:
     const token = new AccessToken(this._accountSid, this._apiKeySid, this._apiKeySecret, {
-      identity: `${userType} ${userId}`,
+      identity: twilioIdentityFromInfo({ userId, userType }),
     })
     token.addGrant(new VideoGrant({ room: room.roomName }))
     console.log(`Created token for user with ID '${userId}' for ${room.roomName}!`)

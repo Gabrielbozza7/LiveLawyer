@@ -46,7 +46,7 @@ io.on('connection', socket => {
   console.log(`User connected to socket: {${socket.id}}`)
   socket.on('joinAsClient', async (payload, callback) => {
     console.log(`Received joinAsClient event: {${socket.id}}`)
-    if (await identityMap.register(socket, payload.userId, payload.userSecret, 'CLIENT')) {
+    if (await identityMap.register(socket, payload.userId, payload.userSecret, 'Civilian')) {
       const isParalegalAvailable = await callCenter.connectClient(socket, payload)
       callback(isParalegalAvailable ? 'OK' : 'NO_PARALEGALS')
     } else {
@@ -55,7 +55,7 @@ io.on('connection', socket => {
   })
   socket.on('joinAsParalegal', async (payload, callback) => {
     console.log(`Received joinAsParalegal event: {${socket.id}}`)
-    if (await identityMap.register(socket, payload.userId, payload.userSecret, 'PARALEGAL')) {
+    if (await identityMap.register(socket, payload.userId, payload.userSecret, 'Paralegal')) {
       const queuedUserType = callCenter.enqueueParalegal(socket)
       callback(queuedUserType)
     } else {
@@ -64,7 +64,7 @@ io.on('connection', socket => {
   })
   socket.on('joinAsLawyer', async (payload, callback) => {
     console.log(`Received joinAsLawyer event: {${socket.id}}`)
-    if (await identityMap.register(socket, payload.userId, payload.userSecret, 'LAWYER')) {
+    if (await identityMap.register(socket, payload.userId, payload.userSecret, 'Lawyer')) {
       const queuedUserType = callCenter.enqueueLawyer(socket)
       callback(queuedUserType)
     } else {

@@ -1,3 +1,5 @@
+import { Database } from './SupabaseTypes'
+
 /**
  * Issues a warning to the console if the read environment variable is empty or undefined.
  * @param readValue The value of the read environment variable (from `process.env`)
@@ -21,4 +23,20 @@ export function defaultEnvironmentVariableWithWarning(
     return defaultValue
   }
   return readValue
+}
+
+export type UserType = Database['public']['Tables']['User']['Row']['userType']
+
+export interface TwilioIdentityInfo {
+  userId: string
+  userType: UserType
+}
+
+export function twilioIdentityToInfo(identity: string): TwilioIdentityInfo {
+  const split = identity.split(' ')
+  return { userType: split[0] as UserType, userId: split[1] }
+}
+
+export function twilioIdentityFromInfo(info: TwilioIdentityInfo): string {
+  return `${info.userType} ${info.userId}`
 }

@@ -14,6 +14,7 @@ import {
 import { PublicEnv } from '@/classes/PublicEnv'
 import { Session, SupabaseClient } from '@supabase/supabase-js'
 import { Database } from 'livelawyerlibrary/SupabaseTypes'
+import { twilioIdentityToInfo, UserType } from 'livelawyerlibrary'
 
 let socket: Socket<ServerToClientEvents, ClientToServerEvents>
 
@@ -22,8 +23,11 @@ export function Call({ env }: { env: PublicEnv }) {
   const sessionRef = useRef<Session>(null)
   const [placeholder, setPlaceholder] = useState<string | undefined>('Loading...')
   const [userData, setUserData] = useState<Database['public']['Tables']['User']['Row']>()
-  const [videoRoom] = useState<TwilioVideoRoom>(new TwilioVideoRoom())
+  const videoRoomRef = useRef<TwilioVideoRoom>(new TwilioVideoRoom())
   const [participants, setParticipants] = useState<Participant[]>([])
+  const [clientParticipant, setClientParticipant] = useState<Participant | null>(null)
+  const [paralegalParticipant, setParalegalParticipant] = useState<Participant | null>(null)
+  const [lawyerParticipant, setLawyerParticipant] = useState<Participant | null>(null)
   const [inQueueOrCall, setInQueueOrCall] = useState<boolean>(false)
   const [showToast, setShowToast] = useState<string | null>(null)
   const [hasLawyerInCall, setHasLawyerInCall] = useState<boolean>(false)
@@ -60,9 +64,9 @@ export function Call({ env }: { env: PublicEnv }) {
       callback: (acknowledged: boolean) => void,
     ) => {
       try {
-        await videoRoom.joinRoom(token, roomName)
+        await videoRoomRef.current.joinRoom(token, roomName)
 
-        videoRoom.setupListeners(updatedParticipants => {
+        videoRoomRef.current.setupListeners(updatedParticipants => {
           setParticipants(updatedParticipants)
         })
 
@@ -75,10 +79,11 @@ export function Call({ env }: { env: PublicEnv }) {
     }
 
     const onEndCall = () => {
-      videoRoom.disconnect()
+      videoRoomRef.current.disconnect()
       setParticipants([])
     }
 
+    console.log('setup socket')
     socket = io(env.backendUrl)
     socket.on('sendToRoom', onSendToRoom)
     socket.on('endCall', onEndCall)
@@ -88,8 +93,33 @@ export function Call({ env }: { env: PublicEnv }) {
       socket.off('endCall', onEndCall)
       socket.disconnect()
     }
+  }, [env.backendUrl])
+
+  // Updating the corresponding participant slots when the participant(s) change(s):
+  useEffect(() => {
+    const foundUserTypes: Set<UserType> = new Set()
+    participants.forEach(participant => {
+      const userInfo = twilioIdentityToInfo(participant.identity)
+      foundUserTypes.add(userInfo.userType)
+      if (clientParticipant === null && userInfo.userType === 'Civilian') {
+        setClientParticipant(participant)
+      } else if (paralegalParticipant === null && userInfo.userType === 'Paralegal') {
+        setParalegalParticipant(participant)
+      } else if (lawyerParticipant === null && userInfo.userType === 'Lawyer') {
+        setLawyerParticipant(participant)
+      }
+    })
+    if (!foundUserTypes.has('Civilian')) {
+      setClientParticipant(null)
+    }
+    if (!foundUserTypes.has('Paralegal')) {
+      setParalegalParticipant(null)
+    }
+    if (!foundUserTypes.has('Lawyer')) {
+      setLawyerParticipant(null)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [participants])
 
   return (
     <div>
@@ -102,17 +132,36 @@ export function Call({ env }: { env: PublicEnv }) {
           </Card>
         ) : userData !== undefined ? (
           <div>
-            {videoRoom.inARoom ? (
+            {videoRoomRef.current.inARoom ? (
               <div>
                 <Table>
                   <thead />
                   <tbody>
                     <tr>
-                      {participants.map(participant => (
-                        <td key={participant.identity}>
-                          <TwilioParticipant room={videoRoom} participant={participant} />
+                      {clientParticipant && (
+                        <td>
+                          <TwilioParticipant
+                            room={videoRoomRef.current}
+                            participant={clientParticipant}
+                          />
                         </td>
-                      ))}
+                      )}
+                      {paralegalParticipant && (
+                        <td>
+                          <TwilioParticipant
+                            room={videoRoomRef.current}
+                            participant={paralegalParticipant}
+                          />
+                        </td>
+                      )}
+                      {lawyerParticipant && (
+                        <td>
+                          <TwilioParticipant
+                            room={videoRoomRef.current}
+                            participant={lawyerParticipant}
+                          />
+                        </td>
+                      )}
                     </tr>
                   </tbody>
                 </Table>
