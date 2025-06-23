@@ -1,9 +1,12 @@
 'use client'
 import 'bootstrap/dist/css/bootstrap.min.css'
-import { Button, Card } from 'react-bootstrap'
+import { Button, Card, Table } from 'react-bootstrap'
 import { useEffect, useState } from 'react'
 import LiveLawyerApi from 'livelawyerlibrary/api/LiveLawyerApi'
-import { CallHistorySingle } from 'livelawyerlibrary/api/types/call-history'
+import {
+  CallHistoryDetailsSingle,
+  CallHistorySingle,
+} from 'livelawyerlibrary/api/types/call-history'
 
 interface HistoryEntryProps {
   entry: CallHistorySingle
@@ -12,7 +15,8 @@ interface HistoryEntryProps {
 
 export function HistoryEntry({ entry, api }: HistoryEntryProps) {
   const [showDetails, setShowDetails] = useState<boolean>(false)
-  const [detailsText, setDetailsText] = useState<string | undefined>('Loading...')
+  const [details, setDetails] = useState<CallHistoryDetailsSingle | undefined>(undefined)
+  const [placeholder, setPlaceholder] = useState<string | undefined>('Loading...')
   const [sentRequest, setSentRequest] = useState<boolean>(false)
 
   useEffect(() => {
@@ -20,19 +24,12 @@ export function HistoryEntry({ entry, api }: HistoryEntryProps) {
       setSentRequest(true)
       api
         .fetchCallDetails(entry.id)
-        .then(details => {
-          let s = 'EVENTS:\n'
-          details.details.events.forEach(event => {
-            s += JSON.stringify(event, undefined, '   ') + '\n'
-          })
-          s += 'RECORDINGS:\n'
-          details.details.recordings.forEach(recording => {
-            s += JSON.stringify(recording, undefined, '   ') + '\n'
-          })
-          setDetailsText(s)
+        .then(response => {
+          setDetails(response.details)
+          setPlaceholder(undefined)
         })
         .catch(error => {
-          setDetailsText(`Something went wrong! (${(error as Error).message})`)
+          setPlaceholder(`Something went wrong! (${(error as Error).message})`)
         })
     }
   }, [api, entry.id, sentRequest, showDetails])
@@ -55,7 +52,68 @@ export function HistoryEntry({ entry, api }: HistoryEntryProps) {
       {showDetails && (
         <Card>
           <Card.Body>
-            <pre>{detailsText}</pre>
+            {placeholder !== undefined ? (
+              <Card.Text>{placeholder}</Card.Text>
+            ) : details !== undefined ? (
+              <div>
+                <Card.Text>
+                  <strong>Call Events</strong>
+                </Card.Text>
+                {details.events.length > 0 ? (
+                  <Table>
+                    <thead>
+                      <tr>
+                        <th>Timestamp</th>
+                        <th>User</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {details.events.map((event, index) => (
+                        <tr key={index}>
+                          <td>{new Date(event.timestamp).toLocaleString()}</td>
+                          <td>{event.userName}</td>
+                          <td>{event.action}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </Table>
+                ) : (
+                  <Card.Text>There are no events available.</Card.Text>
+                )}
+                <Card.Text>
+                  <strong>Call Recordings</strong>
+                </Card.Text>
+                {details.recordings.length > 0 ? (
+                  <Table>
+                    <thead>
+                      <tr>
+                        <th>Start Timestamp</th>
+                        <th>User</th>
+                        <th>File Type</th>
+                        <th>Download</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {details.recordings.map((recording, index) => (
+                        <tr key={index}>
+                          <td>{new Date(recording.startTime).toLocaleString()}</td>
+                          <td>{recording.userName}</td>
+                          <td>{recording.trackType}</td>
+                          <td>
+                            <Button href={recording.downloadLink}>Download</Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </Table>
+                ) : (
+                  <Card.Text>There are no recordings available.</Card.Text>
+                )}
+              </div>
+            ) : (
+              <Card.Text>Call details for this call are unavailable.</Card.Text>
+            )}
           </Card.Body>
         </Card>
       )}
