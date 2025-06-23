@@ -62,7 +62,7 @@ export async function authenticate(accessToken: string): Promise<string> {
     data: { user },
     error,
   } = await supabase.auth.getUser(accessToken)
-  if (error) {
+  if (error || user === null) {
     throw new Error('Authentication error')
   }
   return user.id

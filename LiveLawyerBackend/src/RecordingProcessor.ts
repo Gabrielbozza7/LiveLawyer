@@ -49,7 +49,7 @@ export default class RecordingProcessor {
   private async _processDownloadQueue() {
     while (this._downloadQueue.length > 0) {
       let downloadInfo = this._downloadQueue.shift()
-      let recording = downloadInfo.recording
+      let recording = downloadInfo!.recording
       let ignoringDownload = false
       while (recording.status !== 'completed') {
         console.log(
@@ -118,7 +118,7 @@ export default class RecordingProcessor {
       this._uploadRecording({
         metadataBeforeDelete: recording,
         recordedTrackBuffer: buffer,
-        callId: downloadInfo.callId,
+        callId: downloadInfo!.callId,
         userId,
       })
     }
@@ -143,30 +143,32 @@ export default class RecordingProcessor {
       const { data: storageData, error: storageError } = await supabase.storage
         .from('call-recordings')
         .upload(
-          `${uploadInfo.metadataBeforeDelete.roomSid}/${uploadInfo.metadataBeforeDelete.sid}.${uploadInfo.metadataBeforeDelete.containerFormat}`,
-          uploadInfo.recordedTrackBuffer,
+          `${uploadInfo!.metadataBeforeDelete.roomSid}/${uploadInfo!.metadataBeforeDelete.sid}.${uploadInfo!.metadataBeforeDelete.containerFormat}`,
+          uploadInfo!.recordedTrackBuffer,
         )
-      if (storageError) {
-        console.log(storageError)
+      if (storageError || storageData === null) {
+        console.error(storageError)
+        continue
       }
       // Uploading recording record to database:
       const { error: databaseError } = await supabase
         .from('CallRecording')
         .insert({
-          callId: uploadInfo.callId,
-          userId: uploadInfo.userId,
-          startTime: uploadInfo.metadataBeforeDelete.dateCreated.toISOString(),
-          trackType: uploadInfo.metadataBeforeDelete.type === 'video' ? 'Video' : 'Audio',
+          callId: uploadInfo!.callId,
+          userId: uploadInfo!.userId,
+          startTime: uploadInfo!.metadataBeforeDelete.dateCreated.toISOString(),
+          trackType: uploadInfo!.metadataBeforeDelete.type === 'video' ? 'Video' : 'Audio',
           s3Ref: storageData.fullPath,
         })
         .single()
       if (databaseError) {
-        console.log(`Critical error: Unable to upload recording record: ${databaseError.message}`)
+        console.log(`Critical error: Unable to upload recording record:`)
+        console.error(databaseError)
       }
       //TODO: Delete video from local machine. Only if no error uploading.
       const destination = path.resolve(
         RECORDING_DIR_NAME,
-        `${uploadInfo.metadataBeforeDelete.sid}.${uploadInfo.metadataBeforeDelete.containerFormat}`,
+        `${uploadInfo!.metadataBeforeDelete.sid}.${uploadInfo!.metadataBeforeDelete.containerFormat}`,
       )
       fs.unlink(destination)
     }

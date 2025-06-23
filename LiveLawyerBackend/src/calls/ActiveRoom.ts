@@ -5,8 +5,6 @@ import {
 import { Socket, DefaultEventsMap } from 'socket.io'
 import TwilioManager from '../TwilioManager'
 import { RoomInstance } from 'twilio/lib/rest/video/v1/room'
-import { SupabaseClient } from '@supabase/supabase-js'
-import { Database } from 'livelawyerlibrary/database-types'
 import { getSupabaseClient } from '../database/supabase'
 import IdentityMap from '../IdentityMap'
 
@@ -21,21 +19,33 @@ export default class ActiveRoom {
   private readonly _twilioManager: TwilioManager
   private readonly _identityMap: IdentityMap
   private _startedEndSequence: boolean
-  private _room: RoomInstance | undefined
-  private _supabase: SupabaseClient<Database> | undefined
-  private _callId: string | undefined
+  private _room: RoomInstance
+  private _callId: string
+
+  static async createRoom(
+    twilioManager: TwilioManager,
+    identityMap: IdentityMap,
+    clientId: string,
+    observerId: string,
+  ): Promise<ActiveRoom> {
+    let room = new ActiveRoom(twilioManager, identityMap)
+    await room.setup(clientId, observerId)
+    return room
+  }
 
   /**
    * IMPORTANT: Make sure that setup() is run immediately after object construction!
    * @param twilioManager The twilioManager from the CallCenter
    */
-  constructor(twilioManager: TwilioManager, identityMap: IdentityMap) {
+  private constructor(twilioManager: TwilioManager, identityMap: IdentityMap) {
     this._roomName = `room-${ROOM_NAME_PREFIX}-${roomNameCounter++}`
     this._participants = []
     this._twilioManager = twilioManager
     this._identityMap = identityMap
     this._startedEndSequence = false
-    this._room = undefined
+    // These next assignments are safe because the setup is always invoked before returning the new instance.
+    this._room = undefined!
+    this._callId = undefined!
   }
 
   public get roomName() {
@@ -49,12 +59,12 @@ export default class ActiveRoom {
   /**
    * Should always run after object construction
    */
-  public async setup(clientId: string, observerId: string): Promise<void> {
+  private async setup(clientId: string, observerId: string): Promise<void> {
     const timestamp = new Date().toISOString()
+    const supabase = await getSupabaseClient()
     this._room = await this._twilioManager.findOrCreateRoom(this._roomName)
     console.log(`Started room with room name: ${this._roomName}`)
-    this._supabase = await getSupabaseClient()
-    const { data, error } = await this._supabase
+    const { data, error } = await supabase
       .from('CallMetadata')
       .insert({
         clientId,
@@ -81,12 +91,17 @@ export default class ActiveRoom {
     token: string,
     timeout: number,
   ): Promise<boolean> {
+    let userId = this._identityMap.userIdOf(participant)
+    if (userId === undefined) {
+      throw new Error('Invalid participant')
+    }
     const timestamp = new Date().toISOString()
-    const { error } = await this._supabase
+    const supabase = await getSupabaseClient()
+    const { error } = await supabase
       .from('CallEvent')
       .insert({
         callId: this._callId,
-        userId: this._identityMap.userIdOf(participant),
+        userId,
         action: 'Connected',
         timestamp,
       })
@@ -126,12 +141,17 @@ export default class ActiveRoom {
    * @returns Whether the participant was present in the room model
    */
   public async removeConnectedParticipant(participant: UserSocket): Promise<boolean> {
+    let userId = this._identityMap.userIdOf(participant)
+    if (userId === undefined) {
+      throw new Error('Invalid participant')
+    }
     const timestamp = new Date().toISOString()
-    const { error } = await this._supabase
+    const supabase = await getSupabaseClient()
+    const { error } = await supabase
       .from('CallEvent')
       .insert({
         callId: this._callId,
-        userId: this._identityMap.userIdOf(participant),
+        userId,
         action: 'Disconnected',
         timestamp,
       })
@@ -139,7 +159,7 @@ export default class ActiveRoom {
     if (error) {
       console.log(`Critical error: Unable to document call event (Disconnected): ${error.message}`)
     }
-    let index: number
+    let index = -1
     if (
       this._participants.find((value, i) => {
         index = i
@@ -158,22 +178,24 @@ export default class ActiveRoom {
    * @param participant The participant that hung up
    * @returns The list of participants that were sent the endCall event
    */
-  public async endCall(participant: UserSocket) {
-    if (this._room === undefined) {
-      console.log(`Cannot end call for ${this._roomName} because it had an improper setup!`)
-      return
-    } else if (this._startedEndSequence) {
+  public async endCall(participant: UserSocket): Promise<UserSocket[]> {
+    if (this._startedEndSequence) {
       console.log(`Cannot end call for ${this._roomName} because it already ended!`)
-      return
+      return []
     }
     this._startedEndSequence = true
+    let userId = this._identityMap.userIdOf(participant)
+    if (userId === undefined) {
+      throw new Error('Invalid participant')
+    }
 
     const timestamp = new Date().toISOString()
-    const { error } = await this._supabase
+    const supabase = await getSupabaseClient()
+    const { error } = await supabase
       .from('CallEvent')
       .insert({
         callId: this._callId,
-        userId: this._identityMap.userIdOf(participant),
+        userId,
         action: 'Ended Call',
         timestamp,
       })
@@ -185,8 +207,8 @@ export default class ActiveRoom {
     const removedParticipants: UserSocket[] = []
     while (this._participants.length > 0) {
       const participant = this._participants.pop()
-      participant.emit('endCall')
-      removedParticipants.push(participant)
+      participant!.emit('endCall')
+      removedParticipants.push(participant!)
     }
     ;(async () => {
       // Recording management

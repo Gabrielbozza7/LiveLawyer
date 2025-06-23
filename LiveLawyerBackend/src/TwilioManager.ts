@@ -42,17 +42,24 @@ export default class TwilioManager {
       'abc',
       true,
     )
-    const twilioAuthHeader = `Basic ${Buffer.from(`${this._accountSid}:${this._password}`).toString('base64')}`
-    this._recordingProcessor = new RecordingProcessor(this, twilioAuthHeader)
-    this._twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER
-    // Authentication for the REST API:
-    this._apiKeySid = defaultEnvironmentVariableWithWarning(
-      process.env.TWILIO_API_KEY_SID,
-      'TWILIO_API_KEY_SID',
+    this._twilioPhoneNumber = defaultEnvironmentVariableWithWarning(
+      process.env.TWILIO_PHONE_NUMBER,
+      'TWILIO_PHONE_NUMBER',
       path,
       'abc',
       true,
     )
+    const twilioAuthHeader = `Basic ${Buffer.from(`${this._accountSid}:${this._password}`).toString('base64')}`
+    this._recordingProcessor = new RecordingProcessor(this, twilioAuthHeader)
+    this._twilioPhoneNumber =
+      // Authentication for the REST API:
+      this._apiKeySid = defaultEnvironmentVariableWithWarning(
+        process.env.TWILIO_API_KEY_SID,
+        'TWILIO_API_KEY_SID',
+        path,
+        'abc',
+        true,
+      )
     this._apiKeySecret = defaultEnvironmentVariableWithWarning(
       process.env.TWILIO_API_KEY_SECRET,
       'TWILIO_API_KEY_SECRET',
@@ -95,10 +102,10 @@ export default class TwilioManager {
   public async findOrCreateRoom(roomName: string): Promise<RoomInstance> {
     try {
       // Throwing error with code 20404 if the room already exists:
-      await this._twilioClient.video.v1.rooms(roomName).fetch()
+      return await this._twilioClient.video.v1.rooms(roomName).fetch()
     } catch (error) {
       // Creating the room because it was not found:
-      if (error.code == 20404) {
+      if ((error as { code: number }).code == 20404) {
         return await this._twilioClient.video.v1.rooms.create({
           uniqueName: roomName,
           type: 'group',

@@ -18,7 +18,7 @@ export default class IdentityMap {
     const successfullyAuthenticated: boolean = ((userId, userSecret, userType) => {
       // This is where secret validation would eventually go, returning false if the user should not be authenticated.
       // (That is why the method is async.)
-      return userId && userSecret && typeof userType === 'string'
+      return userId !== '' && userSecret !== '' && typeof userType === 'string'
     })(userId, userSecret, userType)
     if (!successfullyAuthenticated) {
       return false

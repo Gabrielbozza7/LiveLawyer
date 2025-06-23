@@ -32,23 +32,35 @@ export default class CallCenter {
     client: UserSocket,
     payload: { userId: string; coordinates: { lat: number; lon: number } },
   ): Promise<boolean> {
-    if (this.waitingObservers.length === 0) return false
-    const observer = this.waitingObservers.shift()
-    console.log(`Removed an observer from queue, new length: ${this.waitingObservers.length}`)
-    const clientId = payload.userId
-    const observerId = this._identityMap.userIdOf(observer)
+    let observerId: string | undefined = undefined
+    let observer: UserSocket | undefined = undefined
+    while (this.waitingObservers.length > 0) {
+      observer = this.waitingObservers.shift()
+      console.log(`Removed an observer from queue, new length: ${this.waitingObservers.length}`)
+      const id = this._identityMap.userIdOf(observer!)
+      if (id === undefined) {
+        console.log(`Invalid observer, skipping...`)
+      } else {
+        observerId = id
+        break
+      }
+    }
+    if (observerId === undefined || observer === undefined) {
+      return false
+    }
 
-    const room = new ActiveRoom(this.twilioManager, this._identityMap)
+    const clientId = payload.userId
+    let room: ActiveRoom
     try {
-      await room.setup(clientId, observerId)
-    } catch (error) {
-      console.log(
-        `There was a problem setting up a new room: ${
-          error instanceof Error
-            ? `${(error as Error).name}: ${(error as Error).message}`
-            : error.toString()
-        }`,
+      room = await ActiveRoom.createRoom(
+        this.twilioManager,
+        this._identityMap,
+        clientId,
+        observerId,
       )
+    } catch (error) {
+      console.log('There was a problem setting up a new room:')
+      console.error(error)
       return false
     }
     const clientTokenPromise = this.twilioManager.getAccessToken(room, 'Client', clientId)
@@ -91,15 +103,28 @@ export default class CallCenter {
   }
 
   public async pullLawyer(observer: UserSocket): Promise<boolean> {
-    if (this.waitingLawyers.length === 0) return false
-    const room: ActiveRoom | undefined = this.memberToRoomMapping.get(observer)
+    let lawyerId: string | undefined = undefined
+    let lawyer: UserSocket | undefined = undefined
+    while (this.waitingLawyers.length > 0) {
+      lawyer = this.waitingLawyers.shift()
+      console.log(`Removed a lawyer from queue, new length: ${this.waitingLawyers.length}`)
+      const id = this._identityMap.userIdOf(lawyer!)
+      if (id === undefined) {
+        console.log(`Invalid lawyer, skipping...`)
+      } else {
+        lawyerId = id
+        break
+      }
+    }
+    if (lawyerId === undefined || lawyer === undefined) {
+      return false
+    }
+
+    const room = this.memberToRoomMapping.get(observer)
     if (room === undefined) {
       console.log(`WARNING: Lawyer request from observer who is not in a room {${observer.id}}`)
-      return
+      return false
     }
-    const lawyer = this.waitingLawyers.shift()
-    console.log(`Removed a lawyer from queue, new length: ${this.waitingLawyers.length}`)
-    const lawyerId = this._identityMap.userIdOf(lawyer)
     const lawyerToken = await this.twilioManager.getAccessToken(room, 'Lawyer', lawyerId)
     let success: boolean = await room.connectParticipant(lawyer, lawyerToken, this.timeoutFrame)
 
@@ -142,7 +167,7 @@ export default class CallCenter {
   }
 
   public dequeueWorker(worker: UserSocket): boolean {
-    let index: number
+    let index = -1
     if (
       this.waitingObservers.find((x, i) => {
         index = i
@@ -168,7 +193,7 @@ export default class CallCenter {
   }
 
   public handleHangUp(user: UserSocket) {
-    const room: ActiveRoom | undefined = this.memberToRoomMapping.get(user) // looks like a TypeScript soundness issue?
+    const room = this.memberToRoomMapping.get(user)
     if (room === undefined) {
       console.log(`WARNING: Hang up attempt from member who is not in a room {${user.id}}`)
       return

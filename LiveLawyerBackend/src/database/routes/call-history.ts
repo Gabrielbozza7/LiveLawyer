@@ -144,7 +144,7 @@ router.get(ROUTE_CALL_HISTORY_DETAILS, async (req: RequestCallHistoryDetails, re
     if (
       data === undefined ||
       data === null ||
-      !(userId === data.observer.id || userId === data.lawyer.id)
+      !(userId === data.observer.id || userId === data.lawyer?.id)
     ) {
       res
         .status(500)
@@ -159,7 +159,7 @@ router.get(ROUTE_CALL_HISTORY_DETAILS, async (req: RequestCallHistoryDetails, re
     }
     const events: CallEvent[] = data.events.map(rawEvent => {
       return {
-        userName: names.get(rawEvent.userId),
+        userName: names.get(rawEvent.userId) ?? 'Unknown',
         action: rawEvent.action,
         timestamp: rawEvent.timestamp,
       }
@@ -167,7 +167,7 @@ router.get(ROUTE_CALL_HISTORY_DETAILS, async (req: RequestCallHistoryDetails, re
     const recordings: CallRecording[] = data.recordings.map(rawRecording => {
       return {
         id: rawRecording.id,
-        userName: names.get(rawRecording.userId),
+        userName: names.get(rawRecording.userId) ?? 'Unknown',
         startTime: rawRecording.startTime,
         trackType: rawRecording.trackType,
       }
@@ -221,7 +221,8 @@ router.get(ROUTE_CALL_HISTORY_DOWNLOAD, async (req: RequestCallHistoryDownload, 
         .json({ success: false, error: 'Unrecognized recording or unauthorized recording access' })
       return
     }
-    const s3RefSplit = data.s3Ref.split('/', 3)
+    // TODO: Change schema so that this is always defined
+    const s3RefSplit = data.s3Ref!.split('/', 3)
     const bucketName = s3RefSplit[0]
     const directoryName = s3RefSplit[1]
     const fileName = s3RefSplit[2]
