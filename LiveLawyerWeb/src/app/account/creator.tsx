@@ -13,6 +13,7 @@ interface FormModel {
 }
 
 export default function Creator({
+  loading,
   setLoading,
   setStatusMessage,
   setActiveForm,
@@ -101,6 +102,7 @@ export default function Creator({
           <Form.Group controlId="formFirstName" className="mt-3">
             <Form.Label>First Name</Form.Label>
             <Form.Control
+              disabled={loading}
               type="text"
               name="firstName"
               value={formModel.firstName}
@@ -111,6 +113,7 @@ export default function Creator({
           <Form.Group controlId="formLastName" className="mt-3">
             <Form.Label>Last Name</Form.Label>
             <Form.Control
+              disabled={loading}
               type="text"
               name="lastName"
               value={formModel.lastName}
@@ -121,6 +124,7 @@ export default function Creator({
           <Form.Group controlId="formEmail" className="mt-3">
             <Form.Label>Email</Form.Label>
             <Form.Control
+              disabled={loading}
               type="email"
               name="email"
               value={formModel.email}
@@ -131,6 +135,7 @@ export default function Creator({
           <Form.Group controlId="formPhoneNum" className="mt-3">
             <Form.Label>Phone Number</Form.Label>
             <Form.Control
+              disabled={loading}
               type="tel"
               name="phoneNum"
               value={formModel.phoneNum}
@@ -141,6 +146,7 @@ export default function Creator({
           <Form.Group controlId="formPassword" className="mt-3">
             <Form.Label>Password</Form.Label>
             <Form.Control
+              disabled={loading}
               type="password"
               name="password"
               value={formModel.password}
@@ -151,6 +157,7 @@ export default function Creator({
           <Form.Group controlId="formConfirmPassword" className="mt-3">
             <Form.Label>Confirm Password</Form.Label>
             <Form.Control
+              disabled={loading}
               type="password"
               name="confirmPassword"
               value={formModel.confirmPassword}
@@ -160,7 +167,12 @@ export default function Creator({
 
           <Form.Group controlId="formUserType" className="mt-3">
             <Form.Label>User Type</Form.Label>
-            <Form.Select name="userType" value={formModel.userType} onChange={handleChangeSelect}>
+            <Form.Select
+              disabled={loading}
+              name="userType"
+              value={formModel.userType}
+              onChange={handleChangeSelect}
+            >
               <option>Observer</option>
               <option>Lawyer</option>
             </Form.Select>
@@ -174,9 +186,9 @@ export default function Creator({
           </Card.Text>
 
           <Button
+            disabled={loading || !(passwordsMatch && passwordsLongEnough)}
             variant="primary"
             type="submit"
-            disabled={!(passwordsMatch && passwordsLongEnough)}
             className="mt-3"
           >
             Register

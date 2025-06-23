@@ -14,12 +14,14 @@ export interface OfficeSelection {
 }
 
 interface OfficeSelectorProps {
+  loading: boolean
   currentOffice: OfficeOption | undefined
   setSelection: (selection: OfficeSelection) => void
   supabase: SupabaseClient<Database>
 }
 
 export default function OfficeSelector({
+  loading,
   currentOffice,
   setSelection,
   supabase,
@@ -98,6 +100,7 @@ export default function OfficeSelector({
           <div>
             <Form.Group controlId="formSelectionType" className="mt-3">
               <Form.Select
+                disabled={loading}
                 name="userType"
                 value={selectionType}
                 onChange={handleChangeSelectionType}
@@ -111,6 +114,7 @@ export default function OfficeSelector({
                 <Form.Group controlId="formUserType" className="mt-3">
                   <Form.Label>Existing Office Name</Form.Label>
                   <Form.Select
+                    disabled={loading}
                     name="selectedOfficeId"
                     value={selectedOfficeIndex}
                     onChange={handleChangeSelectedOffice}
@@ -129,6 +133,7 @@ export default function OfficeSelector({
                 <Form.Group controlId="formNewOfficeName" className="mt-3">
                   <Form.Label>New Office Name</Form.Label>
                   <Form.Control
+                    disabled={loading}
                     type="text"
                     name="newOfficeName"
                     value={newOfficeName}

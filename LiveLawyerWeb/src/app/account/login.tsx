@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useState } from 'react'
-import { Button, Card, Form } from 'react-bootstrap'
+import { Button, Card, Form, Toast } from 'react-bootstrap'
 import { AccountSubFormProps } from './account'
 
 interface FormModel {
@@ -8,12 +8,13 @@ interface FormModel {
 }
 
 export default function Login({
+  loading,
   setLoading,
-  setStatusMessage,
   setActiveForm,
   supabase,
   session,
 }: AccountSubFormProps) {
+  const [showToast, setShowToast] = useState<string | null>(null)
   const [formModel, setFormModel] = useState<FormModel>({
     email: '',
     password: '',
@@ -42,9 +43,14 @@ export default function Login({
       password: formModel.password,
     })
     if (error) {
-      setStatusMessage('Something went wrong when trying to sign up! Try again.')
+      if (error.code === 'invalid_credentials') {
+        setShowToast('Invalid credentials. Try again.')
+      } else {
+        setShowToast('Something went wrong when trying to sign in! Try again.')
+      }
+    } else {
+      setActiveForm('Editor')
     }
-    setActiveForm('Editor')
     setLoading(false)
   }
 
@@ -60,6 +66,7 @@ export default function Login({
           <Form.Group controlId="formEmail" className="mt-3">
             <Form.Label>Email</Form.Label>
             <Form.Control
+              disabled={loading}
               type="email"
               name="email"
               value={formModel.email}
@@ -70,6 +77,7 @@ export default function Login({
           <Form.Group controlId="formPassword" className="mt-3">
             <Form.Label>Password</Form.Label>
             <Form.Control
+              disabled={loading}
               type="password"
               name="password"
               value={formModel.password}
@@ -77,17 +85,31 @@ export default function Login({
             />
           </Form.Group>
 
-          <Button variant="success" type="submit" className="mt-3">
+          <Button disabled={loading} variant="success" type="submit" className="mt-3">
             Login
           </Button>
 
           <Card.Text className="mt-3">Don&apos;t have an account? Create one!</Card.Text>
 
-          <Button variant="primary" onClick={handleCreateAccountClick} className="mt-3">
+          <Button
+            disabled={loading}
+            variant="primary"
+            onClick={handleCreateAccountClick}
+            className="mt-3"
+          >
             Register New Account
           </Button>
         </Form>
       </Card.Body>
+      <Toast
+        bg="danger"
+        onClose={() => setShowToast(null)}
+        show={showToast !== null}
+        delay={2500}
+        autohide
+      >
+        <Toast.Body>{showToast}</Toast.Body>
+      </Toast>
     </Card>
   )
 }

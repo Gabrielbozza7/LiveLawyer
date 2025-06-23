@@ -14,6 +14,7 @@ interface FormModel {
 }
 
 export default function Editor({
+  loading,
   setLoading,
   setStatusMessage,
   setActiveForm,
@@ -185,6 +186,7 @@ export default function Editor({
           <Form.Group controlId="formFirstName" className="mt-3">
             <Form.Label>First Name</Form.Label>
             <Form.Control
+              disabled={loading}
               type="text"
               name="firstName"
               value={formModel.firstName}
@@ -195,6 +197,7 @@ export default function Editor({
           <Form.Group controlId="formLastName" className="mt-3">
             <Form.Label>Last Name</Form.Label>
             <Form.Control
+              disabled={loading}
               type="text"
               name="lastName"
               value={formModel.lastName}
@@ -205,6 +208,7 @@ export default function Editor({
           <Form.Group controlId="formEmail" className="mt-3">
             <Form.Label>Email</Form.Label>
             <Form.Control
+              disabled={loading}
               type="email"
               name="email"
               value={formModel.email}
@@ -215,6 +219,7 @@ export default function Editor({
           <Form.Group controlId="formPhoneNum" className="mt-3">
             <Form.Label>Phone Number</Form.Label>
             <Form.Control
+              disabled={loading}
               type="tel"
               name="phoneNum"
               value={formModel.phoneNum}
@@ -225,11 +230,17 @@ export default function Editor({
           {userType === 'Lawyer' ? (
             <Container className="mt-3">
               {!openChangeOffice ? (
-                <Button variant="primary" type="button" onClick={() => setOpenChangeOffice(true)}>
+                <Button
+                  disabled={loading}
+                  variant="primary"
+                  type="button"
+                  onClick={() => setOpenChangeOffice(true)}
+                >
                   Change Office
                 </Button>
               ) : (
                 <OfficeSelector
+                  loading={loading}
                   currentOffice={currentOffice}
                   setSelection={setOfficeSelection}
                   supabase={supabase}
@@ -251,11 +262,11 @@ export default function Editor({
           <Card.Text className="mt-3">Your User Type: {userType}</Card.Text>
           <Card.Text className="mt-3">Your User ID: {session?.user.id}</Card.Text>
 
-          <Button variant="primary" type="submit">
+          <Button disabled={loading} variant="primary" type="submit">
             Save Changes
           </Button>
 
-          <Button variant="danger" type="button" onClick={handleLogout}>
+          <Button disabled={loading} variant="danger" type="button" onClick={handleLogout}>
             Logout
           </Button>
         </Form>

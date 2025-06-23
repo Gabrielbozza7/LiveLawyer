@@ -13,6 +13,7 @@ import { PublicEnv } from '@/classes/PublicEnv'
 export type ActiveForm = 'Login' | 'Editor' | 'Creator'
 
 export interface AccountSubFormProps {
+  loading: boolean
   setLoading: (loading: boolean) => void
   setStatusMessage: (statusMessage: string) => void
   setActiveForm: (activeForm: ActiveForm) => void
@@ -58,9 +59,6 @@ export default function Account({ env }: { env: PublicEnv }) {
   return (
     <div>
       <LiveLawyerNav env={env} sessionReadyCallback={sessionReadyCallback} />
-      <div hidden={!(loading || supabaseRef.current === null || !initialized)}>
-        <h1>Loading...</h1>
-      </div>
       {statusMessage !== '' ? (
         <Container fluid="md" style={{ margin: 24 }}>
           <Card>
@@ -68,11 +66,12 @@ export default function Account({ env }: { env: PublicEnv }) {
           </Card>
         </Container>
       ) : (
-        <div hidden={loading || supabaseRef.current === null || !initialized}>
+        <div hidden={supabaseRef.current === null || !initialized}>
           {supabaseRef.current !== null && initialized && (
             <Container fluid="md" style={{ margin: 24 }}>
               {activeForm === 'Editor' ? (
                 <Editor
+                  loading={loading}
                   setLoading={setLoading}
                   setStatusMessage={setStatusMessage}
                   setActiveForm={setActiveForm}
@@ -81,6 +80,7 @@ export default function Account({ env }: { env: PublicEnv }) {
                 />
               ) : activeForm === 'Login' ? (
                 <Login
+                  loading={loading}
                   setLoading={setLoading}
                   setStatusMessage={setStatusMessage}
                   setActiveForm={setActiveForm}
@@ -89,6 +89,7 @@ export default function Account({ env }: { env: PublicEnv }) {
                 />
               ) : activeForm === 'Creator' ? (
                 <Creator
+                  loading={loading}
                   setLoading={setLoading}
                   setStatusMessage={setStatusMessage}
                   setActiveForm={setActiveForm}
