@@ -1,6 +1,6 @@
 'use client'
 import 'bootstrap/dist/css/bootstrap.min.css'
-import { Button, Card, Table } from 'react-bootstrap'
+import { Button, Card, Table, Toast } from 'react-bootstrap'
 import { useEffect, useState } from 'react'
 import LiveLawyerApi from 'livelawyerlibrary/api/LiveLawyerApi'
 import {
@@ -18,6 +18,8 @@ export function HistoryEntry({ entry, api }: HistoryEntryProps) {
   const [details, setDetails] = useState<CallHistoryDetailsSingle | undefined>(undefined)
   const [placeholder, setPlaceholder] = useState<string | undefined>('Loading...')
   const [sentRequest, setSentRequest] = useState<boolean>(false)
+  const [attemptingDownload, setAttemptingDownload] = useState<boolean>(false)
+  const [showToast, setShowToast] = useState<string | null>(null)
 
   useEffect(() => {
     if (showDetails && !sentRequest) {
@@ -33,6 +35,18 @@ export function HistoryEntry({ entry, api }: HistoryEntryProps) {
         })
     }
   }, [api, entry.id, sentRequest, showDetails])
+
+  const attemptDownload = async (recordingId: string) => {
+    setAttemptingDownload(true)
+    try {
+      const response = await api.fetchCallDownload(recordingId)
+      window.open(response.downloadLink, '_self')
+    } catch (error) {
+      setShowToast(`Error: ${(error as Error).message}`)
+    } finally {
+      setAttemptingDownload(false)
+    }
+  }
 
   return (
     <div>
@@ -101,7 +115,12 @@ export function HistoryEntry({ entry, api }: HistoryEntryProps) {
                           <td>{recording.userName}</td>
                           <td>{recording.trackType}</td>
                           <td>
-                            <Button href={recording.downloadLink}>Download</Button>
+                            <Button
+                              disabled={attemptingDownload}
+                              onClick={() => attemptDownload(recording.id)}
+                            >
+                              Download
+                            </Button>
                           </td>
                         </tr>
                       ))}
@@ -115,6 +134,18 @@ export function HistoryEntry({ entry, api }: HistoryEntryProps) {
               <Card.Text>Call details for this call are unavailable.</Card.Text>
             )}
           </Card.Body>
+          <Toast
+            bg="danger"
+            onClose={() => setShowToast(null)}
+            show={showToast !== null}
+            delay={2500}
+            autohide
+          >
+            <Toast.Header>
+              <strong className="me-auto">Error</strong>
+            </Toast.Header>
+            <Toast.Body>{showToast}</Toast.Body>
+          </Toast>
         </Card>
       )}
     </div>

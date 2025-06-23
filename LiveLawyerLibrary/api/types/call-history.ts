@@ -17,10 +17,10 @@ export interface CallEvent {
 }
 
 export interface CallRecording {
+  id: string
   userName: string
   startTime: string
   trackType: Database['public']['Enums']['TrackType']
-  downloadLink: string
 }
 
 export interface CallHistoryDetailsSingle {
@@ -45,9 +45,20 @@ export interface RequestResponseCallHistoryList {
 export const ROUTE_CALL_HISTORY_DETAILS = '/details'
 
 export interface RequestParamsCallHistoryDetails {
-  id: string
+  callId: string
 }
 
 export interface RequestResponseCallHistoryDetails {
   details: CallHistoryDetailsSingle
+}
+
+// Route: /download
+export const ROUTE_CALL_HISTORY_DOWNLOAD = '/download'
+
+export interface RequestParamsCallHistoryDownload {
+  recordingId: string
+}
+
+export interface RequestResponseCallHistoryDownload {
+  downloadLink: string
 }

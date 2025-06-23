@@ -6,10 +6,13 @@ import {
   CallHistorySingle,
   CallRecording,
   RequestParamsCallHistoryDetails,
+  RequestParamsCallHistoryDownload,
   RequestParamsCallHistoryList,
   RequestResponseCallHistoryDetails,
+  RequestResponseCallHistoryDownload,
   RequestResponseCallHistoryList,
   ROUTE_CALL_HISTORY_DETAILS,
+  ROUTE_CALL_HISTORY_DOWNLOAD,
   ROUTE_CALL_HISTORY_LIST,
 } from 'livelawyerlibrary/api/types/call-history'
 import { ApiResponse, WithAccessToken } from 'livelawyerlibrary/api/types/general'
@@ -130,10 +133,14 @@ router.get(ROUTE_CALL_HISTORY_DETAILS, async (req: RequestCallHistoryDetails, re
     const { data, error } = await supabase
       .from('CallMetadata')
       .select(
-        'events:CallEvent!CallEvent_callId_fkey(userId, action, timestamp), recordings:CallRecording!CallRecording_callId_fkey(userId, startTime, trackType, s3Ref), client:User!CallMetadata_clientId_fkey(id, firstName, lastName), observer:User!CallMetadata_observerId_fkey(id, firstName, lastName), lawyer:User!CallMetadata_lawyerId_fkey(id, firstName, lastName), startTime',
+        'events:CallEvent!CallEvent_callId_fkey(userId, action, timestamp), recordings:CallRecording!CallRecording_callId_fkey(id, userId, startTime, trackType), client:User!CallMetadata_clientId_fkey(id, firstName, lastName), observer:User!CallMetadata_observerId_fkey(id, firstName, lastName), lawyer:User!CallMetadata_lawyerId_fkey(id, firstName, lastName), startTime',
       )
-      .eq('id', req.query.id)
+      .eq('id', req.query.callId)
       .single()
+    if (error) {
+      res.status(500).json({ success: false, error: 'Database error' })
+      return
+    }
     if (
       data === undefined ||
       data === null ||
@@ -157,26 +164,80 @@ router.get(ROUTE_CALL_HISTORY_DETAILS, async (req: RequestCallHistoryDetails, re
         timestamp: rawEvent.timestamp,
       }
     })
-    const recordings: CallRecording[] = []
-    for (const rawRecording of data.recordings) {
-      const splitIndex = rawRecording.s3Ref.indexOf('/')
-      const bucketName = rawRecording.s3Ref.substring(0, splitIndex)
-      const path = rawRecording.s3Ref.substring(splitIndex + 1)
-      const { data, error } = await supabase.storage
-        .from(bucketName)
-        .createSignedUrl(path, 120, { download: true })
-      recordings.push({
+    const recordings: CallRecording[] = data.recordings.map(rawRecording => {
+      return {
+        id: rawRecording.id,
         userName: names.get(rawRecording.userId),
         startTime: rawRecording.startTime,
         trackType: rawRecording.trackType,
-        downloadLink: error ? '' : data.signedUrl,
-      })
-    }
+      }
+    })
     res.status(200).json({ success: true, result: { details: { events, recordings } } })
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ success: false, error: 'Error' })
+  }
+})
+
+// Route: /download
+
+type RequestCallHistoryDownload = Request<
+  never,
+  ApiResponse<RequestResponseCallHistoryDownload>,
+  never,
+  WithAccessToken<RequestParamsCallHistoryDownload>
+>
+
+/**
+ * Fetch a signed download link for a particular recording.
+ */
+router.get(ROUTE_CALL_HISTORY_DOWNLOAD, async (req: RequestCallHistoryDownload, res) => {
+  const supabase = await getSupabaseClient()
+  let userId: string
+  try {
+    userId = await authenticate(req.query.accessToken)
+  } catch (authError) {
+    res.status(400).json({ success: false, error: (authError as Error).message })
+    return
+  }
+  try {
+    const { data, error } = await supabase
+      .from('CallRecording')
+      .select('call:callId(observerId, lawyerId), s3Ref')
+      .eq('id', req.query.recordingId)
+      .single()
     if (error) {
       res.status(500).json({ success: false, error: 'Database error' })
       return
     }
+    if (
+      data === undefined ||
+      data === null ||
+      // This is where the logic for determining whether a download was approved should eventually go.
+      !(userId === data.call.observerId || userId === data.call.lawyerId)
+    ) {
+      res
+        .status(500)
+        .json({ success: false, error: 'Unrecognized recording or unauthorized recording access' })
+      return
+    }
+    const s3RefSplit = data.s3Ref.split('/', 3)
+    const bucketName = s3RefSplit[0]
+    const directoryName = s3RefSplit[1]
+    const fileName = s3RefSplit[2]
+    const extensionWithDot = fileName.substring(fileName.indexOf('.'))
+    const pathInBucket = directoryName + '/' + fileName
+    const { data: linkData, error: linkError } = await supabase.storage
+      .from(bucketName)
+      .createSignedUrl(pathInBucket, 15 * 60 * 1000, {
+        download: req.query.recordingId + extensionWithDot,
+      })
+    if (linkError) {
+      console.error(linkError)
+      res.status(500).json({ success: false, error: 'Problem with link generation' })
+      return
+    }
+    res.status(200).json({ success: true, result: { downloadLink: linkData.signedUrl } })
   } catch (error) {
     console.error(error)
     res.status(500).json({ success: false, error: 'Error' })
