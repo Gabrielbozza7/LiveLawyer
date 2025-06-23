@@ -24,4 +24,4 @@ export function getBackendVariables(): [ip: string, port: string] {
 }
 
 export const [BACKEND_IP, BACKEND_PORT] = getBackendVariables()
-export const BACKEND_URL = `http://${BACKEND_IP}:${BACKEND_PORT}`
+export const BACKEND_URL = 'https://livelawyerbackend-5567297102c5.herokuapp.com'
