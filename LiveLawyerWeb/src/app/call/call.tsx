@@ -9,6 +9,7 @@ import LiveLawyerNav, { SessionReadyCallbackArg } from '@/components/LiveLawyerN
 import { io, Socket } from 'socket.io-client'
 import {
   ClientToServerEvents,
+  Coordinates,
   ServerToClientEvents,
   SocketResult,
 } from 'livelawyerlibrary/socket-event-definitions'
@@ -121,6 +122,53 @@ export function Call({ env }: { env: PublicEnv }) {
       return
     }
     setLoading(true)
+    if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) {
+      setShowToast('Your browser or connection does not support camera and microphone access.')
+      setLoading(false)
+      return
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+      const tracks = stream.getTracks()
+      tracks.forEach(track => {
+        track.stop()
+      })
+    } catch {
+      setShowToast('You must allow camera and microphone access to enter the queue.')
+      setLoading(false)
+      return
+    }
+    let lawyerCoordinates: Coordinates | null = null
+    if (userType === 'Lawyer') {
+      if (navigator.geolocation) {
+        let locationPromiseResolver: (success: boolean) => void = () => {}
+        const locationPromise = new Promise<boolean>(resolve => {
+          locationPromiseResolver = resolve
+        })
+        navigator.geolocation.getCurrentPosition(
+          position => {
+            lawyerCoordinates = { lat: position.coords.latitude, lon: position.coords.longitude }
+            locationPromiseResolver(true)
+          },
+          () => {
+            locationPromiseResolver(false)
+          },
+        )
+        if (!(await locationPromise)) {
+          setShowToast('You must allow geolocation as a lawyer to enter the queue.')
+          setLoading(false)
+          return
+        }
+      } else {
+        setShowToast('Your browser or connection does not support geolocation.')
+        setLoading(false)
+        return
+      }
+    }
+    if (userType === 'Lawyer' && lawyerCoordinates === null) {
+      setLoading(false)
+      return
+    }
     socketRef.current.on('sendToRoom', onSendToRoom)
     socketRef.current.on('endCall', onEndCall)
     socketRef.current.on('disconnect', () => {
@@ -147,14 +195,20 @@ export function Call({ env }: { env: PublicEnv }) {
     if (userType === 'Observer') {
       joinResult = await socketRef.current.emitWithAck('joinAsObserver', null)
     } else if (userType === 'Lawyer') {
-      joinResult = await socketRef.current.emitWithAck('joinAsLawyer', {
-        coordinates: { lat: 1, lon: 1 },
-      })
+      if (lawyerCoordinates === null) {
+        joinResult = 'NO_STATE'
+      } else {
+        joinResult = await socketRef.current.emitWithAck('joinAsLawyer', {
+          coordinates: lawyerCoordinates,
+        })
+      }
     } else {
       joinResult = 'INVALID_AUTH'
     }
     if (joinResult === 'INVALID_AUTH') {
       setShowToast('Your credentials are invalid!')
+    } else if (joinResult === 'NO_STATE') {
+      setShowToast('You appear not to be in a US state!')
     } else {
       setInQueueOrCall(true)
     }
@@ -203,9 +257,7 @@ export function Call({ env }: { env: PublicEnv }) {
   useEffect(() => {
     const socket = socketRef.current
     return () => {
-      console.log('pre-destruct ' + socket.connected)
       socket.disconnect()
-      console.log('post-destruct ' + socket.connected)
     }
   }, [])
 

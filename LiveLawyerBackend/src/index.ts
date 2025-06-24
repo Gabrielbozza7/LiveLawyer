@@ -109,11 +109,11 @@ async function main() {
         callback('INVALID_AUTH')
         return
       }
-      if (data === null || data.userType !== 'Observer') {
+      if (data === null || data.userType !== 'Lawyer') {
         callback('INVALID_AUTH')
         return
       }
-      callCenter.enqueueLawyer(socket)
+      callCenter.enqueueLawyer(socket, payload.coordinates)
       callback('OK')
     })
     socket.on('summonLawyer', async (payload, callback) => {
@@ -145,7 +145,7 @@ async function main() {
     socket.on('disconnect', reason => {
       const userId = identityMap.remove(socket)
       if (userId !== false) {
-        console.log(`Disconnected from user ${socket.id} with reason: ${reason}`)
+        console.log(`Disconnected from user ${userId} with reason: ${reason}`)
       }
     })
     socket.on('rejoinRoomAttempt', async (payload, callback) => {

@@ -12,7 +12,6 @@ export default class TwilioVideoRoom {
   }
 
   public async joinRoom(token: string, roomName: string): Promise<boolean> {
-    console.log('join room attempt')
     try {
       this.room = await connect(token, {
         name: roomName,

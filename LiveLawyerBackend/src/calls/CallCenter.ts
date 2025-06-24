@@ -5,6 +5,7 @@ import { UserSocket } from '../server-types'
 import IdentityMap from '../IdentityMap'
 import { getSupabaseClient } from '../database/supabase'
 import { Coordinates } from 'livelawyerlibrary/socket-event-definitions'
+import { stateFromCoordinates } from '../coord2state'
 
 export default class CallCenter {
   private readonly _identityMap: IdentityMap
@@ -159,7 +160,8 @@ export default class CallCenter {
     return 'Observer'
   }
 
-  public enqueueLawyer(lawyer: UserSocket): UserType {
+  public enqueueLawyer(lawyer: UserSocket, location: Coordinates): UserType {
+    console.log('state: ' + stateFromCoordinates(location.lat, location.lon))
     this.waitingLawyers.push(lawyer)
     console.log(`Added a lawyer to queue, new length: ${this.waitingLawyers.length}`)
     return 'Lawyer'
@@ -205,7 +207,7 @@ export default class CallCenter {
         }
         if (this.activeLawyers.has(participant)) {
           this.activeLawyers.delete(participant)
-          this.enqueueLawyer(participant)
+          this.enqueueLawyer(participant, { lat: 1, lon: 1 } /* to fix next */)
         }
         this.memberToRoomMapping.delete(participant)
       })

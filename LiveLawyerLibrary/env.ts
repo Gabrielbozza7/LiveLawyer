@@ -3,7 +3,7 @@ import { defaultEnvironmentVariableWithWarning } from '.'
 
 function getBackendVariables(): [ip: string, port: string, url: string, anonKey: string] {
   let dir = __dirname
-  const NEXTJS_WRONG_PATH = /LiveLawyerWeb\/\.next\/server\/app\/.*$/
+  const NEXTJS_WRONG_PATH = /LiveLawyerWeb\/\.next\/server\/app.*$/
   if (dir.match(NEXTJS_WRONG_PATH)) {
     dir = dir.replace(NEXTJS_WRONG_PATH, 'LiveLawyerLibrary')
   }
