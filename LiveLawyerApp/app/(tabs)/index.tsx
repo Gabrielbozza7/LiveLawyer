@@ -8,7 +8,6 @@ import { setCoordinates } from '@/components/locationStore'
 
 export default function Index() {
   const router = useRouter()
-  const [times, setTimes] = useState<number>(0)
   const [, setErrorMsg] = useState<string | null>(null)
   const [, setCoords] = useState<{ lat: number; lon: number } | null>(null)
 
@@ -42,16 +41,8 @@ export default function Index() {
     getLocation()
   }, [])
 
-  const attemptCall = async (): Promise<boolean> => {
-    try {
-      setTimes(times + 1)
-      router.navigate(`/call`)
-      console.log('Attempting call')
-      return true
-    } catch (error: unknown) {
-      console.log(`POST error: ${(error as Error).message}`)
-      return false
-    }
+  const attemptCall = async () => {
+    router.navigate(`/call`)
   }
 
   return (

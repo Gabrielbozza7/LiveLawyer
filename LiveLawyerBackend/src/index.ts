@@ -49,50 +49,104 @@ async function main() {
 
   io.on('connection', socket => {
     console.log(`User connected to socket: {${socket.id}}`)
-    socket.on('joinAsClient', async (payload, callback) => {
-      console.log(`Received joinAsClient event: {${socket.id}}`)
-      if (await identityMap.register(socket, payload.userId, payload.userSecret, 'Client')) {
-        const isObserverAvailable = await callCenter.connectClient(socket, payload)
-        callback(isObserverAvailable ? 'OK' : 'NO_OBSERVERS')
-      } else {
+    socket.on('authenticate', async (payload, callback) => {
+      console.log(`Received authenticate event: {${socket.id}}`)
+      const authenticationResult = await identityMap.register(socket, payload.accessToken)
+      if (authenticationResult === false) {
         callback('INVALID_AUTH')
+      } else {
+        callback('OK')
       }
+    })
+    socket.on('joinAsClient', async (payload, callback) => {
+      let userId = identityMap.userIdOf(socket)
+      if (userId === undefined) {
+        callback('INVALID_AUTH')
+        return
+      }
+      console.log(`Received joinAsClient event from user ${userId}`)
+      const isObserverAvailable = await callCenter.connectClient(
+        socket,
+        userId,
+        payload.coordinates,
+      )
+      callback(isObserverAvailable ? 'OK' : 'NO_OBSERVERS')
     })
     socket.on('joinAsObserver', async (payload, callback) => {
-      console.log(`Received joinAsObserver event: {${socket.id}}`)
-      if (await identityMap.register(socket, payload.userId, payload.userSecret, 'Observer')) {
-        const queuedUserType = callCenter.enqueueObserver(socket)
-        callback(queuedUserType)
-      } else {
+      let userId = identityMap.userIdOf(socket)
+      if (userId === undefined) {
         callback('INVALID_AUTH')
+        return
       }
+      console.log(`Received joinAsObserver event from user ${userId}`)
+      const supabase = await getSupabaseClient()
+      const { data, error } = await supabase.from('User').select().eq('id', userId).single()
+      if (error) {
+        console.log('Error when trying to determine whether a user is actually an observer:')
+        console.error(error)
+        callback('INVALID_AUTH')
+        return
+      }
+      if (data === null || data.userType !== 'Observer') {
+        callback('INVALID_AUTH')
+        return
+      }
+      callCenter.enqueueObserver(socket)
+      callback('OK')
     })
     socket.on('joinAsLawyer', async (payload, callback) => {
-      console.log(`Received joinAsLawyer event: {${socket.id}}`)
-      if (await identityMap.register(socket, payload.userId, payload.userSecret, 'Lawyer')) {
-        const queuedUserType = callCenter.enqueueLawyer(socket)
-        callback(queuedUserType)
-      } else {
+      let userId = identityMap.userIdOf(socket)
+      if (userId === undefined) {
         callback('INVALID_AUTH')
+        return
       }
+      console.log(`Received joinAsLawyer event from user: {${userId}}`)
+      const supabase = await getSupabaseClient()
+      const { data, error } = await supabase.from('User').select().eq('id', userId).single()
+      if (error) {
+        console.log('Error when trying to determine whether a user is actually a lawyer:')
+        console.error(error)
+        callback('INVALID_AUTH')
+        return
+      }
+      if (data === null || data.userType !== 'Observer') {
+        callback('INVALID_AUTH')
+        return
+      }
+      callCenter.enqueueLawyer(socket)
+      callback('OK')
     })
     socket.on('summonLawyer', async (payload, callback) => {
-      console.log(`Received summonLawyer event: {${socket.id}}`)
+      let userId = identityMap.userIdOf(socket)
+      if (userId === undefined) {
+        callback('INVALID_AUTH')
+        return
+      }
+      // TODO: ADD OBSERVER CHECK
+      console.log(`Received summonLawyer event from user ${userId}`)
       const isLawyerAvailable = await callCenter.pullLawyer(socket)
-      callback(isLawyerAvailable)
+      callback(isLawyerAvailable ? 'OK' : 'NO_LAWYERS')
     })
     socket.on('dequeue', (payload, callback) => {
-      console.log(`Received dequeue event: {${socket.id}}`)
+      let userId = identityMap.userIdOf(socket)
+      if (userId === undefined) {
+        callback('INVALID_AUTH')
+        return
+      }
+      console.log(`Received dequeue event from user ${userId}`)
       const didExitQueue = callCenter.dequeueWorker(socket)
-      callback(didExitQueue)
+      callback(didExitQueue ? 'OK' : 'NOT_IN_QUEUE')
     })
     socket.on('hangUp', () => {
+      // TODO: REFACTOR WITH ACK
       console.log(`Received hangUp event: {${socket.id}}`)
       callCenter.handleHangUp(socket)
     })
     socket.on('disconnect', reason => {
-      identityMap.remove(socket)
-      console.log(`User disconnected from socket: {${socket.id}} (Reason: ${reason})`)
+      const userId = identityMap.remove(socket)
+      if (userId !== false) {
+        console.log(`Disconnected from user ${socket.id} with reason: ${reason}`)
+      }
     })
     socket.on('rejoinRoomAttempt', async (payload, callback) => {
       // NOTE: THIS HANDLER IS COMPLETELY UNTESTED BECAUSE THERE IS NO WAY TO FIRE THIS EVENT FROM A CLIENT YET

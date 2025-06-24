@@ -30,9 +30,9 @@ export default class LiveLawyerApi {
     const encodedQueryParams = `${new URLSearchParams({ accessToken, ...queryParams })}`
     const response = await fetch(new URL(`${router + route}?${encodedQueryParams}`, this._baseUrl))
     const json = (await response.json()) as ApiResponse<R>
-    if (json.success === true) {
+    if (json.success) {
       return json.result
-    } else if (json.success === false) {
+    } else {
       throw new Error(json.error)
     }
   }

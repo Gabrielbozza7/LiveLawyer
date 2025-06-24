@@ -4,6 +4,7 @@ import { UserType } from 'livelawyerlibrary'
 import { UserSocket } from '../server-types'
 import IdentityMap from '../IdentityMap'
 import { getSupabaseClient } from '../database/supabase'
+import { Coordinates } from 'livelawyerlibrary/socket-event-definitions'
 
 export default class CallCenter {
   private readonly _identityMap: IdentityMap
@@ -30,7 +31,8 @@ export default class CallCenter {
   // Handler for event: joinAsClient
   public async connectClient(
     client: UserSocket,
-    payload: { userId: string; coordinates: { lat: number; lon: number } },
+    userId: string,
+    coordinates: Coordinates,
   ): Promise<boolean> {
     let observerId: string | undefined = undefined
     let observer: UserSocket | undefined = undefined
@@ -49,7 +51,7 @@ export default class CallCenter {
       return false
     }
 
-    const clientId = payload.userId
+    const clientId = userId
     let room: ActiveRoom
     try {
       room = await ActiveRoom.createRoom(
@@ -85,12 +87,9 @@ export default class CallCenter {
       this.memberToRoomMapping.set(client, room)
       this.memberToRoomMapping.set(observer, room)
 
-      const lat = payload.coordinates.lat
-      const lon = payload.coordinates.lon
-
       // CHANGE TO SUPABASE ACCOUNT NAME, NOT SECURE
-      const name = payload.userId
-      this.notifyEmergencyContact(name, this.emergencyContatList, lat, lon)
+      const name = userId
+      this.notifyEmergencyContact(name, this.emergencyContatList, coordinates.lat, coordinates.lon)
       return true
     } else {
       console.log(

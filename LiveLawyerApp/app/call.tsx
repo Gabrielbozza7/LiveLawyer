@@ -1,14 +1,22 @@
 import VideoCall from '@/components/VideoCall'
-import { socket } from '@/constants/socket'
 import { Styles } from '@/constants/Styles'
 import { useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { Button, View, Text, Alert } from 'react-native'
-import { SafeAreaProvider } from 'react-native-safe-area-context'
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
 import { getCoordinates } from '@/components/locationStore'
 import { supabase } from './lib/supabase'
+import { io, Socket } from 'socket.io-client'
+import {
+  ClientToServerEvents,
+  ServerToClientEvents,
+} from 'livelawyerlibrary/socket-event-definitions'
+import { BACKEND_URL } from '@/constants/BackendVariables'
+
+let socket: Socket<ServerToClientEvents, ClientToServerEvents>
+
 export default function Call() {
-  const coords = getCoordinates()
+  const coordinates = getCoordinates()
   const router = useRouter()
   const [inCall, setInCall] = useState<boolean | null>(null)
   const [token, setToken] = useState<string>('')
@@ -30,40 +38,54 @@ export default function Call() {
       setDisconnectSignal(true)
     }
 
-    socket.on('sendToRoom', onSendToRoom)
-    socket.on('endCall', onEndCall)
-
     if (inCall === null) {
-      // only runs for initialization even with strict mode
+      // Only runs for initialization even with strict mode
       setInCall(false)
       ;(async (): Promise<void> => {
+        socket = io(BACKEND_URL)
+        socket.on('sendToRoom', onSendToRoom)
+        socket.on('endCall', onEndCall)
         // Get User ID
-        let userId = ''
         const {
-          data: { user },
-        } = await supabase.auth.getUser()
-        if (user) {
-          userId = user?.id
-        }
-        // Join call
-        const clientJoinStatusCode = await socket.emitWithAck('joinAsClient', {
-          userId: userId,
-          userSecret: 'abc',
-          coordinates: coords ?? { lat: 0, lon: 0 },
-        })
-        if (clientJoinStatusCode === 'NO_OBSERVERS') {
-          Alert.alert('There are no observers currently available to take your call.')
+          data: { session },
+        } = await supabase.auth.getSession()
+        if (session === null) {
+          Alert.alert('Your session is invalid! Try restarting the app or logging in again.')
           router.back()
-        } else if (clientJoinStatusCode === 'INVALID_AUTH') {
-          Alert.alert('Your credentials are invalid!')
+        } else if (coordinates === null) {
+          Alert.alert(
+            "Your location could not be read! Try restarting the app or changing the app's permissions",
+          )
           router.back()
+        } else {
+          // Authenticating socket:
+          const authResult = await socket.emitWithAck('authenticate', {
+            accessToken: session.access_token,
+          })
+          if (authResult === 'INVALID_AUTH') {
+            Alert.alert('Your session is invalid! Try logging in again.')
+            router.back()
+          } else {
+            // Joining call:
+            const clientJoinStatusCode = await socket.emitWithAck('joinAsClient', { coordinates })
+            if (clientJoinStatusCode === 'NO_OBSERVERS') {
+              Alert.alert('There are no observers currently available to take your call.')
+              router.back()
+            } else if (clientJoinStatusCode === 'INVALID_AUTH') {
+              Alert.alert('Your session is invalid! Try logging in again.')
+              router.back()
+            }
+          }
         }
       })()
     }
 
     return () => {
-      socket.off('sendToRoom', onSendToRoom)
-      socket.off('endCall', onEndCall)
+      if (socket) {
+        socket.off('sendToRoom', onSendToRoom)
+        socket.off('endCall', onEndCall)
+        socket.disconnect()
+      }
     }
   }, [])
 
@@ -86,10 +108,10 @@ export default function Call() {
         />
       ) : (
         <SafeAreaProvider>
-          <View>
+          <SafeAreaView>
             <Text>Loading...</Text>
             <Button title="Go Back" onPress={router.back} />
-          </View>
+          </SafeAreaView>
         </SafeAreaProvider>
       )}
     </View>

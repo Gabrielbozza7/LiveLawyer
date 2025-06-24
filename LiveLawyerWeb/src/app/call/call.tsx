@@ -10,19 +10,22 @@ import { io, Socket } from 'socket.io-client'
 import {
   ClientToServerEvents,
   ServerToClientEvents,
+  SocketResult,
 } from 'livelawyerlibrary/socket-event-definitions'
 import { PublicEnv } from '@/classes/PublicEnv'
 import { Session, SupabaseClient } from '@supabase/supabase-js'
 import { Database } from 'livelawyerlibrary/database-types'
 import { twilioIdentityToInfo, UserType } from 'livelawyerlibrary'
 
-let socket: Socket<ServerToClientEvents, ClientToServerEvents>
-
 export function Call({ env }: { env: PublicEnv }) {
   const supabaseRef = useRef<SupabaseClient<Database>>(null)
   const sessionRef = useRef<Session>(null)
-  const [placeholder, setPlaceholder] = useState<string | undefined>('Loading...')
-  const [userData, setUserData] = useState<Database['public']['Tables']['User']['Row']>()
+  const socketRef = useRef<Socket<ServerToClientEvents, ClientToServerEvents>>(
+    io(env.backendUrl, { autoConnect: false }),
+  )
+  const [loading, setLoading] = useState<boolean>(false)
+  const [placeholder, setPlaceholder] = useState<string | null>('Loading...')
+  const [userType, setUserType] = useState<'Observer' | 'Lawyer' | null>(null)
   const videoRoomRef = useRef<TwilioVideoRoom>(new TwilioVideoRoom())
   const [participants, setParticipants] = useState<Participant[]>([])
   const [clientParticipant, setClientParticipant] = useState<Participant | null>(null)
@@ -32,6 +35,30 @@ export function Call({ env }: { env: PublicEnv }) {
   const [showToast, setShowToast] = useState<string | null>(null)
   const [hasLawyerInCall, setHasLawyerInCall] = useState<boolean>(false)
 
+  const onSendToRoom = async (
+    { token, roomName }: { token: string; roomName: string },
+    callback: (acknowledged: boolean) => void,
+  ) => {
+    try {
+      await videoRoomRef.current.joinRoom(token, roomName)
+
+      videoRoomRef.current.setupListeners(updatedParticipants => {
+        setParticipants(updatedParticipants)
+      })
+
+      callback(true)
+    } catch (err) {
+      console.log('Error joining room:', err)
+      alert('Unable to access webcam. Please check your browser settings and permissions.')
+      callback(false)
+    }
+  }
+
+  const onEndCall = () => {
+    videoRoomRef.current.disconnect()
+    setParticipants([])
+  }
+
   const sessionReadyCallback = async ({ supabase, session }: SessionReadyCallbackArg) => {
     supabaseRef.current = supabase
     sessionRef.current = session
@@ -40,59 +67,23 @@ export function Call({ env }: { env: PublicEnv }) {
     if (sessionRef.current !== null) {
       const { data, error } = await supabaseRef.current
         .from('User')
-        .select()
+        .select('userType')
         .eq('id', sessionRef.current.user.id)
         .single()
       if (error) {
-        setShowToast('Something went wrong when trying to fetch your user data! Try again later.')
+        setPlaceholder('Something went wrong when trying to fetch your user data! Try again later.')
         return
       }
-      setUserData(data)
-      setPlaceholder(
-        data.userType === 'Observer' || data.userType === 'Lawyer'
-          ? undefined
-          : 'You must be either an observer or a lawyer to take calls on the website',
-      )
+      if (!(data.userType === 'Observer' || data.userType === 'Lawyer')) {
+        setPlaceholder('You must be either an observer or a lawyer to take calls on the website')
+        return
+      }
+      setUserType(data.userType)
+      setPlaceholder(null)
     } else {
       setPlaceholder('You must be logged in to use this page.')
     }
   }
-
-  useEffect(() => {
-    const onSendToRoom = async (
-      { token, roomName }: { token: string; roomName: string },
-      callback: (acknowledged: boolean) => void,
-    ) => {
-      try {
-        await videoRoomRef.current.joinRoom(token, roomName)
-
-        videoRoomRef.current.setupListeners(updatedParticipants => {
-          setParticipants(updatedParticipants)
-        })
-
-        callback(true)
-      } catch (err) {
-        console.log('Error joining room:', err)
-        alert('Unable to access webcam. Please check your browser settings and permissions.')
-        callback(false)
-      }
-    }
-
-    const onEndCall = () => {
-      videoRoomRef.current.disconnect()
-      setParticipants([])
-    }
-
-    socket = io(env.backendUrl)
-    socket.on('sendToRoom', onSendToRoom)
-    socket.on('endCall', onEndCall)
-
-    return () => {
-      socket.off('sendToRoom', onSendToRoom)
-      socket.off('endCall', onEndCall)
-      socket.disconnect()
-    }
-  }, [env.backendUrl])
 
   // Updating the corresponding participant slots when the participant(s) change(s):
   useEffect(() => {
@@ -120,16 +111,114 @@ export function Call({ env }: { env: PublicEnv }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [participants])
 
+  const onJoinQueueClick = async () => {
+    if (sessionRef.current === null) {
+      setShowToast('Your session is invalid! Try logging in again.')
+      return
+    }
+    if (socketRef.current.connected) {
+      setShowToast('Your connection is already open! Try refreshing the page.')
+      return
+    }
+    setLoading(true)
+    socketRef.current.on('sendToRoom', onSendToRoom)
+    socketRef.current.on('endCall', onEndCall)
+    socketRef.current.on('disconnect', () => {
+      // This can be eventually changed to account for reconnection attempts.
+      socketRef.current?.removeAllListeners()
+    })
+    let connectPromiseResolver = () => {}
+    const connectPromise = new Promise<void>(resolve => {
+      connectPromiseResolver = resolve
+    })
+    socketRef.current.on('connect', connectPromiseResolver)
+    socketRef.current.connect()
+    await connectPromise
+    socketRef.current.off('connect', connectPromiseResolver)
+    const authResult = await socketRef.current.emitWithAck('authenticate', {
+      accessToken: sessionRef.current.access_token,
+    })
+    if (authResult === 'INVALID_AUTH') {
+      setShowToast('Your session is invalid! Try logging in again.')
+      setLoading(false)
+      return
+    }
+    let joinResult: SocketResult | 'NO_STATE'
+    if (userType === 'Observer') {
+      joinResult = await socketRef.current.emitWithAck('joinAsObserver', null)
+    } else if (userType === 'Lawyer') {
+      joinResult = await socketRef.current.emitWithAck('joinAsLawyer', {
+        coordinates: { lat: 1, lon: 1 },
+      })
+    } else {
+      joinResult = 'INVALID_AUTH'
+    }
+    if (joinResult === 'INVALID_AUTH') {
+      setShowToast('Your credentials are invalid!')
+    } else {
+      setInQueueOrCall(true)
+    }
+    setLoading(false)
+  }
+
+  const onSummonLawyerClick = async () => {
+    if (!socketRef.current.connected) {
+      setShowToast('Your connection is broken!')
+      return
+    }
+    setLoading(true)
+    const summonResult = await socketRef.current.emitWithAck('summonLawyer', null)
+    if (summonResult === 'OK') {
+      setHasLawyerInCall(true)
+    } else if (summonResult === 'NO_LAWYERS') {
+      setShowToast('There are currently no lawyers available!')
+    } else {
+      setShowToast('Your session is invalid!')
+    }
+    setLoading(false)
+  }
+
+  const onExitQueueClick = async () => {
+    if (!socketRef.current.connected) {
+      setShowToast('Your connection is broken!')
+      return
+    }
+    setLoading(true)
+    const dequeueResult = await socketRef.current.emitWithAck('dequeue', null)
+    if (dequeueResult === 'NOT_IN_QUEUE' || dequeueResult === 'OK') {
+      setInQueueOrCall(false)
+    }
+    socketRef.current.disconnect()
+    setLoading(false)
+  }
+
+  const onEndCallClick = () => {
+    if (!socketRef.current.connected) {
+      setShowToast('Your connection is broken!')
+      return
+    }
+    socketRef.current.emit('hangUp')
+  }
+
+  useEffect(() => {
+    const socket = socketRef.current
+    return () => {
+      console.log('pre-destruct ' + socket.connected)
+      socket.disconnect()
+      console.log('post-destruct ' + socket.connected)
+    }
+  }, [])
+
   return (
     <div>
       <title>Call</title>
       <LiveLawyerNav env={env} sessionReadyCallback={sessionReadyCallback} />
       <Container fluid="md" style={{ margin: 24 }}>
-        {placeholder !== undefined ? (
+        {placeholder !== null ? (
           <Card>
             <Card.Body>{placeholder}</Card.Body>
           </Card>
-        ) : userData !== undefined ? (
+        ) : userType !== null ? (
           <div>
             {videoRoomRef.current.inARoom ? (
               <div>
@@ -165,27 +254,19 @@ export function Call({ env }: { env: PublicEnv }) {
                   </tbody>
                 </Table>
                 <Button
+                  disabled={loading}
                   style={{ display: 'block' }}
                   variant="danger"
-                  onClick={() => {
-                    socket.emit('hangUp')
-                  }}
+                  onClick={onEndCallClick}
                 >
                   End Call
                 </Button>
                 <Button
+                  disabled={loading || hasLawyerInCall}
                   style={{ display: 'block' }}
                   variant="success"
-                  hidden={userData.userType === 'Lawyer'}
-                  disabled={hasLawyerInCall}
-                  onClick={async () => {
-                    const isLawyerAvailable = await socket.emitWithAck('summonLawyer', null)
-                    if (isLawyerAvailable) {
-                      setHasLawyerInCall(true)
-                    } else {
-                      setShowToast('There are currently no lawyers available!')
-                    }
-                  }}
+                  hidden={userType === 'Lawyer'}
+                  onClick={onSummonLawyerClick}
                 >
                   Summon Lawyer
                 </Button>
@@ -196,43 +277,27 @@ export function Call({ env }: { env: PublicEnv }) {
                   <Card.Body>
                     <Card.Text>
                       You are now in the queue, waiting for{' '}
-                      {userData.userType === 'Lawyer' ? 'an observer to summon you' : 'a client'}!
+                      {userType === 'Lawyer' ? 'an observer to summon you' : 'a client'}!
                     </Card.Text>
                     <Button
+                      disabled={loading}
                       variant="danger"
                       type="submit"
-                      onClick={async () => {
-                        const didExitQueue = await socket.emitWithAck('dequeue', null)
-                        if (didExitQueue) {
-                          setInQueueOrCall(false)
-                        }
-                      }}
+                      onClick={onExitQueueClick}
                     >
-                      Leave Queue
+                      Exit Queue
                     </Button>
                   </Card.Body>
                 ) : (
                   <Card.Body>
-                    {(userData.userType === 'Observer' || userData.userType === 'Lawyer') && (
+                    {userType !== null && (
                       <Button
+                        disabled={loading}
                         variant="primary"
                         type="submit"
-                        onClick={async () => {
-                          const queuedUserType = await socket.emitWithAck(
-                            userData.userType === 'Observer' ? 'joinAsObserver' : 'joinAsLawyer',
-                            {
-                              userId: userData.id,
-                              userSecret: 'abc', // temporary
-                            },
-                          )
-                          if (queuedUserType === 'INVALID_AUTH') {
-                            setShowToast('Your credentials are invalid!')
-                          } else {
-                            setInQueueOrCall(true)
-                          }
-                        }}
+                        onClick={onJoinQueueClick}
                       >
-                        Join Queue as {userData.userType}
+                        Join Queue as {userType}
                       </Button>
                     )}
                   </Card.Body>

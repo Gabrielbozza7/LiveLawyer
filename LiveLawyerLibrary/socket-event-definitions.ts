@@ -1,46 +1,53 @@
 import { UserType } from '.'
+import { WithAccessToken } from './api/types/general'
 
-export interface AuthPayload {
-  userId: string
-  userSecret: string
+export interface Coordinates {
+  lat: number
+  lon: number
 }
 
+export type SocketResult = 'OK' | 'INVALID_AUTH'
+
 export interface ClientToServerEvents {
+  /**
+   * Fired when a socket first connects to the backend server for authentication.
+   */
+  authenticate: (
+    payload: WithAccessToken<unknown>,
+    callback: (result: SocketResult) => void,
+  ) => void
   /**
    * Fired when a client attempts to call an observer
    */
   joinAsClient: (
-    payload: { coordinates: { lon: number; lat: number } } & AuthPayload,
-    callback: (clientJoinStatusCode: 'OK' | 'NO_OBSERVERS' | 'INVALID_AUTH') => void,
+    payload: { coordinates: Coordinates },
+    callback: (result: SocketResult | 'NO_OBSERVERS') => void,
   ) => void
   /**
    * Fired when an observer tries to join the queue
    */
-  joinAsObserver: (
-    payload: AuthPayload,
-    callback: (queuedUserType: UserType | 'INVALID_AUTH') => void,
-  ) => void
+  joinAsObserver: (payload: null, callback: (result: SocketResult) => void) => void
   /**
    * Fired when a lawyer tries to join the queue
    */
   joinAsLawyer: (
-    payload: AuthPayload,
-    callback: (queuedUserType: UserType | 'INVALID_AUTH') => void,
+    payload: { coordinates: Coordinates },
+    callback: (result: SocketResult | 'NO_STATE') => void,
   ) => void
   /**
    * Fired when an observer tries to pull a lawyer into the call
    */
-  summonLawyer: (payload: null, callback: (isLawyerAvailable: boolean) => void) => void
+  summonLawyer: (payload: null, callback: (result: SocketResult | 'NO_LAWYERS') => void) => void
   /**
    * Fired when an observer or lawyer tries to leave the queue
    */
-  dequeue: (payload: null, callback: (didExitQueue: boolean) => void) => void
+  dequeue: (payload: null, callback: (result: SocketResult | 'NOT_IN_QUEUE') => void) => void
   /**
    * Fired when a video call participant ends the call
    */
   hangUp: () => void
   /**
-   * Fired when a user attempts to rejoin a call from which they disconnected
+   * Fired when a user attempts to rejoin a call from which they disconnected (UNUSED)
    */
   rejoinRoomAttempt: (
     payload: { userId: string; userType: UserType },
@@ -61,7 +68,7 @@ export interface ServerToClientEvents {
    */
   endCall: () => void
   /**
-   * Fired when a disconnected user successfully rejoins a call
+   * Fired when a disconnected user successfully rejoins a call (UNUSED)
    */
   rejoinRoomSuccess: (payload: { token: string; roomName: string }) => void
 }
