@@ -35,6 +35,7 @@ export function Call({ env }: { env: PublicEnv }) {
   const [inQueueOrCall, setInQueueOrCall] = useState<boolean>(false)
   const [showToast, setShowToast] = useState<string | null>(null)
   const [hasLawyerInCall, setHasLawyerInCall] = useState<boolean>(false)
+  const [permissionNotice, setPermissionNotice] = useState<string | null>(null)
 
   const onSendToRoom = async (
     { token, roomName }: { token: string; roomName: string },
@@ -128,6 +129,7 @@ export function Call({ env }: { env: PublicEnv }) {
       return
     }
     try {
+      setPermissionNotice('Camera/microphone access is necessary to participate in video calls.')
       const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
       const tracks = stream.getTracks()
       tracks.forEach(track => {
@@ -137,10 +139,15 @@ export function Call({ env }: { env: PublicEnv }) {
       setShowToast('You must allow camera and microphone access to enter the queue.')
       setLoading(false)
       return
+    } finally {
+      setPermissionNotice(null)
     }
     let lawyerCoordinates: Coordinates | null = null
     if (userType === 'Lawyer') {
       if (navigator.geolocation) {
+        setPermissionNotice(
+          'Location access is necessary to route you to clients in the same state as you.',
+        )
         let locationPromiseResolver: (success: boolean) => void = () => {}
         const locationPromise = new Promise<boolean>(resolve => {
           locationPromiseResolver = resolve
@@ -154,7 +161,9 @@ export function Call({ env }: { env: PublicEnv }) {
             locationPromiseResolver(false)
           },
         )
-        if (!(await locationPromise)) {
+        const allowed = await locationPromise
+        setPermissionNotice(null)
+        if (!allowed) {
           setShowToast('You must allow geolocation as a lawyer to enter the queue.')
           setLoading(false)
           return
@@ -363,6 +372,7 @@ export function Call({ env }: { env: PublicEnv }) {
                         Join Queue as {userType}
                       </Button>
                     )}
+                    {permissionNotice && <Card.Text>{permissionNotice}</Card.Text>}
                   </Card.Body>
                 )}
               </Card>
