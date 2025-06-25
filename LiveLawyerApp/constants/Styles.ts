@@ -185,7 +185,7 @@ export const Styles = StyleSheet.create({
   localLawyerButton: {
     marginHorizontal: 30,
     marginTop: 70,
-    backgroundColor: '#24d12f',
+    backgroundColor: Colors.lightGreen,
     padding: 25,
     marginBottom: 0,
     borderRadius: 10,
@@ -194,4 +194,11 @@ export const Styles = StyleSheet.create({
   localText: {
     fontSize: 30,
   },
+  profileIcon: { marginRight: 16 },
+  callHistorySingleText: {
+    fontSize: 16,
+    color: Colors.white,
+  },
+  callHistorySingleLabel: { fontWeight: 'bold' },
+  callHistorySingleNone: { fontStyle: 'italic' },
 })
