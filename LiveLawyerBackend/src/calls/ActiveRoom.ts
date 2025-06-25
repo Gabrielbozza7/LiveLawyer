@@ -1,35 +1,33 @@
-import {
-  ClientToServerEvents,
-  ServerToClientEvents,
-} from 'livelawyerlibrary/socket-event-definitions'
-import { Socket, DefaultEventsMap } from 'socket.io'
 import TwilioManager from '../TwilioManager'
 import { RoomInstance } from 'twilio/lib/rest/video/v1/room'
 import { getSupabaseClient } from '../database/supabase'
-import IdentityMap from '../IdentityMap'
+import IdentityMap, {
+  ConnectedClientIdentity,
+  ConnectedObserverIdentity,
+  ConnectedUserIdentity,
+} from '../IdentityMap'
 
 const ROOM_NAME_PREFIX: string = Math.trunc(Math.random() * Number.MAX_SAFE_INTEGER).toString(16)
 let roomNameCounter: number = 0
 
-type UserSocket = Socket<ClientToServerEvents, ServerToClientEvents, DefaultEventsMap, unknown>
-
 export default class ActiveRoom {
   private readonly _roomName: string
-  private readonly _participants: UserSocket[]
+  private readonly _participants: ConnectedUserIdentity[]
   private readonly _twilioManager: TwilioManager
-  private readonly _identityMap: IdentityMap
   private _startedEndSequence: boolean
   private _room: RoomInstance
   private _callId: string
+  private readonly _client: ConnectedClientIdentity
+  private readonly _observer: ConnectedObserverIdentity
 
   static async createRoom(
     twilioManager: TwilioManager,
     identityMap: IdentityMap,
-    clientId: string,
-    observerId: string,
+    client: ConnectedClientIdentity,
+    observer: ConnectedObserverIdentity,
   ): Promise<ActiveRoom> {
-    let room = new ActiveRoom(twilioManager, identityMap)
-    await room.setup(clientId, observerId)
+    let room = new ActiveRoom(twilioManager, client, observer)
+    await room.setup(client.id, observer.id)
     return room
   }
 
@@ -37,12 +35,17 @@ export default class ActiveRoom {
    * IMPORTANT: Make sure that setup() is run immediately after object construction!
    * @param twilioManager The twilioManager from the CallCenter
    */
-  private constructor(twilioManager: TwilioManager, identityMap: IdentityMap) {
+  private constructor(
+    twilioManager: TwilioManager,
+    client: ConnectedClientIdentity,
+    observer: ConnectedObserverIdentity,
+  ) {
     this._roomName = `room-${ROOM_NAME_PREFIX}-${roomNameCounter++}`
     this._participants = []
     this._twilioManager = twilioManager
-    this._identityMap = identityMap
     this._startedEndSequence = false
+    this._client = client
+    this._observer = observer
     // These next assignments are safe because the setup is always invoked before returning the new instance.
     this._room = undefined!
     this._callId = undefined!
@@ -54,6 +57,18 @@ export default class ActiveRoom {
 
   public get callId() {
     return this._callId
+  }
+
+  public get client() {
+    return this._client
+  }
+
+  public get observer() {
+    return this._observer
+  }
+
+  public get startedEndSequence() {
+    return this._startedEndSequence
   }
 
   /**
@@ -87,21 +102,17 @@ export default class ActiveRoom {
    * @returns Whether the participant was successfully added
    */
   public async connectParticipant(
-    participant: UserSocket,
+    participant: ConnectedUserIdentity,
     token: string,
     timeout: number,
   ): Promise<boolean> {
-    let userId = this._identityMap.userIdOf(participant)
-    if (userId === undefined) {
-      throw new Error('Invalid participant')
-    }
     const timestamp = new Date().toISOString()
     const supabase = await getSupabaseClient()
     const { error } = await supabase
       .from('CallEvent')
       .insert({
         callId: this._callId,
-        userId,
+        userId: participant.id,
         action: 'Connected',
         timestamp,
       })
@@ -113,7 +124,7 @@ export default class ActiveRoom {
     let successfulSend: boolean = false
     for (let i = 1; i <= 3; i++) {
       try {
-        await participant
+        await participant.socket
           .timeout(timeout)
           .emitWithAck('sendToRoom', { token, roomName: this._roomName })
         successfulSend = true
@@ -130,6 +141,7 @@ export default class ActiveRoom {
       }
     }
     if (successfulSend) {
+      participant.room = this
       this._participants.push(participant)
     }
     return successfulSend
@@ -140,18 +152,14 @@ export default class ActiveRoom {
    * @param participant The participant to remove
    * @returns Whether the participant was present in the room model
    */
-  public async removeConnectedParticipant(participant: UserSocket): Promise<boolean> {
-    let userId = this._identityMap.userIdOf(participant)
-    if (userId === undefined) {
-      throw new Error('Invalid participant')
-    }
+  public async removeConnectedParticipant(participant: ConnectedUserIdentity): Promise<boolean> {
     const timestamp = new Date().toISOString()
     const supabase = await getSupabaseClient()
     const { error } = await supabase
       .from('CallEvent')
       .insert({
         callId: this._callId,
-        userId,
+        userId: participant.id,
         action: 'Disconnected',
         timestamp,
       })
@@ -178,16 +186,12 @@ export default class ActiveRoom {
    * @param participant The participant that hung up
    * @returns The list of participants that were sent the endCall event
    */
-  public async endCall(participant: UserSocket): Promise<UserSocket[]> {
+  public async endCall(participant: ConnectedUserIdentity): Promise<ConnectedUserIdentity[]> {
     if (this._startedEndSequence) {
       console.log(`Cannot end call for ${this._roomName} because it already ended!`)
       return []
     }
     this._startedEndSequence = true
-    let userId = this._identityMap.userIdOf(participant)
-    if (userId === undefined) {
-      throw new Error('Invalid participant')
-    }
 
     const timestamp = new Date().toISOString()
     const supabase = await getSupabaseClient()
@@ -195,7 +199,7 @@ export default class ActiveRoom {
       .from('CallEvent')
       .insert({
         callId: this._callId,
-        userId,
+        userId: participant.id,
         action: 'Ended Call',
         timestamp,
       })
@@ -204,12 +208,15 @@ export default class ActiveRoom {
       console.log(`Critical error: Unable to document call event (Disconnected): ${error.message}`)
     }
 
-    const removedParticipants: UserSocket[] = []
-    while (this._participants.length > 0) {
+    const removedParticipants: ConnectedUserIdentity[] = []
+    while (true) {
       const participant = this._participants.pop()
-      participant!.emit('endCall')
-      removedParticipants.push(participant!)
+      if (participant === undefined) {
+        break
+      }
+      removedParticipants.push(participant)
     }
+
     ;(async () => {
       // Recording management
       await new Promise(resolve => setTimeout(resolve, 5000))

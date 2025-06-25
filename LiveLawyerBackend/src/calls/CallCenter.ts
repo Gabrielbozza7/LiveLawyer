@@ -1,73 +1,60 @@
 import TwilioManager from '../TwilioManager'
 import ActiveRoom from './ActiveRoom'
-import { UserType } from 'livelawyerlibrary'
-import { UserSocket } from '../server-types'
-import IdentityMap from '../IdentityMap'
+import IdentityMap, {
+  ConnectedClientIdentity,
+  ConnectedLawyerIdentity,
+  ConnectedObserverIdentity,
+  ConnectedUserIdentity,
+} from '../IdentityMap'
 import { getSupabaseClient } from '../database/supabase'
-import { Coordinates } from 'livelawyerlibrary/socket-event-definitions'
-import { stateFromCoordinates } from '../coord2state'
+import Queues from './Queues'
 
 export default class CallCenter {
   private readonly _identityMap: IdentityMap
-  private readonly twilioManager: TwilioManager
-  private readonly waitingObservers: UserSocket[]
-  private readonly waitingLawyers: UserSocket[]
-  private readonly activeObservers: Set<UserSocket>
-  private readonly activeLawyers: Set<UserSocket>
-  private readonly memberToRoomMapping: Map<UserSocket, ActiveRoom>
+  private readonly _twilioManager: TwilioManager
+  private readonly _queues: Queues
   private readonly timeoutFrame: number = 5000
-  private readonly userIdToRoom: Map<string, ActiveRoom> = new Map()
 
   private readonly emergencyContatList = ['5554443210']
   constructor(twilioManager: TwilioManager, identityMap: IdentityMap) {
     this._identityMap = identityMap
-    this.twilioManager = twilioManager
-    this.waitingObservers = []
-    this.waitingLawyers = []
-    this.activeObservers = new Set()
-    this.activeLawyers = new Set()
-    this.memberToRoomMapping = new Map()
+    this._twilioManager = twilioManager
+    this._queues = new Queues()
   }
 
-  // Handler for event: joinAsClient
-  public async connectClient(
-    client: UserSocket,
-    userId: string,
-    coordinates: Coordinates,
-  ): Promise<boolean> {
-    let observerId: string | undefined = undefined
-    let observer: UserSocket | undefined = undefined
-    while (this.waitingObservers.length > 0) {
-      observer = this.waitingObservers.shift()
-      console.log(`Removed an observer from queue, new length: ${this.waitingObservers.length}`)
-      const id = this._identityMap.userIdOf(observer!)
-      if (id === undefined) {
-        console.log(`Invalid observer, skipping...`)
-      } else {
-        observerId = id
+  // Handler for event: 'joinAsClient'
+  public async joinAsClient(
+    client: ConnectedClientIdentity,
+  ): Promise<'OK' | 'ALREADY_IN_ROOM' | 'NO_OBSERVERS'> {
+    if (client.room !== null) {
+      return 'ALREADY_IN_ROOM'
+    }
+    let observer: ConnectedObserverIdentity | undefined = undefined
+    while (true) {
+      observer = this._queues.dequeueObserver()
+      if (observer === undefined) {
         break
       }
+      if (observer.room !== null) {
+        console.log(`WARNING: Found busy observer when trying to dequeue an observer, skipping...`)
+        continue
+      }
+      break
     }
-    if (observerId === undefined || observer === undefined) {
-      return false
+    if (observer === undefined) {
+      return 'NO_OBSERVERS'
     }
-
-    const clientId = userId
     let room: ActiveRoom
     try {
-      room = await ActiveRoom.createRoom(
-        this.twilioManager,
-        this._identityMap,
-        clientId,
-        observerId,
-      )
+      room = await ActiveRoom.createRoom(this._twilioManager, this._identityMap, client, observer)
     } catch (error) {
       console.log('There was a problem setting up a new room:')
       console.error(error)
-      return false
+      // TODO: Put an actual error code here.
+      return 'NO_OBSERVERS'
     }
-    const clientTokenPromise = this.twilioManager.getAccessToken(room, 'Client', clientId)
-    const observerTokenPromise = this.twilioManager.getAccessToken(room, 'Observer', observerId)
+    const clientTokenPromise = this._twilioManager.getAccessToken(room, 'Client', client.id)
+    const observerTokenPromise = this._twilioManager.getAccessToken(room, 'Observer', observer.id)
     const [clientToken, observerToken] = await Promise.all([
       clientTokenPromise,
       observerTokenPromise,
@@ -84,60 +71,76 @@ export default class CallCenter {
 
     if (success) {
       console.log(`Successfully sent participants to ${room.roomName}!`)
-      this.activeObservers.add(observer)
-      this.memberToRoomMapping.set(client, room)
-      this.memberToRoomMapping.set(observer, room)
 
       // CHANGE TO SUPABASE ACCOUNT NAME, NOT SECURE
-      const name = userId
-      this.notifyEmergencyContact(name, this.emergencyContatList, coordinates.lat, coordinates.lon)
-      return true
+      const name = client.id
+      this.notifyEmergencyContact(
+        name,
+        this.emergencyContatList,
+        client.location.lat,
+        client.location.lon,
+      )
+      return 'OK'
     } else {
       console.log(
-        `Note: Observer with user ID '${observerId}' not flagged as active due to connection failure!`,
+        `Note: Observer with user ID '${observer.id}' not flagged as active due to connection failure!`,
       )
-      observer.emit('endCall')
-      this.enqueueObserver(observer)
-      return false
+      observer.socket.emit('endCall')
+      this._queues.enqueue(observer)
+      // TODO: Put an actual error code here.
+      return 'NO_OBSERVERS'
     }
   }
 
-  public async pullLawyer(observer: UserSocket): Promise<boolean> {
-    let lawyerId: string | undefined = undefined
-    let lawyer: UserSocket | undefined = undefined
-    while (this.waitingLawyers.length > 0) {
-      lawyer = this.waitingLawyers.shift()
-      console.log(`Removed a lawyer from queue, new length: ${this.waitingLawyers.length}`)
-      const id = this._identityMap.userIdOf(lawyer!)
-      if (id === undefined) {
-        console.log(`Invalid lawyer, skipping...`)
-      } else {
-        lawyerId = id
+  // Handler for event: 'enqueue'
+  public enqueue(
+    worker: ConnectedObserverIdentity | ConnectedLawyerIdentity,
+  ): 'OK' | 'ALREADY_IN_QUEUE' {
+    return this._queues.enqueue(worker) ? 'OK' : 'ALREADY_IN_QUEUE'
+  }
+
+  // Handler for event 'exitQueue'
+  public exitQueue(
+    worker: ConnectedObserverIdentity | ConnectedLawyerIdentity,
+  ): 'OK' | 'NOT_IN_QUEUE' {
+    return this._queues.kick(worker) ? 'OK' : 'NOT_IN_QUEUE'
+  }
+
+  // Handler for event 'summonLawyer'
+  public async summonLawyer(
+    observer: ConnectedObserverIdentity,
+  ): Promise<'OK' | 'NOT_IN_ROOM' | 'NO_LAWYERS'> {
+    if (observer.room === null) {
+      return 'NOT_IN_ROOM'
+    }
+    const room = observer.room
+    const state = room.client.state
+    let lawyer: ConnectedLawyerIdentity | undefined = undefined
+    while (true) {
+      lawyer = this._queues.dequeueLawyer(state)
+      if (lawyer === undefined) {
         break
       }
+      if (lawyer.room !== null) {
+        console.log(`WARNING: Found busy lawyer when trying to dequeue a lawyer, skipping...`)
+        continue
+      }
+      break
     }
-    if (lawyerId === undefined || lawyer === undefined) {
-      return false
+    if (lawyer === undefined) {
+      return 'NO_LAWYERS'
     }
-
-    const room = this.memberToRoomMapping.get(observer)
-    if (room === undefined) {
-      console.log(`WARNING: Lawyer request from observer who is not in a room {${observer.id}}`)
-      return false
-    }
-    const lawyerToken = await this.twilioManager.getAccessToken(room, 'Lawyer', lawyerId)
+    const lawyerToken = await this._twilioManager.getAccessToken(room, 'Lawyer', lawyer?.id)
     let success: boolean = await room.connectParticipant(lawyer, lawyerToken, this.timeoutFrame)
 
     // TODO: At some point, there should be better logic for handling a failed lawyer connection.
     // The error-handling code following these comments is definitely not ready for production whatsoever.
 
     if (success) {
-      this.activeLawyers.add(lawyer)
-      this.memberToRoomMapping.set(lawyer, room)
       const supabase = await getSupabaseClient()
       const { error } = await supabase
         .from('CallMetadata')
-        .update({ lawyerId })
+        .update({ lawyerId: lawyer.id })
         .eq('id', room.callId)
         .single()
       if (error) {
@@ -145,77 +148,34 @@ export default class CallCenter {
           `Critical error: Unable to associate lawyer with call in ${room.roomName}: ${error.message}`,
         )
       }
-      return true
+      return 'OK'
     } else {
       console.log(
-        `Note: Lawyer with user ID '${lawyerId}' not flagged as active due to connection failure!`,
+        `Note: Lawyer with user ID '${lawyer.id}' not flagged as active due to connection failure!`,
       )
-      return false
+      // TODO: Put an actual error code here.
+      return 'NO_LAWYERS'
     }
   }
 
-  public enqueueObserver(observer: UserSocket): UserType {
-    this.waitingObservers.push(observer)
-    console.log(`Added an observer to queue, new length: ${this.waitingObservers.length}`)
-    return 'Observer'
-  }
-
-  public enqueueLawyer(lawyer: UserSocket, location: Coordinates): UserType {
-    console.log('state: ' + stateFromCoordinates(location.lat, location.lon))
-    this.waitingLawyers.push(lawyer)
-    console.log(`Added a lawyer to queue, new length: ${this.waitingLawyers.length}`)
-    return 'Lawyer'
-  }
-
-  public dequeueWorker(worker: UserSocket): boolean {
-    let index = -1
-    if (
-      this.waitingObservers.find((x, i) => {
-        index = i
-        return x == worker
-      }) !== undefined
-    ) {
-      this.waitingObservers.splice(index, 1)
-      console.log(`Removed an observer from queue, new length: ${this.waitingObservers.length}`)
-      return true
-    } else if (
-      this.waitingLawyers.find((x, i) => {
-        index = i
-        return x == worker
-      }) !== undefined
-    ) {
-      this.waitingLawyers.splice(index, 1)
-      console.log(`Removed a lawyer from queue, new length: ${this.waitingLawyers.length}`)
-      return true
-    } else {
-      console.log(`WARNING: Unable to dequeue {${worker.id}} due to not existing in a queue!`)
-      return false
+  // Handler for event: 'hangUp'
+  public hangUp(user: ConnectedUserIdentity): 'OK' | 'NOT_IN_ROOM' | 'CALL_ALREADY_ENDED' {
+    if (user.room === null) {
+      return 'NOT_IN_ROOM'
     }
-  }
-
-  public handleHangUp(user: UserSocket) {
-    const room = this.memberToRoomMapping.get(user)
-    if (room === undefined) {
-      console.log(`WARNING: Hang up attempt from member who is not in a room {${user.id}}`)
-      return
+    if (user.room.startedEndSequence) {
+      return 'CALL_ALREADY_ENDED'
     }
-    ;(async () => {
-      ;(await room.endCall(user)).forEach(participant => {
-        if (this.activeObservers.has(participant)) {
-          this.activeObservers.delete(participant)
-          this.enqueueObserver(participant)
+    user.room.endCall(user).then(removedParticipants => {
+      removedParticipants.forEach(participant => {
+        participant.socket.emit('endCall')
+        participant.room = null
+        if (participant.type === 'Observer' || participant.type === 'Lawyer') {
+          this._queues.enqueue(participant)
         }
-        if (this.activeLawyers.has(participant)) {
-          this.activeLawyers.delete(participant)
-          this.enqueueLawyer(participant, { lat: 1, lon: 1 } /* to fix next */)
-        }
-        this.memberToRoomMapping.delete(participant)
       })
-    })()
-  }
-
-  public getRoomByUserId(userId: string): ActiveRoom | undefined {
-    return this.userIdToRoom.get(userId)
+    })
+    return 'OK'
   }
 
   public async notifyEmergencyContact(
@@ -225,7 +185,7 @@ export default class CallCenter {
     lon: number,
   ) {
     emergencyList.forEach(number => {
-      this.twilioManager.notifyEmergencyContact(name, number, lat, lon)
+      this._twilioManager.notifyEmergencyContact(name, number, lat, lon)
     })
   }
 }

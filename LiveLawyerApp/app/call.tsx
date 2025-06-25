@@ -1,7 +1,7 @@
 import VideoCall from '@/components/VideoCall'
 import { Styles } from '@/constants/Styles'
 import { useRouter } from 'expo-router'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Button, View, Text, Alert } from 'react-native'
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
 import { getCoordinates } from '@/components/locationStore'
@@ -13,38 +13,37 @@ import {
 } from 'livelawyerlibrary/socket-event-definitions'
 import { BACKEND_URL } from '@/constants/BackendVariables'
 
-let socket: Socket<ServerToClientEvents, ClientToServerEvents>
-
 export default function Call() {
   const coordinates = getCoordinates()
   const router = useRouter()
+  const socketRef = useRef<Socket<ServerToClientEvents, ClientToServerEvents>>(
+    io(BACKEND_URL, { autoConnect: false }),
+  )
+  const socketTokenRef = useRef<string>('')
   const [inCall, setInCall] = useState<boolean | null>(null)
   const [token, setToken] = useState<string>('')
   const [roomName, setRoomName] = useState<string>('')
   const [disconnectSignal, setDisconnectSignal] = useState<boolean>(false)
 
+  const onSendToRoom = async (
+    { token, roomName }: { token: string; roomName: string },
+    callback: (acknowledged: boolean) => void,
+  ) => {
+    setToken(token)
+    setRoomName(roomName)
+    setInCall(true)
+    callback(true)
+  }
+
+  const onEndCall = () => {
+    setDisconnectSignal(true)
+  }
+
   useEffect(() => {
-    const onSendToRoom = async (
-      { token, roomName }: { token: string; roomName: string },
-      callback: (acknowledged: boolean) => void,
-    ) => {
-      setToken(token)
-      setRoomName(roomName)
-      setInCall(true)
-      callback(true)
-    }
-
-    const onEndCall = () => {
-      setDisconnectSignal(true)
-    }
-
     if (inCall === null) {
       // Only runs for initialization even with strict mode
       setInCall(false)
       ;(async (): Promise<void> => {
-        socket = io(BACKEND_URL)
-        socket.on('sendToRoom', onSendToRoom)
-        socket.on('endCall', onEndCall)
         // Get User ID
         const {
           data: { session },
@@ -58,21 +57,41 @@ export default function Call() {
           )
           router.back()
         } else {
-          // Authenticating socket:
-          const authResult = await socket.emitWithAck('authenticate', {
-            accessToken: session.access_token,
+          socketRef.current.on('sendToRoom', onSendToRoom)
+          socketRef.current.on('endCall', onEndCall)
+          socketRef.current.on('disconnect', () => {
+            // This can be eventually changed to account for reconnection attempts.
+            socketRef.current?.removeAllListeners()
           })
-          if (authResult === 'INVALID_AUTH') {
+          let connectPromiseResolver = () => {}
+          const connectPromise = new Promise<void>(resolve => {
+            connectPromiseResolver = resolve
+          })
+          socketRef.current.on('connect', connectPromiseResolver)
+          socketRef.current.connect()
+          await connectPromise
+          socketRef.current.off('connect', connectPromiseResolver)
+          const authResult = await socketRef.current.emitWithAck('authenticate', {
+            accessToken: session.access_token,
+            coordinates,
+          })
+          if (authResult.result === 'INVALID_AUTH') {
             Alert.alert('Your session is invalid! Try logging in again.')
             router.back()
           } else {
+            socketTokenRef.current = authResult.socketToken
             // Joining call:
-            const clientJoinStatusCode = await socket.emitWithAck('joinAsClient', { coordinates })
-            if (clientJoinStatusCode === 'NO_OBSERVERS') {
+            const joinResult = await socketRef.current.emitWithAck('joinAsClient', {
+              socketToken: socketTokenRef.current,
+            })
+            if (joinResult === 'INVALID_AUTH') {
+              Alert.alert('Your session is invalid! Try logging in again.')
+              router.back()
+            } else if (joinResult === 'NO_OBSERVERS') {
               Alert.alert('There are no observers currently available to take your call.')
               router.back()
-            } else if (clientJoinStatusCode === 'INVALID_AUTH') {
-              Alert.alert('Your session is invalid! Try logging in again.')
+            } else if (joinResult === 'ALREADY_IN_ROOM') {
+              Alert.alert('You are already in a room!')
               router.back()
             }
           }
@@ -81,16 +100,25 @@ export default function Call() {
     }
 
     return () => {
-      if (socket) {
-        socket.off('sendToRoom', onSendToRoom)
-        socket.off('endCall', onEndCall)
-        socket.disconnect()
-      }
+      socketRef.current.disconnect()
     }
   }, [])
 
-  const hangUp = () => {
-    socket.emit('hangUp')
+  const onEndCallClick = async () => {
+    if (!socketRef.current.connected) {
+      Alert.alert('Your connection is broken!')
+      return
+    }
+    const hangUpResult = await socketRef.current.emitWithAck('hangUp', {
+      socketToken: socketTokenRef.current,
+    })
+    if (hangUpResult === 'INVALID_AUTH') {
+      Alert.alert('Your login is invalid!')
+    } else if (hangUpResult === 'NOT_IN_ROOM') {
+      Alert.alert('You are not in a room!')
+    } else if (hangUpResult === 'CALL_ALREADY_ENDED') {
+      Alert.alert('The call already ended!')
+    }
   }
 
   return (
@@ -100,7 +128,7 @@ export default function Call() {
           token={token}
           roomName={roomName}
           disconnectSignal={disconnectSignal}
-          hangUpCallback={hangUp}
+          hangUpCallback={onEndCallClick}
           disconnectCallback={() => {
             setInCall(false)
             router.back()

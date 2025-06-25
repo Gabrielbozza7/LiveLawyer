@@ -50,97 +50,67 @@ async function main() {
   io.on('connection', socket => {
     console.log(`User connected to socket: {${socket.id}}`)
     socket.on('authenticate', async (payload, callback) => {
-      console.log(`Received authenticate event: {${socket.id}}`)
-      const authenticationResult = await identityMap.register(socket, payload.accessToken)
+      console.log(`Received 'authenticate' event from socket {${socket.id}}`)
+      const authenticationResult = await identityMap.register(
+        socket,
+        payload.accessToken,
+        payload.coordinates,
+      )
       if (authenticationResult === false) {
-        callback('INVALID_AUTH')
+        callback({ result: 'INVALID_AUTH' })
       } else {
-        callback('OK')
+        callback({ result: 'OK', socketToken: authenticationResult })
       }
     })
     socket.on('joinAsClient', async (payload, callback) => {
-      let userId = identityMap.userIdOf(socket)
-      if (userId === undefined) {
+      const user = identityMap.userFromSocketWithToken(socket, payload.socketToken)
+      if (user === undefined || user.type !== 'Client') {
         callback('INVALID_AUTH')
         return
       }
-      console.log(`Received joinAsClient event from user ${userId}`)
-      const isObserverAvailable = await callCenter.connectClient(
-        socket,
-        userId,
-        payload.coordinates,
-      )
-      callback(isObserverAvailable ? 'OK' : 'NO_OBSERVERS')
+      console.log(`Received 'joinAsClient' event from user ${user.id}`)
+      const response = await callCenter.joinAsClient(user)
+      callback(response)
     })
-    socket.on('joinAsObserver', async (payload, callback) => {
-      let userId = identityMap.userIdOf(socket)
-      if (userId === undefined) {
+    socket.on('enqueue', (payload, callback) => {
+      const user = identityMap.userFromSocketWithToken(socket, payload.socketToken)
+      if (user === undefined || user.type === 'Client') {
         callback('INVALID_AUTH')
         return
       }
-      console.log(`Received joinAsObserver event from user ${userId}`)
-      const supabase = await getSupabaseClient()
-      const { data, error } = await supabase.from('User').select().eq('id', userId).single()
-      if (error) {
-        console.log('Error when trying to determine whether a user is actually an observer:')
-        console.error(error)
-        callback('INVALID_AUTH')
-        return
-      }
-      if (data === null || data.userType !== 'Observer') {
-        callback('INVALID_AUTH')
-        return
-      }
-      callCenter.enqueueObserver(socket)
-      callback('OK')
+      console.log(`Received 'enqueue' event from user ${user.id}`)
+      const response = callCenter.enqueue(user)
+      callback(response)
     })
-    socket.on('joinAsLawyer', async (payload, callback) => {
-      let userId = identityMap.userIdOf(socket)
-      if (userId === undefined) {
+    socket.on('exitQueue', (payload, callback) => {
+      const user = identityMap.userFromSocketWithToken(socket, payload.socketToken)
+      if (user === undefined || user.type === 'Client') {
         callback('INVALID_AUTH')
         return
       }
-      console.log(`Received joinAsLawyer event from user: {${userId}}`)
-      const supabase = await getSupabaseClient()
-      const { data, error } = await supabase.from('User').select().eq('id', userId).single()
-      if (error) {
-        console.log('Error when trying to determine whether a user is actually a lawyer:')
-        console.error(error)
-        callback('INVALID_AUTH')
-        return
-      }
-      if (data === null || data.userType !== 'Lawyer') {
-        callback('INVALID_AUTH')
-        return
-      }
-      callCenter.enqueueLawyer(socket, payload.coordinates)
-      callback('OK')
+      console.log(`Received 'exitQueue' event from user ${user.id}`)
+      const response = callCenter.exitQueue(user)
+      callback(response)
     })
     socket.on('summonLawyer', async (payload, callback) => {
-      let userId = identityMap.userIdOf(socket)
-      if (userId === undefined) {
+      const user = identityMap.userFromSocketWithToken(socket, payload.socketToken)
+      if (user === undefined || user.type !== 'Observer') {
         callback('INVALID_AUTH')
         return
       }
-      // TODO: ADD OBSERVER CHECK
-      console.log(`Received summonLawyer event from user ${userId}`)
-      const isLawyerAvailable = await callCenter.pullLawyer(socket)
-      callback(isLawyerAvailable ? 'OK' : 'NO_LAWYERS')
+      console.log(`Received 'summonLawyer' event from user ${user.id}`)
+      const response = await callCenter.summonLawyer(user)
+      callback(response)
     })
-    socket.on('dequeue', (payload, callback) => {
-      let userId = identityMap.userIdOf(socket)
-      if (userId === undefined) {
+    socket.on('hangUp', (payload, callback) => {
+      const user = identityMap.userFromSocketWithToken(socket, payload.socketToken)
+      if (user === undefined) {
         callback('INVALID_AUTH')
         return
       }
-      console.log(`Received dequeue event from user ${userId}`)
-      const didExitQueue = callCenter.dequeueWorker(socket)
-      callback(didExitQueue ? 'OK' : 'NOT_IN_QUEUE')
-    })
-    socket.on('hangUp', () => {
-      // TODO: REFACTOR WITH ACK
-      console.log(`Received hangUp event: {${socket.id}}`)
-      callCenter.handleHangUp(socket)
+      console.log(`Received 'hangUp' event from user ${user.id}`)
+      const response = callCenter.hangUp(user)
+      callback(response)
     })
     socket.on('disconnect', reason => {
       const userId = identityMap.remove(socket)
@@ -149,24 +119,29 @@ async function main() {
       }
     })
     socket.on('rejoinRoomAttempt', async (payload, callback) => {
-      // NOTE: THIS HANDLER IS COMPLETELY UNTESTED BECAUSE THERE IS NO WAY TO FIRE THIS EVENT FROM A CLIENT YET
-      const { userId, userType } = payload
-      console.log(`Received rejoinRoomAttempt from ${userType} {${userId}}, socket {${socket.id}}`)
-      const room = callCenter.getRoomByUserId(userId)
-
-      if (!room) {
-        console.warn(`No previous room found for userId ${userId}`)
+      const user = identityMap.userFromSocketWithToken(socket, payload.socketToken)
+      if (user === undefined) {
         callback(false)
         return
       }
-      const token = await twilioManager.getAccessToken(room, userType, userId)
+      // NOTE: THIS HANDLER IS COMPLETELY UNTESTED BECAUSE THERE IS NO WAY TO FIRE THIS EVENT FROM A CLIENT YET
+      console.log(`Received 'rejoinRoomAttempt' event from user ${user.id}`)
+
+      if (user.room === null) {
+        console.warn(`No previous room found for user ${user.id}`)
+        callback(false)
+        return
+      }
+      const token = await twilioManager.getAccessToken(user.room, user.type, user.id)
       try {
-        await socket.timeout(5000).emitWithAck('sendToRoom', { token, roomName: room.roomName })
-        await room.connectParticipant(socket, token, 5000)
+        await socket
+          .timeout(5000)
+          .emitWithAck('sendToRoom', { token, roomName: user.room.roomName })
+        await user.room.connectParticipant(user, token, 5000)
         callback(true)
-        console.log(`User ${userId} successfully rejoined room ${room.roomName}`)
+        console.log(`User ${user.id} successfully rejoined room ${user.room.roomName}`)
       } catch (err) {
-        console.error(`Failed to rejoin user ${userId}:`, err)
+        console.error(`Failed to rejoin user ${user.id}:`, err)
         callback(false)
       }
     })

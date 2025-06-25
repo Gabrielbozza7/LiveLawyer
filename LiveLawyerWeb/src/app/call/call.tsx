@@ -11,7 +11,6 @@ import {
   ClientToServerEvents,
   Coordinates,
   ServerToClientEvents,
-  SocketResult,
 } from 'livelawyerlibrary/socket-event-definitions'
 import { PublicEnv } from '@/classes/PublicEnv'
 import { Session, SupabaseClient } from '@supabase/supabase-js'
@@ -24,6 +23,7 @@ export function Call({ env }: { env: PublicEnv }) {
   const socketRef = useRef<Socket<ServerToClientEvents, ClientToServerEvents>>(
     io(env.backendUrl, { autoConnect: false }),
   )
+  const socketTokenRef = useRef<string>('')
   const [loading, setLoading] = useState<boolean>(false)
   const [placeholder, setPlaceholder] = useState<string | null>('Loading...')
   const [userType, setUserType] = useState<'Observer' | 'Lawyer' | null>(null)
@@ -185,30 +185,22 @@ export function Call({ env }: { env: PublicEnv }) {
     socketRef.current.off('connect', connectPromiseResolver)
     const authResult = await socketRef.current.emitWithAck('authenticate', {
       accessToken: sessionRef.current.access_token,
+      coordinates: lawyerCoordinates,
     })
-    if (authResult === 'INVALID_AUTH') {
+    if (authResult.result === 'INVALID_AUTH') {
       setShowToast('Your session is invalid! Try logging in again.')
       setLoading(false)
       return
     }
-    let joinResult: SocketResult | 'NO_STATE'
-    if (userType === 'Observer') {
-      joinResult = await socketRef.current.emitWithAck('joinAsObserver', null)
-    } else if (userType === 'Lawyer') {
-      if (lawyerCoordinates === null) {
-        joinResult = 'NO_STATE'
-      } else {
-        joinResult = await socketRef.current.emitWithAck('joinAsLawyer', {
-          coordinates: lawyerCoordinates,
-        })
-      }
-    } else {
-      joinResult = 'INVALID_AUTH'
-    }
+    socketTokenRef.current = authResult.socketToken
+    const joinResult = await socketRef.current.emitWithAck('enqueue', {
+      socketToken: socketTokenRef.current,
+    })
     if (joinResult === 'INVALID_AUTH') {
-      setShowToast('Your credentials are invalid!')
-    } else if (joinResult === 'NO_STATE') {
-      setShowToast('You appear not to be in a US state!')
+      setShowToast('Your session is invalid! Try logging in again.')
+    } else if (joinResult === 'ALREADY_IN_QUEUE') {
+      setShowToast('You are already in the queue!')
+      setInQueueOrCall(true)
     } else {
       setInQueueOrCall(true)
     }
@@ -221,13 +213,17 @@ export function Call({ env }: { env: PublicEnv }) {
       return
     }
     setLoading(true)
-    const summonResult = await socketRef.current.emitWithAck('summonLawyer', null)
-    if (summonResult === 'OK') {
-      setHasLawyerInCall(true)
+    const summonResult = await socketRef.current.emitWithAck('summonLawyer', {
+      socketToken: socketTokenRef.current,
+    })
+    if (summonResult === 'INVALID_AUTH') {
+      setShowToast('Your session is invalid!')
+    } else if (summonResult === 'NOT_IN_ROOM') {
+      setShowToast('You are not in a room!')
     } else if (summonResult === 'NO_LAWYERS') {
       setShowToast('There are currently no lawyers available!')
     } else {
-      setShowToast('Your session is invalid!')
+      setHasLawyerInCall(true)
     }
     setLoading(false)
   }
@@ -238,20 +234,35 @@ export function Call({ env }: { env: PublicEnv }) {
       return
     }
     setLoading(true)
-    const dequeueResult = await socketRef.current.emitWithAck('dequeue', null)
-    if (dequeueResult === 'NOT_IN_QUEUE' || dequeueResult === 'OK') {
+    const dequeueResult = await socketRef.current.emitWithAck('exitQueue', {
+      socketToken: socketTokenRef.current,
+    })
+    if (dequeueResult === 'INVALID_AUTH') {
+      setShowToast('Your login is invalid!')
+    } else if (dequeueResult === 'NOT_IN_QUEUE' || dequeueResult === 'OK') {
       setInQueueOrCall(false)
+      socketRef.current.disconnect()
     }
-    socketRef.current.disconnect()
     setLoading(false)
   }
 
-  const onEndCallClick = () => {
+  const onEndCallClick = async () => {
     if (!socketRef.current.connected) {
       setShowToast('Your connection is broken!')
       return
     }
-    socketRef.current.emit('hangUp')
+    setLoading(true)
+    const hangUpResult = await socketRef.current.emitWithAck('hangUp', {
+      socketToken: socketTokenRef.current,
+    })
+    if (hangUpResult === 'INVALID_AUTH') {
+      setShowToast('Your login is invalid!')
+    } else if (hangUpResult === 'NOT_IN_ROOM') {
+      setShowToast('You are not in a room!')
+    } else if (hangUpResult === 'CALL_ALREADY_ENDED') {
+      setShowToast('The call already ended!')
+    }
+    setLoading(false)
   }
 
   useEffect(() => {
