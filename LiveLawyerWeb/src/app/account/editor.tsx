@@ -4,6 +4,7 @@ import { AccountSubFormProps } from './account'
 import OfficeSelector, { OfficeOption, OfficeSelection } from './office-selector'
 import { PostgrestError } from '@supabase/supabase-js'
 import { UserType } from 'livelawyerlibrary'
+import { useSessionData, useSupabaseClient } from '@/components/ContextManager'
 
 interface FormModel {
   firstName: string
@@ -13,14 +14,9 @@ interface FormModel {
   officeId?: string
 }
 
-export default function Editor({
-  loading,
-  setLoading,
-  setStatusMessage,
-  setActiveForm,
-  supabase,
-  session,
-}: AccountSubFormProps) {
+export default function Editor({ loading, setLoading, setStatusMessage }: AccountSubFormProps) {
+  const supabase = useSupabaseClient()
+  const { userId } = useSessionData()
   const [showToast, setShowToast] = useState<string | null>(null)
   const [userType, setUserType] = useState<UserType>('Client')
   const [openChangeOffice, setOpenChangeOffice] = useState<boolean>(false)
@@ -36,42 +32,38 @@ export default function Editor({
 
   // Filling the form with the user's existing data before presenting it for editing:
   useEffect(() => {
-    if (session !== undefined) {
-      ;(async () => {
-        setLoading(true)
-        const { data, error } = await supabase
-          .from('User')
-          .select()
-          .eq('id', session?.user.id ?? '')
-          .single()
-        if (error || data === null) {
-          setStatusMessage(
-            'Something went wrong when trying to fetch your account information! Try again later.',
-          )
-        } else {
-          setFormModel(data)
-          setUserType(data.userType)
-          if (data.userType === 'Lawyer') {
-            const { data: lawyerData, error: lawyerError } = await supabase
-              .from('UserLawyer')
-              .select('officeId(id, name)')
-              .eq('id', session?.user.id ?? '')
-              .single()
-            if (lawyerError) {
-              setStatusMessage(
-                'Something went wrong when trying to fetch your lawyer information! Try again later.',
-              )
-            }
-            if (lawyerData?.officeId) {
-              setCurrentOffice({ id: lawyerData.officeId.id, name: lawyerData.officeId.name })
-            }
-          }
-        }
-        setLoading(false)
-      })()
-    }
+    fill()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  const fill = async () => {
+    setLoading(true)
+    const { data, error } = await supabase.from('User').select().eq('id', userId).single()
+    if (error || data === null) {
+      setStatusMessage(
+        'Something went wrong when trying to fetch your account information! Try again later.',
+      )
+    } else {
+      setFormModel(data)
+      setUserType(data.userType)
+      if (data.userType === 'Lawyer') {
+        const { data: lawyerData, error: lawyerError } = await supabase
+          .from('UserLawyer')
+          .select('officeId(id, name)')
+          .eq('id', userId)
+          .single()
+        if (lawyerError) {
+          setStatusMessage(
+            'Something went wrong when trying to fetch your lawyer information! Try again later.',
+          )
+        }
+        if (lawyerData?.officeId) {
+          setCurrentOffice({ id: lawyerData.officeId.id, name: lawyerData.officeId.name })
+        }
+      }
+    }
+    setLoading(false)
+  }
 
   // Dynamically syncing the form changes to the account model:
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -85,15 +77,11 @@ export default function Editor({
     setLoading(true)
     let failed = false
     // Creating law office and updating lawyer profile if specified:
-    if (
-      officeSelection !== undefined &&
-      officeSelection?.selectedOfficeId === undefined &&
-      session !== undefined
-    ) {
+    if (officeSelection !== undefined && officeSelection?.selectedOfficeId === undefined) {
       const { data, error: insertError } = await supabase
         .from('LawOffice')
         .insert({
-          administrator: session.user.id,
+          administrator: userId,
           name: officeSelection.newOfficeName,
         })
         .select()
@@ -103,7 +91,7 @@ export default function Editor({
         // Updating lawyer profile:
         const { error: upsertInnerError } = await supabase
           .from('UserLawyer')
-          .upsert({ id: session.user.id, officeId: data.id }, { onConflict: 'id' })
+          .upsert({ id: userId, officeId: data.id }, { onConflict: 'id' })
           .single()
         upsertError = upsertInnerError
         setCurrentOffice({ id: data.id, name: officeSelection.newOfficeName })
@@ -114,18 +102,11 @@ export default function Editor({
           'Something went wrong when trying to create the new office! Try again later.',
         )
       }
-    } else if (
-      officeSelection !== undefined &&
-      officeSelection?.selectedOfficeId !== undefined &&
-      session !== undefined
-    ) {
+    } else if (officeSelection !== undefined && officeSelection?.selectedOfficeId !== undefined) {
       // Updating lawyer profile to existing law office if specified:
       const { error: upsertError } = await supabase
         .from('UserLawyer')
-        .upsert(
-          { id: session.user.id, officeId: officeSelection.selectedOfficeId },
-          { onConflict: 'id' },
-        )
+        .upsert({ id: userId, officeId: officeSelection.selectedOfficeId }, { onConflict: 'id' })
         .single()
       setCurrentOffice({
         id: officeSelection.selectedOfficeId,
@@ -148,7 +129,7 @@ export default function Editor({
           email: formModel.email,
           phoneNum: formModel.phoneNum,
         })
-        .eq('id', session?.user.id ?? '')
+        .eq('id', userId)
         .single()
       if (updateError) {
         failed = true
@@ -174,7 +155,6 @@ export default function Editor({
       setStatusMessage('Something went wrong when trying to log out! Try again later.')
     } finally {
       setLoading(false)
-      setActiveForm('Login')
     }
   }
 
@@ -260,7 +240,7 @@ export default function Editor({
             <></>
           )}
           <Card.Text className="mt-3">Your User Type: {userType}</Card.Text>
-          <Card.Text className="mt-3">Your User ID: {session?.user.id}</Card.Text>
+          <Card.Text className="mt-3">Your User ID: {userId}</Card.Text>
 
           <Button disabled={loading} variant="primary" type="submit">
             Save Changes

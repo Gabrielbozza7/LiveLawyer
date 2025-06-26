@@ -1,8 +1,16 @@
+import { ContextManager } from '@/components/ContextManager'
 import Account from './account'
 import { fetchPublicEnv } from '@/classes/PublicEnv'
+import SessionlessMenu from '@/components/sessionless/SessionlessMenu'
+import LiveLawyerNav from '@/components/LiveLawyerNav'
 
 const env = fetchPublicEnv()
 
 export default async function Page() {
-  return <Account env={env} />
+  return (
+    <ContextManager env={env} sessionlessComponent={<SessionlessMenu />}>
+      <LiveLawyerNav />
+      <Account />
+    </ContextManager>
+  )
 }

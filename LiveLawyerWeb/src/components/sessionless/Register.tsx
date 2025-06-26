@@ -1,6 +1,6 @@
 import { FormEvent, useState } from 'react'
-import { Button, Card, Form } from 'react-bootstrap'
-import { AccountSubFormProps } from './account'
+import { Button, Card, Form, Toast } from 'react-bootstrap'
+import { useSupabaseClient } from '../ContextManager'
 
 interface FormModel {
   firstName: string
@@ -12,13 +12,10 @@ interface FormModel {
   userType: 'Observer' | 'Lawyer'
 }
 
-export default function Creator({
-  loading,
-  setLoading,
-  setStatusMessage,
-  setActiveForm,
-  supabase,
-}: AccountSubFormProps) {
+export default function Register() {
+  const supabase = useSupabaseClient()
+  const [loading, setLoading] = useState<boolean>(false)
+  const [showToast, setShowToast] = useState<string | null>(null)
   const [passwordsMatch, setPasswordsMatch] = useState<boolean>(true)
   const [passwordsLongEnough, setPasswordsLongEnough] = useState<boolean>(false)
 
@@ -64,7 +61,7 @@ export default function Creator({
       password: formModel.password,
     })
     if (signUpError) {
-      setStatusMessage('Something went wrong when trying to sign up! Try again.')
+      setShowToast('Something went wrong when trying to sign up! Try again.')
       return
     }
     const {
@@ -72,7 +69,8 @@ export default function Creator({
       error: sessionError,
     } = await supabase.auth.getSession()
     if (sessionError || session === null) {
-      setStatusMessage('Something went wrong when trying to update your info! Try again.')
+      // TODO: This currently results in the database entry being messed up; replace with something safer if this happens.
+      setShowToast('Something went wrong when trying to update your info!')
       return
     }
     const { error: updateError } = await supabase
@@ -87,11 +85,10 @@ export default function Creator({
       .eq('id', session.user.id)
       .single()
     if (updateError) {
-      setStatusMessage('Something went wrong when trying to update your info! Try again.')
+      setShowToast('Something went wrong when trying to update your info! Try again.')
       return
     }
     setLoading(false)
-    setActiveForm('Editor')
   }
 
   return (
@@ -195,6 +192,15 @@ export default function Creator({
           </Button>
         </Form>
       </Card.Body>
+      <Toast
+        bg="danger"
+        onClose={() => setShowToast(null)}
+        show={showToast !== null}
+        delay={2500}
+        autohide
+      >
+        <Toast.Body>{showToast}</Toast.Body>
+      </Toast>
     </Card>
   )
 }

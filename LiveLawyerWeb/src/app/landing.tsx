@@ -1,21 +1,10 @@
 'use client'
-import 'bootstrap/dist/css/bootstrap.min.css'
-import LiveLawyerNav from '@/components/LiveLawyerNav'
 import { Card, Container, Button } from 'react-bootstrap'
-import { useRouter } from 'next/navigation'
-import { PublicEnv } from '@/classes/PublicEnv'
 
-export function Landing({ env }: { env: PublicEnv }) {
-  const router = useRouter()
-
-  const goToCallPage = () => {
-    router.push('/call')
-  }
-
+export default function Landing() {
   return (
-    <div>
+    <>
       <title>Live Lawyer Web</title>
-      <LiveLawyerNav env={env} />
       <Container fluid="md" style={{ backgroundColor: '#e6e6e6', margin: 24 }}>
         <Card>
           <Card.Header>Live Lawyer Web</Card.Header>
@@ -25,12 +14,12 @@ export function Landing({ env }: { env: PublicEnv }) {
               To start your call with a client in the call page, click if you are an observer or a
               lawyer.
             </Card.Text>
-            <Button variant="primary" onClick={goToCallPage}>
+            <Button variant="primary" href="/call">
               Go to Call Page
             </Button>
           </Card.Body>
         </Card>
       </Container>
-    </div>
+    </>
   )
 }

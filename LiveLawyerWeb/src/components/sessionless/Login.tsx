@@ -1,32 +1,20 @@
-import { FormEvent, useEffect, useState } from 'react'
+import { FormEvent, useState } from 'react'
 import { Button, Card, Form, Toast } from 'react-bootstrap'
-import { AccountSubFormProps } from './account'
+import { useSupabaseClient } from '../ContextManager'
 
 interface FormModel {
   email: string
   password: string
 }
 
-export default function Login({
-  loading,
-  setLoading,
-  setActiveForm,
-  supabase,
-  session,
-}: AccountSubFormProps) {
+export default function Login() {
+  const supabase = useSupabaseClient()
+  const [loading, setLoading] = useState<boolean>(false)
   const [showToast, setShowToast] = useState<string | null>(null)
   const [formModel, setFormModel] = useState<FormModel>({
     email: '',
     password: '',
   })
-
-  // Redirecting to Editor when the user is already logged in:
-  useEffect(() => {
-    if (session !== undefined) {
-      setActiveForm('Editor')
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   // Dynamically syncing the form changes to the account model:
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -38,6 +26,7 @@ export default function Login({
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
+    console.log('signing in')
     const { error } = await supabase.auth.signInWithPassword({
       email: formModel.email,
       password: formModel.password,
@@ -48,14 +37,8 @@ export default function Login({
       } else {
         setShowToast('Something went wrong when trying to sign in! Try again.')
       }
-    } else {
-      setActiveForm('Editor')
     }
     setLoading(false)
-  }
-
-  const handleCreateAccountClick = () => {
-    setActiveForm('Creator')
   }
 
   return (
@@ -90,15 +73,6 @@ export default function Login({
           </Button>
 
           <Card.Text className="mt-3">Don&apos;t have an account? Create one!</Card.Text>
-
-          <Button
-            disabled={loading}
-            variant="primary"
-            onClick={handleCreateAccountClick}
-            className="mt-3"
-          >
-            Register New Account
-          </Button>
         </Form>
       </Card.Body>
       <Toast

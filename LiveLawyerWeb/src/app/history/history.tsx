@@ -1,46 +1,40 @@
 'use client'
-import 'bootstrap/dist/css/bootstrap.min.css'
 import { Card, Container, ListGroup, Toast } from 'react-bootstrap'
-import LiveLawyerNav, { SessionReadyCallbackArg } from '@/components/LiveLawyerNav'
-import { PublicEnv } from '@/classes/PublicEnv'
-import { useState } from 'react'
-import LiveLawyerApi from 'livelawyerlibrary/api/LiveLawyerApi'
+import { useCallback, useEffect, useState } from 'react'
 import { CallHistorySingle } from 'livelawyerlibrary/api/types/call-history'
 import { HistoryEntry } from './history-entry'
+import { useSessionData } from '@/components/ContextManager'
 
-export function History({ env }: { env: PublicEnv }) {
-  const [api, setApi] = useState<LiveLawyerApi | undefined>(undefined)
+export function History() {
+  const { api } = useSessionData()
   const [history, setHistory] = useState<CallHistorySingle[]>([])
-  const [placeholder, setPlaceholder] = useState<string | undefined>('Loading...')
+  const [placeholder, setPlaceholder] = useState<string | null>('Loading...')
   const [showToast, setShowToast] = useState<string | null>(null)
 
-  const sessionReadyCallback = async ({ session }: SessionReadyCallbackArg) => {
-    // Fetching call history for the logged in user (if any):
-    if (session !== null) {
-      const api = new LiveLawyerApi(env.backendUrl, session.access_token)
-      setApi(api)
-      try {
-        const response = await api.fetchCallHistory()
-        if (response.history) {
-          setHistory(response.history)
-        }
-      } catch (error) {
-        console.log((error as Error).message)
-        setShowToast('Something went wrong when trying to fetch your history! Try again later.')
-        return
+  const refreshHistory = useCallback(async () => {
+    console.log('rePHresh')
+    try {
+      const response = await api.fetchCallHistory()
+      if (response.history) {
+        setHistory(response.history)
       }
-      setPlaceholder(undefined)
-    } else {
-      setPlaceholder('You must be logged in to use this page.')
+    } catch (error) {
+      console.log((error as Error).message)
+      setPlaceholder('Something went wrong when trying to fetch your history! Try again later.')
+      return
     }
-  }
+    setPlaceholder(null)
+  }, [api])
+
+  useEffect(() => {
+    refreshHistory()
+  }, [refreshHistory])
 
   return (
-    <div>
+    <>
       <title>History</title>
-      <LiveLawyerNav env={env} sessionReadyCallback={sessionReadyCallback} />
       <Container fluid="md" style={{ margin: 24 }}>
-        {placeholder !== undefined ? (
+        {placeholder !== null ? (
           <Card>
             <Card.Body>{placeholder}</Card.Body>
           </Card>
@@ -76,6 +70,6 @@ export function History({ env }: { env: PublicEnv }) {
           <Toast.Body>{showToast}</Toast.Body>
         </Toast>
       </Container>
-    </div>
+    </>
   )
 }

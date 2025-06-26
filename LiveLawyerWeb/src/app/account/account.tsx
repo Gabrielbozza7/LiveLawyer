@@ -1,64 +1,23 @@
 'use client'
-import 'bootstrap/dist/css/bootstrap.min.css'
 import { Card, Container } from 'react-bootstrap'
-import LiveLawyerNav, { SessionReadyCallbackArg } from '@/components/LiveLawyerNav'
-import { useEffect, useRef, useState } from 'react'
-import { Session, Subscription, SupabaseClient } from '@supabase/supabase-js'
-import { Database } from 'livelawyerlibrary/database-types'
-import Creator from './creator'
-import Login from './login'
+import { useState } from 'react'
 import Editor from './editor'
-import { PublicEnv } from '@/classes/PublicEnv'
 
-export type ActiveForm = 'Login' | 'Editor' | 'Creator'
+export type ActiveForm = 'Editor'
 
 export interface AccountSubFormProps {
   loading: boolean
   setLoading: (loading: boolean) => void
   setStatusMessage: (statusMessage: string) => void
-  setActiveForm: (activeForm: ActiveForm) => void
-  supabase: SupabaseClient<Database>
-  session: Session | undefined
 }
 
-export default function Account({ env }: { env: PublicEnv }) {
-  const supabaseRef = useRef<SupabaseClient<Database>>(null)
-  const sessionRef = useRef<Session>(null)
+export default function Account() {
   const [statusMessage, setStatusMessage] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(true)
-  const [initialized, setInitialized] = useState<boolean>(false)
-  const [activeForm, setActiveForm] = useState<ActiveForm>('Login')
-  const loginSubscriptionRef = useRef<Subscription>(null)
-
-  const sessionReadyCallback = ({ supabase, session }: SessionReadyCallbackArg) => {
-    supabaseRef.current = supabase
-    sessionRef.current = session
-
-    // Reading the session if the user logs in:
-    const {
-      data: { subscription },
-    } = supabaseRef.current.auth.onAuthStateChange((_event, session) => {
-      sessionRef.current = session
-      setInitialized(true)
-    })
-    loginSubscriptionRef.current = subscription
-
-    setInitialized(true)
-    setLoading(false)
-  }
-
-  useEffect(() => {
-    return () => {
-      if (loginSubscriptionRef.current !== null) {
-        loginSubscriptionRef.current.unsubscribe()
-        loginSubscriptionRef.current = null
-      }
-    }
-  }, [])
+  const [activeForm] = useState<ActiveForm>('Editor')
 
   return (
-    <div>
-      <LiveLawyerNav env={env} sessionReadyCallback={sessionReadyCallback} />
+    <>
       {statusMessage !== '' ? (
         <Container fluid="md" style={{ margin: 24 }}>
           <Card>
@@ -66,43 +25,14 @@ export default function Account({ env }: { env: PublicEnv }) {
           </Card>
         </Container>
       ) : (
-        <div hidden={supabaseRef.current === null || !initialized}>
-          {supabaseRef.current !== null && initialized && (
-            <Container fluid="md" style={{ margin: 24 }}>
-              {activeForm === 'Editor' ? (
-                <Editor
-                  loading={loading}
-                  setLoading={setLoading}
-                  setStatusMessage={setStatusMessage}
-                  setActiveForm={setActiveForm}
-                  supabase={supabaseRef.current}
-                  session={sessionRef.current ?? undefined}
-                />
-              ) : activeForm === 'Login' ? (
-                <Login
-                  loading={loading}
-                  setLoading={setLoading}
-                  setStatusMessage={setStatusMessage}
-                  setActiveForm={setActiveForm}
-                  supabase={supabaseRef.current}
-                  session={sessionRef.current ?? undefined}
-                />
-              ) : activeForm === 'Creator' ? (
-                <Creator
-                  loading={loading}
-                  setLoading={setLoading}
-                  setStatusMessage={setStatusMessage}
-                  setActiveForm={setActiveForm}
-                  supabase={supabaseRef.current}
-                  session={sessionRef.current ?? undefined}
-                />
-              ) : (
-                <p>Uh oh.</p>
-              )}
-            </Container>
+        <Container fluid="md" style={{ margin: 24 }}>
+          {activeForm === 'Editor' ? (
+            <Editor loading={loading} setLoading={setLoading} setStatusMessage={setStatusMessage} />
+          ) : (
+            <></>
           )}
-        </div>
+        </Container>
       )}
-    </div>
+    </>
   )
 }

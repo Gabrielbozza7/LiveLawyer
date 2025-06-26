@@ -1,25 +1,22 @@
 'use client'
-import 'bootstrap/dist/css/bootstrap.min.css'
 import { useState, useEffect, useRef } from 'react'
 import { Participant } from 'twilio-video'
 import TwilioParticipant from '../../components/TwilioParticipant'
 import TwilioVideoRoom from '../../classes/TwilioVideoRoom'
 import { Button, Card, Container, Table, Toast } from 'react-bootstrap'
-import LiveLawyerNav, { SessionReadyCallbackArg } from '@/components/LiveLawyerNav'
 import { io, Socket } from 'socket.io-client'
 import {
   ClientToServerEvents,
   Coordinates,
   ServerToClientEvents,
 } from 'livelawyerlibrary/socket-event-definitions'
-import { PublicEnv } from '@/classes/PublicEnv'
-import { Session, SupabaseClient } from '@supabase/supabase-js'
-import { Database } from 'livelawyerlibrary/database-types'
 import { twilioIdentityToInfo, UserType } from 'livelawyerlibrary'
+import { usePublicEnv, useSessionData, useSupabaseClient } from '@/components/ContextManager'
 
-export function Call({ env }: { env: PublicEnv }) {
-  const supabaseRef = useRef<SupabaseClient<Database>>(null)
-  const sessionRef = useRef<Session>(null)
+export function Call() {
+  const env = usePublicEnv()
+  const supabase = useSupabaseClient()
+  const { userId, accessToken } = useSessionData()
   const socketRef = useRef<Socket<ServerToClientEvents, ClientToServerEvents>>(
     io(env.backendUrl, { autoConnect: false }),
   )
@@ -61,30 +58,19 @@ export function Call({ env }: { env: PublicEnv }) {
     setParticipants([])
   }
 
-  const sessionReadyCallback = async ({ supabase, session }: SessionReadyCallbackArg) => {
-    supabaseRef.current = supabase
-    sessionRef.current = session
-
+  const setup = async () => {
     // Fetching data for the logged in user (if any):
-    if (sessionRef.current !== null) {
-      const { data, error } = await supabaseRef.current
-        .from('User')
-        .select('userType')
-        .eq('id', sessionRef.current.user.id)
-        .single()
-      if (error) {
-        setPlaceholder('Something went wrong when trying to fetch your user data! Try again later.')
-        return
-      }
-      if (!(data.userType === 'Observer' || data.userType === 'Lawyer')) {
-        setPlaceholder('You must be either an observer or a lawyer to take calls on the website')
-        return
-      }
-      setUserType(data.userType)
-      setPlaceholder(null)
-    } else {
-      setPlaceholder('You must be logged in to use this page.')
+    const { data, error } = await supabase.from('User').select('userType').eq('id', userId).single()
+    if (error) {
+      setPlaceholder('Something went wrong when trying to fetch your user data! Try again later.')
+      return
     }
+    if (!(data.userType === 'Observer' || data.userType === 'Lawyer')) {
+      setPlaceholder('You must be either an observer or a lawyer to take calls on the website')
+      return
+    }
+    setUserType(data.userType)
+    setPlaceholder(null)
   }
 
   // Updating the corresponding participant slots when the participant(s) change(s):
@@ -114,10 +100,6 @@ export function Call({ env }: { env: PublicEnv }) {
   }, [participants])
 
   const onJoinQueueClick = async () => {
-    if (sessionRef.current === null) {
-      setShowToast('Your session is invalid! Try logging in again.')
-      return
-    }
     if (socketRef.current.connected) {
       setShowToast('Your connection is already open! Try refreshing the page.')
       return
@@ -193,7 +175,7 @@ export function Call({ env }: { env: PublicEnv }) {
     await connectPromise
     socketRef.current.off('connect', connectPromiseResolver)
     const authResult = await socketRef.current.emitWithAck('authenticate', {
-      accessToken: sessionRef.current.access_token,
+      accessToken,
       coordinates: lawyerCoordinates,
     })
     if (authResult.result === 'INVALID_AUTH') {
@@ -275,16 +257,17 @@ export function Call({ env }: { env: PublicEnv }) {
   }
 
   useEffect(() => {
+    setup()
     const socket = socketRef.current
     return () => {
       socket.disconnect()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (
     <div>
       <title>Call</title>
-      <LiveLawyerNav env={env} sessionReadyCallback={sessionReadyCallback} />
       <Container fluid="md" style={{ margin: 24 }}>
         {placeholder !== null ? (
           <Card>

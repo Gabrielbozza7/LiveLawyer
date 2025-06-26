@@ -1,44 +1,9 @@
+'use client'
 import Link from 'next/link'
 import { Nav, Navbar } from 'react-bootstrap'
 import Image from 'next/image'
-import { createClient, Session, SupabaseClient } from '@supabase/supabase-js'
-import { Database } from 'livelawyerlibrary/database-types'
-import { useEffect, useRef, useState } from 'react'
-import { PublicEnv } from '@/classes/PublicEnv'
 
-export interface SessionReadyCallbackArg {
-  supabase: SupabaseClient<Database>
-  session: Session | null
-}
-
-interface LiveLawyerNavProps {
-  env: PublicEnv
-  sessionReadyCallback?: (arg: SessionReadyCallbackArg) => unknown
-}
-
-export default function LiveLawyerNav({ env, sessionReadyCallback }: LiveLawyerNavProps) {
-  const supabaseClientRef = useRef<SupabaseClient<Database>>(null)
-  const sessionRef = useRef<Session>(null)
-  const [startedRetrieval, setStartedRetrieval] = useState<boolean>(false)
-
-  // Reading the session if prompted by parent:
-  useEffect(() => {
-    if (!startedRetrieval && sessionReadyCallback) {
-      setStartedRetrieval(true)
-      if (supabaseClientRef.current === null) {
-        supabaseClientRef.current = createClient(env.supabaseUrl, env.supabaseAnonKey)
-      }
-      supabaseClientRef.current.auth.getSession().then(({ data: { session } }) => {
-        sessionRef.current = session
-        // Non-null assertion is safe here because there is a guard before this callback is registered.
-        sessionReadyCallback({
-          supabase: supabaseClientRef.current!,
-          session: sessionRef.current,
-        })
-      })
-    }
-  }, [env, sessionReadyCallback, startedRetrieval])
-
+export default function LiveLawyerNav() {
   return (
     <Navbar expand="lg" className="navbar-dark" style={{ backgroundColor: '#000066', padding: 8 }}>
       <Navbar.Brand href="/" style={{ display: 'flex', alignItems: 'center', color: '#FFFFFF' }}>
