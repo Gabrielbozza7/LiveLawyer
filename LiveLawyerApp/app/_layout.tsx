@@ -1,11 +1,15 @@
 import 'react-native-reanimated'
 import { Stack } from 'expo-router'
+import { ContextManager } from './components/context-manager'
+import Login from './auth/login'
 
 export default function RootLayout() {
   return (
-    <Stack>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="call" options={{ headerShown: false }} />
-    </Stack>
+    <ContextManager sessionlessComponent={<Login />}>
+      <Stack>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="call" options={{ headerShown: false }} />
+      </Stack>
+    </ContextManager>
   )
 }

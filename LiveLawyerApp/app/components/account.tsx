@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
-import { supabase } from '../lib/supabase'
 import { StyleSheet, View, Alert } from 'react-native'
 import { Button, Input } from '@rneui/themed'
 import { Session, SupabaseClient } from '@supabase/supabase-js'
+import { useSupabaseClient } from './context-manager'
 
 export default function Account({ session }: { session: Session }) {
+  const supabase = useSupabaseClient()
   const [loading, setLoading] = useState(true)
   const [username, setUsername] = useState('')
   const [website, setWebsite] = useState('')

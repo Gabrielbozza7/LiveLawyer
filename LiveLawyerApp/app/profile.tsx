@@ -1,38 +1,30 @@
 import { useEffect, useState } from 'react'
 import { View, Text, TextInput, Button, ActivityIndicator, Alert } from 'react-native'
-import { supabase } from './lib/supabase'
 import { Styles } from '@/constants/Styles'
+import { useSessionData, useSupabaseClient } from './components/context-manager'
+import { Database } from 'livelawyerlibrary/database-types'
 
 export default function Profile() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [userInfo, setUserInfo] = useState<any>(null)
+  const supabase = useSupabaseClient()
+  const { userId } = useSessionData()
+  const [userInfo, setUserInfo] = useState<Database['public']['Tables']['User']['Row'] | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [editing, setEditing] = useState(false)
 
   useEffect(() => {
-    const getUserInfo = async () => {
-      const {
-        data: { user },
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        error: authError,
-      } = await supabase.auth.getUser()
+    ;(async () => {
+      const { data: userData, error: userError } = await supabase
+        .from('User')
+        .select()
+        .eq('id', userId)
+        .single()
 
-      if (user) {
-        const { data: userData, error: userError } = await supabase
-          .from('User')
-          .select('*')
-          .eq('id', user.id)
-          .single()
-
-        if (userData) setUserInfo(userData)
-        if (userError) console.error('User table error:', userError)
-      }
+      if (userData) setUserInfo(userData)
+      if (userError) console.error('User table error:', userError)
 
       setLoading(false)
-    }
-
-    getUserInfo()
+    })()
   }, [])
 
   const handleSave = async () => {

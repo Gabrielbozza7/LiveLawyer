@@ -5,15 +5,16 @@ import { useEffect, useRef, useState } from 'react'
 import { Button, View, Text, Alert } from 'react-native'
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
 import { getCoordinates } from '@/components/locationStore'
-import { supabase } from './lib/supabase'
 import { io, Socket } from 'socket.io-client'
 import {
   ClientToServerEvents,
   ServerToClientEvents,
 } from 'livelawyerlibrary/socket-event-definitions'
 import { BACKEND_URL } from '@/constants/BackendVariables'
+import { useSupabaseClient } from './components/context-manager'
 
 export default function Call() {
+  const supabase = useSupabaseClient()
   const coordinates = getCoordinates()
   const router = useRouter()
   const socketRef = useRef<Socket<ServerToClientEvents, ClientToServerEvents>>(

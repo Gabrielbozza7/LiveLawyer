@@ -4,11 +4,12 @@ import { CallHistorySingle } from 'livelawyerlibrary/api/types/call-history'
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
 import { Styles } from '@/constants/Styles'
 import { Text, Button, FlatList, View } from 'react-native'
-import { supabase } from '../lib/supabase'
 import { BACKEND_URL } from '@/constants/BackendVariables'
 import { Colors } from '@/constants/Colors'
+import { useSupabaseClient } from '../components/context-manager'
 
 export default function History() {
+  const supabase = useSupabaseClient()
   const [history, setHistory] = useState<CallHistorySingle[]>([])
   const [placeholder, setPlaceholder] = useState<string | null>('Loading...')
 

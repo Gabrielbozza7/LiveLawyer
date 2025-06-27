@@ -1,24 +1,15 @@
-import { useState, useEffect } from 'react'
 import { Colors } from '@/constants/Colors'
 import { Styles } from '@/constants/Styles'
-import { User } from '@supabase/supabase-js'
 import { Alert, Button, Linking, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
-import { supabase } from '../lib/supabase'
+import { useSessionData, useSupabaseClient } from '../components/context-manager'
 
 export default function Resources() {
+  const supabase = useSupabaseClient()
+  const { userId } = useSessionData()
   const handleOpenURL = () => {
     Linking.openURL('https://www.findlaw.com/traffic/traffic-tickets/state-traffic-laws.html')
   }
-  // Get User Data
-  const [user, setUser] = useState<User | null>(null)
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) {
-        setUser(user)
-      }
-    })
-  }, [])
   // Logout
   const logOut = async () => {
     const { error } = await supabase.auth.signOut()
@@ -26,7 +17,6 @@ export default function Resources() {
       Alert.alert('Failed to log out.', error.message)
     }
   }
-  const userId = user?.id
   return (
     <SafeAreaProvider>
       <SafeAreaView style={Styles.LawyerInfoContainer}>
