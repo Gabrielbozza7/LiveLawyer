@@ -10,6 +10,7 @@ import { UserType } from 'livelawyerlibrary'
 import { getSupabaseClient } from './database/supabase'
 import ActiveRoom from './calls/ActiveRoom'
 import { ParticipantInstance } from 'twilio/lib/rest/video/v1/room/participant'
+import { ConnectedClientIdentity } from './IdentityMap'
 
 const AccessToken = jwt.AccessToken
 const VideoGrant = AccessToken.VideoGrant
@@ -51,15 +52,14 @@ export default class TwilioManager {
     )
     const twilioAuthHeader = `Basic ${Buffer.from(`${this._accountSid}:${this._password}`).toString('base64')}`
     this._recordingProcessor = new RecordingProcessor(this, twilioAuthHeader)
-    this._twilioPhoneNumber =
-      // Authentication for the REST API:
-      this._apiKeySid = defaultEnvironmentVariableWithWarning(
-        process.env.TWILIO_API_KEY_SID,
-        'TWILIO_API_KEY_SID',
-        path,
-        'abc',
-        true,
-      )
+    // Authentication for the REST API:
+    this._apiKeySid = defaultEnvironmentVariableWithWarning(
+      process.env.TWILIO_API_KEY_SID,
+      'TWILIO_API_KEY_SID',
+      path,
+      'abc',
+      true,
+    )
     this._apiKeySecret = defaultEnvironmentVariableWithWarning(
       process.env.TWILIO_API_KEY_SECRET,
       'TWILIO_API_KEY_SECRET',
@@ -76,26 +76,36 @@ export default class TwilioManager {
     return this._recordingProcessor
   }
 
-  public async notifyEmergencyContact(
-    clientName: string,
-    emergencyContact: string,
-    lat: number,
-    lon: number,
+  public async notifyEmergencyContacts(
+    client: ConnectedClientIdentity,
+    emergencyContactPhoneNumbers: string[],
   ) {
-    const link = `https://www.google.com/maps?q=${lat},${lon}`
-    try {
-      const message = await this._twilioClient.messages.create({
-        body: `Hello from livelawyer, ${clientName} has been pulled over, view their location here ${link}`,
-        from: this._twilioPhoneNumber,
-        to: emergencyContact,
-      })
-      console.log(
-        `Client ${clientName}, pinged on ${message.dateSent}\nwith message: \n ${message.body}`,
-      )
-    } catch {
-      console.log(
-        `======= MESSAGE NOT SENT =======\nHello from livelawyer, ${clientName} has been pulled over, view their location here ${link}`,
-      )
+    const supabase = await getSupabaseClient()
+    const { data, error } = await supabase
+      .from('User')
+      .select('firstName, lastName')
+      .eq('id', client.id)
+      .single()
+    let name: string
+    if (error || data === null) {
+      name = 'Someone'
+    } else {
+      name = `${data.firstName} ${data.lastName}`
+    }
+    const link = `https://google.com/maps?q=${client.location.lat},${client.location.lon}`
+    const message = `🚨 Live Lawyer Alert: ${name} is now in a call for legal counsel. View their location here: ${link}`
+    for (const number of emergencyContactPhoneNumbers) {
+      try {
+        const result = await this._twilioClient.messages.create({
+          body: message,
+          from: this._twilioPhoneNumber,
+          to: number,
+        })
+        console.log(JSON.stringify(result, undefined, '    '))
+      } catch (error) {
+        console.log('An error occurred while trying to send an emergency contact notification:')
+        console.error(error)
+      }
     }
   }
 

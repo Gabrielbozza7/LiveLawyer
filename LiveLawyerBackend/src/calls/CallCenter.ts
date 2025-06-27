@@ -15,7 +15,6 @@ export default class CallCenter {
   private readonly _queues: Queues
   private readonly timeoutFrame: number = 5000
 
-  private readonly emergencyContatList = ['5554443210']
   constructor(twilioManager: TwilioManager, identityMap: IdentityMap) {
     this._identityMap = identityMap
     this._twilioManager = twilioManager
@@ -71,15 +70,7 @@ export default class CallCenter {
 
     if (success) {
       console.log(`Successfully sent participants to ${room.roomName}!`)
-
-      // CHANGE TO SUPABASE ACCOUNT NAME, NOT SECURE
-      const name = client.id
-      this.notifyEmergencyContact(
-        name,
-        this.emergencyContatList,
-        client.location.lat,
-        client.location.lon,
-      )
+      this._twilioManager.notifyEmergencyContacts(client, ['+18777804236'])
       return 'OK'
     } else {
       console.log(
@@ -176,16 +167,5 @@ export default class CallCenter {
       })
     })
     return 'OK'
-  }
-
-  public async notifyEmergencyContact(
-    name: string,
-    emergencyList: string[],
-    lat: number,
-    lon: number,
-  ) {
-    emergencyList.forEach(number => {
-      this._twilioManager.notifyEmergencyContact(name, number, lat, lon)
-    })
   }
 }
