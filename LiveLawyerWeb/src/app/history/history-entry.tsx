@@ -2,18 +2,18 @@
 import 'bootstrap/dist/css/bootstrap.min.css'
 import { Button, Card, Table, Toast } from 'react-bootstrap'
 import { useEffect, useState } from 'react'
-import LiveLawyerApi from 'livelawyerlibrary/api/LiveLawyerApi'
 import {
   CallHistoryDetailsSingle,
   CallHistorySingle,
 } from 'livelawyerlibrary/api/types/call-history'
+import { useSessionData } from '@/components/ContextManager'
 
 interface HistoryEntryProps {
   entry: CallHistorySingle
-  api: LiveLawyerApi
 }
 
-export function HistoryEntry({ entry, api }: HistoryEntryProps) {
+export function HistoryEntry({ entry }: HistoryEntryProps) {
+  const { api } = useSessionData()
   const [showDetails, setShowDetails] = useState<boolean>(false)
   const [details, setDetails] = useState<CallHistoryDetailsSingle | undefined>(undefined)
   const [placeholder, setPlaceholder] = useState<string | undefined>('Loading...')
@@ -49,7 +49,7 @@ export function HistoryEntry({ entry, api }: HistoryEntryProps) {
   }
 
   return (
-    <div>
+    <>
       <strong>Date/Time:</strong> {new Date(entry.startTime).toLocaleString()}
       <br />
       <strong>Client:</strong> {entry.clientName}
@@ -148,6 +148,6 @@ export function HistoryEntry({ entry, api }: HistoryEntryProps) {
           </Toast>
         </Card>
       )}
-    </div>
+    </>
   )
 }

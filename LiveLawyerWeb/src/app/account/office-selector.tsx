@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { Dispatch, SetStateAction, useEffect, useState } from 'react'
 import { Card, Form } from 'react-bootstrap'
 import { SupabaseClient } from '@supabase/supabase-js'
 import { Database } from 'livelawyerlibrary/database-types'
@@ -16,7 +16,7 @@ export interface OfficeSelection {
 interface OfficeSelectorProps {
   loading: boolean
   currentOffice: OfficeOption | undefined
-  setSelection: (selection: OfficeSelection) => void
+  setSelection: Dispatch<SetStateAction<OfficeSelection | undefined>>
   supabase: SupabaseClient<Database>
 }
 
@@ -68,8 +68,7 @@ export default function OfficeSelector({
         setPlaceholder('')
       }
     })()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentOffice])
+  }, [currentOffice, setSelection, supabase])
 
   // Dynamically syncing the form changes to the account model:
   const handleChangeSelectionType = (e: React.ChangeEvent<HTMLSelectElement>) => {

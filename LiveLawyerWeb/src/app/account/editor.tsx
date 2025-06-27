@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from 'react'
+import { FormEvent, useCallback, useEffect, useState } from 'react'
 import { Button, Card, Container, Form, Toast } from 'react-bootstrap'
 import { AccountSubFormProps } from './account'
 import OfficeSelector, { OfficeOption, OfficeSelection } from './office-selector'
@@ -22,21 +22,19 @@ export default function Editor({ loading, setLoading, setStatusMessage }: Accoun
   const [openChangeOffice, setOpenChangeOffice] = useState<boolean>(false)
   const [currentOffice, setCurrentOffice] = useState<OfficeOption | undefined>()
 
+  // This is currently unused but can be used later by disabling the submit button unless the info has actually
+  // changed if the office selection gets moved to a separate component.
+  const [prefilledFormModel, setPrefilledFormModel] = useState<FormModel | undefined>(undefined)
   const [formModel, setFormModel] = useState<FormModel>({
     firstName: '',
     lastName: '',
     email: '',
     phoneNum: '',
   })
+
   const [officeSelection, setOfficeSelection] = useState<OfficeSelection | undefined>()
 
-  // Filling the form with the user's existing data before presenting it for editing:
-  useEffect(() => {
-    fill()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  const fill = async () => {
+  const prefillForm = useCallback(async () => {
     setLoading(true)
     const { data, error } = await supabase.from('User').select().eq('id', userId).single()
     if (error || data === null) {
@@ -44,6 +42,7 @@ export default function Editor({ loading, setLoading, setStatusMessage }: Accoun
         'Something went wrong when trying to fetch your account information! Try again later.',
       )
     } else {
+      setPrefilledFormModel(data)
       setFormModel(data)
       setUserType(data.userType)
       if (data.userType === 'Lawyer') {
@@ -63,7 +62,14 @@ export default function Editor({ loading, setLoading, setStatusMessage }: Accoun
       }
     }
     setLoading(false)
-  }
+  }, [setLoading, setStatusMessage, supabase, userId])
+
+  // Filling the form with the user's existing data before presenting it for editing:
+  useEffect(() => {
+    if (prefilledFormModel === undefined) {
+      prefillForm()
+    }
+  }, [prefillForm, prefilledFormModel])
 
   // Dynamically syncing the form changes to the account model:
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

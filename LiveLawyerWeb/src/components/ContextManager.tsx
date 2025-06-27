@@ -75,7 +75,7 @@ export function ContextManager({ env, sessionlessComponent, children }: ContextM
   const publicEnv = env
   // The Supabase client is stored with a ref to avoid re-rendering on authentication changes.
   const supabaseClientRef = useRef<SupabaseClient<Database>>(
-    createClient(env.supabaseUrl, env.supabaseAnonKey),
+    createClient(env.supabaseUrl, env.supabaseAnonKey, { auth: { autoRefreshToken: true } }),
   )
   const [userId, setUserId] = useState<string | undefined>(undefined)
   const [accessToken, setAccessToken] = useState<string | null | undefined>(undefined)
@@ -85,7 +85,6 @@ export function ContextManager({ env, sessionlessComponent, children }: ContextM
     const {
       data: { subscription },
     } = supabaseClientRef.current.auth.onAuthStateChange((event, session) => {
-      console.log(event)
       if (session !== null && localAccessToken !== session.access_token) {
         setUserId(session.user.id)
         setAccessToken(session.access_token)

@@ -13,7 +13,6 @@ export default function SessionlessMenu() {
     <>
       <title>Login/Register</title>
       <Container fluid="md" style={{ margin: 24 }}>
-        {activeForm === 'Login' ? <Login /> : activeForm === 'Register' ? <Register /> : <></>}
         <Button
           variant="primary"
           onClick={() => {
@@ -32,6 +31,7 @@ export default function SessionlessMenu() {
         >
           Register
         </Button>
+        {activeForm === 'Login' ? <Login /> : activeForm === 'Register' ? <Register /> : <></>}
       </Container>
     </>
   )

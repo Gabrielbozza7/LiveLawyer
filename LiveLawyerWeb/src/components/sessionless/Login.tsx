@@ -26,7 +26,6 @@ export default function Login() {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
-    console.log('signing in')
     const { error } = await supabase.auth.signInWithPassword({
       email: formModel.email,
       password: formModel.password,
@@ -71,8 +70,6 @@ export default function Login() {
           <Button disabled={loading} variant="success" type="submit" className="mt-3">
             Login
           </Button>
-
-          <Card.Text className="mt-3">Don&apos;t have an account? Create one!</Card.Text>
         </Form>
       </Card.Body>
       <Toast

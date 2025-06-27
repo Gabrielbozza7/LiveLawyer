@@ -1,5 +1,5 @@
 'use client'
-import { Card, Container, ListGroup, Toast } from 'react-bootstrap'
+import { Button, Card, Container, ListGroup, Toast } from 'react-bootstrap'
 import { useCallback, useEffect, useState } from 'react'
 import { CallHistorySingle } from 'livelawyerlibrary/api/types/call-history'
 import { HistoryEntry } from './history-entry'
@@ -12,7 +12,6 @@ export function History() {
   const [showToast, setShowToast] = useState<string | null>(null)
 
   const refreshHistory = useCallback(async () => {
-    console.log('rePHresh')
     try {
       const response = await api.fetchCallHistory()
       if (response.history) {
@@ -45,9 +44,9 @@ export function History() {
               {history.length > 0 ? (
                 <ListGroup>
                   {api !== undefined &&
-                    history.map((entry, index) => (
-                      <ListGroup.Item key={index}>
-                        <HistoryEntry entry={entry} api={api}></HistoryEntry>
+                    history.map(entry => (
+                      <ListGroup.Item key={entry.id}>
+                        <HistoryEntry entry={entry}></HistoryEntry>
                       </ListGroup.Item>
                     ))}
                 </ListGroup>
@@ -57,6 +56,7 @@ export function History() {
             </Card.Body>
           </Card>
         )}
+        <Button onClick={refreshHistory}>Refresh</Button>
         <Toast
           bg="danger"
           onClose={() => setShowToast(null)}

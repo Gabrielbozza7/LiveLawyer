@@ -58,21 +58,6 @@ export function Call() {
     setParticipants([])
   }
 
-  const setup = async () => {
-    // Fetching data for the logged in user (if any):
-    const { data, error } = await supabase.from('User').select('userType').eq('id', userId).single()
-    if (error) {
-      setPlaceholder('Something went wrong when trying to fetch your user data! Try again later.')
-      return
-    }
-    if (!(data.userType === 'Observer' || data.userType === 'Lawyer')) {
-      setPlaceholder('You must be either an observer or a lawyer to take calls on the website')
-      return
-    }
-    setUserType(data.userType)
-    setPlaceholder(null)
-  }
-
   // Updating the corresponding participant slots when the participant(s) change(s):
   useEffect(() => {
     const foundUserTypes: Set<UserType> = new Set()
@@ -96,8 +81,7 @@ export function Call() {
     if (!foundUserTypes.has('Lawyer')) {
       setLawyerParticipant(null)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [participants])
+  }, [clientParticipant, lawyerParticipant, observerParticipant, participants])
 
   const onJoinQueueClick = async () => {
     if (socketRef.current.connected) {
@@ -257,13 +241,33 @@ export function Call() {
   }
 
   useEffect(() => {
-    setup()
+    if (placeholder === 'Loading...') {
+      ;(async () => {
+        // Fetching data for the logged in user (if any):
+        const { data, error } = await supabase
+          .from('User')
+          .select('userType')
+          .eq('id', userId)
+          .single()
+        if (error) {
+          setPlaceholder(
+            'Something went wrong when trying to fetch your user data! Try again later.',
+          )
+          return
+        }
+        if (!(data.userType === 'Observer' || data.userType === 'Lawyer')) {
+          setPlaceholder('You must be either an observer or a lawyer to take calls on the website')
+          return
+        }
+        setUserType(data.userType)
+        setPlaceholder(null)
+      })()
+    }
     const socket = socketRef.current
     return () => {
       socket.disconnect()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [placeholder, supabase, userId, userType])
 
   return (
     <div>
