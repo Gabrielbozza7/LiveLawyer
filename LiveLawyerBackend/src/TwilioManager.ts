@@ -76,14 +76,11 @@ export default class TwilioManager {
     return this._recordingProcessor
   }
 
-  public async notifyEmergencyContacts(
-    client: ConnectedClientIdentity,
-    emergencyContactPhoneNumbers: string[],
-  ) {
+  public async notifyEmergencyContacts(client: ConnectedClientIdentity) {
     const supabase = await getSupabaseClient()
     const { data, error } = await supabase
       .from('User')
-      .select('firstName, lastName')
+      .select('firstName, lastName, contacts:Contact(phoneNumber)')
       .eq('id', client.id)
       .single()
     let name: string
@@ -94,17 +91,18 @@ export default class TwilioManager {
     }
     const link = `https://google.com/maps?q=${client.location.lat},${client.location.lon}`
     const message = `🚨 Live Lawyer Alert: ${name} is now in a call for legal counsel. View their location here: ${link}`
-    for (const number of emergencyContactPhoneNumbers) {
-      try {
-        const result = await this._twilioClient.messages.create({
-          body: message,
-          from: this._twilioPhoneNumber,
-          to: number,
-        })
-        console.log(JSON.stringify(result, undefined, '    '))
-      } catch (error) {
-        console.log('An error occurred while trying to send an emergency contact notification:')
-        console.error(error)
+    if (data !== null) {
+      for (const contact of data.contacts) {
+        try {
+          await this._twilioClient.messages.create({
+            body: message,
+            from: this._twilioPhoneNumber,
+            to: contact.phoneNumber,
+          })
+        } catch (error) {
+          console.log('An error occurred while trying to send an emergency contact notification:')
+          console.error(error)
+        }
       }
     }
   }

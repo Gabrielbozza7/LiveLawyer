@@ -10,7 +10,7 @@ interface FormModel {
   firstName: string
   lastName: string
   email: string
-  phoneNum: string
+  phoneNumber: string
   officeId?: string
 }
 
@@ -29,7 +29,7 @@ export default function Editor({ loading, setLoading, setStatusMessage }: Accoun
     firstName: '',
     lastName: '',
     email: '',
-    phoneNum: '',
+    phoneNumber: '',
   })
 
   const [officeSelection, setOfficeSelection] = useState<OfficeSelection | undefined>()
@@ -87,7 +87,7 @@ export default function Editor({ loading, setLoading, setStatusMessage }: Accoun
       const { data, error: insertError } = await supabase
         .from('LawOffice')
         .insert({
-          administrator: userId,
+          administratorId: userId,
           name: officeSelection.newOfficeName,
         })
         .select()
@@ -133,7 +133,7 @@ export default function Editor({ loading, setLoading, setStatusMessage }: Accoun
           firstName: formModel.firstName,
           lastName: formModel.lastName,
           email: formModel.email,
-          phoneNum: formModel.phoneNum,
+          phoneNumber: formModel.phoneNumber,
         })
         .eq('id', userId)
         .single()
@@ -208,7 +208,7 @@ export default function Editor({ loading, setLoading, setStatusMessage }: Accoun
               disabled={loading}
               type="tel"
               name="phoneNum"
-              value={formModel.phoneNum}
+              value={formModel.phoneNumber}
               onChange={handleChange}
             />
           </Form.Group>
@@ -237,13 +237,11 @@ export default function Editor({ loading, setLoading, setStatusMessage }: Accoun
             <></>
           )}
 
-          {currentOffice ? (
-            <div>
+          {currentOffice && (
+            <>
               <Card.Text className="mt-3">Your Office Name: {currentOffice.name}</Card.Text>
               <Card.Text className="mt-3">Your Office ID: {currentOffice.id}</Card.Text>
-            </div>
-          ) : (
-            <></>
+            </>
           )}
           <Card.Text className="mt-3">Your User Type: {userType}</Card.Text>
           <Card.Text className="mt-3">Your User ID: {userId}</Card.Text>

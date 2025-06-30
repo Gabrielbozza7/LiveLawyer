@@ -193,34 +193,22 @@ export type Database = {
       }
       Contact: {
         Row: {
-          email: string | null
-          firstName: string
           id: string
-          lastName: string
-          phoneNum: string
-          picUrl: string | null
-          type: Database['public']['Enums']['UserType'] | null
-          userId: string | null
+          name: string
+          phoneNumber: string
+          userId: string
         }
         Insert: {
-          email?: string | null
-          firstName: string
           id?: string
-          lastName: string
-          phoneNum: string
-          picUrl?: string | null
-          type?: Database['public']['Enums']['UserType'] | null
-          userId?: string | null
+          name: string
+          phoneNumber: string
+          userId: string
         }
         Update: {
-          email?: string | null
-          firstName?: string
           id?: string
-          lastName?: string
-          phoneNum?: string
-          picUrl?: string | null
-          type?: Database['public']['Enums']['UserType'] | null
-          userId?: string | null
+          name?: string
+          phoneNumber?: string
+          userId?: string
         }
         Relationships: [
           {
@@ -234,27 +222,27 @@ export type Database = {
       }
       LawOffice: {
         Row: {
-          administrator: string
-          created_at: string
+          administratorId: string
+          createdAt: string
           id: string
           name: string
         }
         Insert: {
-          administrator: string
-          created_at?: string
+          administratorId: string
+          createdAt?: string
           id?: string
           name: string
         }
         Update: {
-          administrator?: string
-          created_at?: string
+          administratorId?: string
+          createdAt?: string
           id?: string
           name?: string
         }
         Relationships: [
           {
-            foreignKeyName: 'LawOffice_administrator_fkey'
-            columns: ['administrator']
+            foreignKeyName: 'LawOffice_administratorId_fkey'
+            columns: ['administratorId']
             isOneToOne: false
             referencedRelation: 'User'
             referencedColumns: ['id']
@@ -298,7 +286,7 @@ export type Database = {
           firstName: string
           id: string
           lastName: string
-          phoneNum: string
+          phoneNumber: string
           profPicUrl: string | null
           userType: Database['public']['Enums']['UserType']
         }
@@ -308,7 +296,7 @@ export type Database = {
           firstName: string
           id: string
           lastName: string
-          phoneNum: string
+          phoneNumber: string
           profPicUrl?: string | null
           userType?: Database['public']['Enums']['UserType']
         }
@@ -318,7 +306,7 @@ export type Database = {
           firstName?: string
           id?: string
           lastName?: string
-          phoneNum?: string
+          phoneNumber?: string
           profPicUrl?: string | null
           userType?: Database['public']['Enums']['UserType']
         }

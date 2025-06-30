@@ -1,53 +1,96 @@
 import { Colors } from '@/constants/Colors'
 import { Styles } from '@/constants/Styles'
-//import notifyContacts from '@/components/emergencyNotif'
-import { Text, View, Button, Alert, Linking, TouchableOpacity, FlatList } from 'react-native'
+import { Text, View, Button, Linking, TouchableOpacity, FlatList } from 'react-native'
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context'
-//import { getCoordinates } from '@/components/locationStore'
+import { useSessionData, useSupabaseClient } from '../components/context-manager'
+import { Database } from 'livelawyerlibrary/database-types'
+import { useEffect, useState } from 'react'
+import { router } from 'expo-router'
 
-const DATA = [
-  { id: '1', name: 'Mom', phone: '(012)-345-6789' },
-  { id: '2', name: 'Dad', phone: '(111) - 111 - 1111' },
-  { id: '3', name: 'Contact Three', phone: '(222) - 222 - 2222' },
-]
-
-// const currentCoordinate = getCoordinates()
-// const currLon = currentCoordinate?.lat ?? 0
-// const currLat = currentCoordinate?.lon ?? 0
-type ItemProps = { name: string; phone: string }
-const handleCall = (DATA: string) => {
-  Linking.openURL(`tel:${DATA}`)
+interface ContactDisplayProps {
+  id: string
+  name: string
+  phone: string
 }
 
-const Item = ({ name, phone }: ItemProps) => (
-  <View style={Styles.itemInfoBox}>
-    <Text style={Styles.name}>{name}</Text>
-    <TouchableOpacity onPress={() => handleCall(phone)}>
-      <Text style={Styles.phone}>{phone}</Text>
-    </TouchableOpacity>
-  </View>
-)
+function ContactDisplay({ id, name, phone }: ContactDisplayProps) {
+  const handleCall = (DATA: string) => {
+    Linking.openURL(`tel:${DATA}`)
+  }
 
-export default function Index() {
+  return (
+    <View style={Styles.itemInfoBox}>
+      <Text style={Styles.name}>{name}</Text>
+      <TouchableOpacity onPress={() => handleCall(phone)}>
+        <Text style={Styles.phone}>{phone}</Text>
+      </TouchableOpacity>
+      <Button
+        onPress={() => router.push(`/screens/edit-contact?id=${id}`)}
+        title="Edit Contact"
+        color={Colors.white}
+        accessibilityLabel="Edit the contact."
+      />
+    </View>
+  )
+}
+
+export default function Contacts() {
+  const supabase = useSupabaseClient()
+  const { userId } = useSessionData()
+  const [contacts, setContacts] = useState<Database['public']['Tables']['Contact']['Row'][]>([])
+  const [placeholder, setPlaceholder] = useState<string | null>('Loading...')
+
+  useEffect(() => {
+    refreshContacts()
+  }, [])
+
+  const refreshContacts = async () => {
+    const { data, error } = await supabase.from('Contact').select().eq('userId', userId)
+    if (data) {
+      setContacts(data)
+    }
+    if (error) {
+      console.log((error as Error).message)
+      setPlaceholder(`Something went wrong when trying to fetch your contacts! Try again later.`)
+    } else {
+      setPlaceholder(null)
+    }
+  }
+
   return (
     <SafeAreaProvider>
       <SafeAreaView style={Styles.container}>
-        <FlatList
-          data={DATA}
-          renderItem={({ item }) => <Item name={item.name} phone={item.phone} />}
-          keyExtractor={item => item.id}
-          ListFooterComponent={
+        {placeholder === null ? (
+          <>
             <Button
-              onPress={() => {
-                Alert.alert('Contact button pressed.')
-                //notifyContacts(DATA[0].phone, currLon, currLat, DATA[0].name)
-              }}
-              title="Add Contact"
+              onPress={() => router.push('/screens/edit-contact')}
+              title="Add New Contact"
               color={Colors.blue}
-              accessibilityLabel="Add a contact to the contact list."
+              accessibilityLabel="Refresh the contacts."
             />
-          }
-        />
+            <FlatList
+              data={contacts}
+              renderItem={entry => (
+                <ContactDisplay
+                  id={entry.item.id}
+                  name={entry.item.name}
+                  phone={entry.item.phoneNumber}
+                />
+              )}
+              keyExtractor={entry => entry.id}
+              ListFooterComponent={
+                <Button
+                  onPress={refreshContacts}
+                  title="Refresh"
+                  color={Colors.blue}
+                  accessibilityLabel="Refresh the contacts."
+                />
+              }
+            />
+          </>
+        ) : (
+          <Text style={Styles.localText}>{placeholder}</Text>
+        )}
       </SafeAreaView>
     </SafeAreaProvider>
   )

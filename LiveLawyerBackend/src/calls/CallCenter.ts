@@ -70,7 +70,7 @@ export default class CallCenter {
 
     if (success) {
       console.log(`Successfully sent participants to ${room.roomName}!`)
-      this._twilioManager.notifyEmergencyContacts(client, ['+18777804236'])
+      this._twilioManager.notifyEmergencyContacts(client)
       return 'OK'
     } else {
       console.log(

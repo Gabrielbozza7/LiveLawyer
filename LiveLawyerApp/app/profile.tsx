@@ -36,7 +36,7 @@ export default function Profile() {
       .update({
         firstName: userInfo.firstName,
         lastName: userInfo.lastName,
-        phoneNum: userInfo.phoneNum,
+        phoneNumber: userInfo.phoneNumber,
       })
       .eq('id', userInfo.id)
 
@@ -88,8 +88,8 @@ export default function Profile() {
           <TextInput
             style={Styles.profInput}
             placeholder="Phone Number"
-            value={userInfo.phoneNum}
-            onChangeText={text => setUserInfo({ ...userInfo, phoneNum: text })}
+            value={userInfo.phoneNumber}
+            onChangeText={text => setUserInfo({ ...userInfo, phoneNumber: text })}
             keyboardType="phone-pad"
           />
           <View style={Styles.profButtonGroup}>
@@ -111,7 +111,7 @@ export default function Profile() {
           </View>
           <View style={Styles.profItemText}>
             <Text style={Styles.profItemText}>Phone:</Text>
-            <Text style={Styles.profDisplay}>{userInfo.phoneNum}</Text>
+            <Text style={Styles.profDisplay}>{userInfo.phoneNumber}</Text>
           </View>
           <View style={Styles.profEditButton}>
             <Button title="Edit Profile" onPress={() => setEditing(true)} />

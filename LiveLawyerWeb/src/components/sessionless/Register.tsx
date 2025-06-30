@@ -6,7 +6,7 @@ interface FormModel {
   firstName: string
   lastName: string
   email: string
-  phoneNum: string
+  phoneNumber: string
   password: string
   confirmPassword: string
   userType: 'Observer' | 'Lawyer'
@@ -23,7 +23,7 @@ export default function Register() {
     firstName: '',
     lastName: '',
     email: '',
-    phoneNum: '',
+    phoneNumber: '',
     password: '',
     confirmPassword: '',
     userType: 'Observer',
@@ -79,7 +79,7 @@ export default function Register() {
         firstName: formModel.firstName,
         lastName: formModel.lastName,
         email: formModel.email,
-        phoneNum: formModel.phoneNum,
+        phoneNumber: formModel.phoneNumber,
         userType: formModel.userType,
       })
       .eq('id', session.user.id)
@@ -129,13 +129,13 @@ export default function Register() {
             />
           </Form.Group>
 
-          <Form.Group controlId="formPhoneNum" className="mt-3">
+          <Form.Group controlId="formPhoneNumber" className="mt-3">
             <Form.Label>Phone Number</Form.Label>
             <Form.Control
               disabled={loading}
               type="tel"
-              name="phoneNum"
-              value={formModel.phoneNum}
+              name="phoneNumber"
+              value={formModel.phoneNumber}
               onChange={handleChangeInput}
             />
           </Form.Group>
