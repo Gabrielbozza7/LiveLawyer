@@ -1,6 +1,6 @@
 import express from 'express'
 import { Request } from 'express'
-import { authenticate, getSupabaseClient } from '../supabase'
+import { authenticate, getSupabaseClient } from '../database/supabase'
 import {
   CallEvent,
   CallHistorySingle,

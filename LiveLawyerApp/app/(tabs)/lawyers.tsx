@@ -5,22 +5,28 @@ import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context'
 import * as Location from 'expo-location'
 import { setCoordinates } from '@/components/locationStore'
 import { router } from 'expo-router'
+import { useSupabaseClient } from '../components/context-manager'
 
-type ItemData = {
+interface LawOfficeListingProps {
   id: string
-  office: string
-  title: string
-  number: string
+  name: string
 }
 
-const DATA: ItemData[] = [
-  { id: 'Lawyer_1', office: 'Goodman Law Office', title: 'Saul Goodman', number: '123-456-7890' },
-  { id: 'Lawyer_2', office: 'Spectre Law Office', title: 'Harvey Spectre', number: '123-456-7891' },
-  { id: 'Lawyer_3', office: 'Ross Law Office', title: 'Mike Ross', number: '123-456-7892' },
-  { id: 'Lawyer_4', office: 'Litt Law Office', title: 'Louis Litt', number: '123-456-7893' },
-]
+function LawOfficeListing({ id, name }: LawOfficeListingProps) {
+  return (
+    <TouchableOpacity
+      onPress={() => router.push(`/screens/law-office-info?id=${id}`)}
+      style={Styles.itemInfoBox}
+    >
+      <Text style={Styles.name}>{name}</Text>
+    </TouchableOpacity>
+  )
+}
 
 export default function LawyerView() {
+  const supabase = useSupabaseClient()
+  const [offices, setOffices] = useState<LawOfficeListingProps[]>([])
+  const [placeholder, setPlaceholder] = useState<string | null>('Loading...')
   const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(null)
 
   useEffect(() => {
@@ -34,20 +40,24 @@ export default function LawyerView() {
         console.log('Permission not granted')
       }
     }
+    const refreshLawOffices = async () => {
+      const { data, error } = await supabase.from('LawOffice').select('id, name')
+      if (data) {
+        setOffices(data)
+      }
+      if (error) {
+        console.log((error as Error).message)
+        setPlaceholder(
+          `Something went wrong when trying to fetch the law offices! Try again later.`,
+        )
+      } else {
+        setPlaceholder(null)
+      }
+    }
 
     getLocation()
+    refreshLawOffices()
   }, [])
-
-  type ItemProps = {
-    item: ItemData
-    onPress: () => void
-  }
-
-  const Item = ({ item, onPress }: ItemProps) => (
-    <TouchableOpacity onPress={onPress} style={Styles.itemInfoBox}>
-      <Text style={Styles.name}>{item.title}</Text>
-    </TouchableOpacity>
-  )
 
   const openMapWithQuery = (query: string) => {
     const encodedQuery = encodeURIComponent(query)
@@ -79,16 +89,15 @@ export default function LawyerView() {
         <Text style={Styles.localText}>Local Lawfirms</Text>
       </TouchableOpacity>
       <SafeAreaView style={Styles.container}>
-        <FlatList
-          data={DATA}
-          renderItem={({ item }) => (
-            <Item
-              item={item}
-              onPress={() => router.push(`/screens/law-office-info?id=${item.id}`)}
-            />
-          )}
-          keyExtractor={item => item.id}
-        />
+        {placeholder === null ? (
+          <FlatList
+            data={offices}
+            renderItem={({ item }) => <LawOfficeListing id={item.id} name={item.name} />}
+            keyExtractor={item => item.id}
+          />
+        ) : (
+          <Text style={Styles.localText}>{placeholder}</Text>
+        )}
       </SafeAreaView>
     </SafeAreaProvider>
   )

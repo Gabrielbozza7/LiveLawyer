@@ -11,6 +11,12 @@ import {
   ROUTER_CALL_HISTORY,
 } from './types/call-history'
 import { ApiResponse } from './types/general'
+import {
+  RequestParamsLawOfficeDetails,
+  RequestResponseLawOfficeDetails,
+  ROUTE_LAW_OFFICE_DETAILS,
+  ROUTER_LAW_OFFICE,
+} from './types/law-office'
 
 export default class LiveLawyerApi {
   private readonly _baseUrl: string
@@ -58,5 +64,14 @@ export default class LiveLawyerApi {
       RequestParamsCallHistoryDownload,
       RequestResponseCallHistoryDownload
     >(ROUTER_CALL_HISTORY, ROUTE_CALL_HISTORY_DOWNLOAD, { recordingId }, this._accessToken)
+  }
+
+  public async fetchLawOfficeDetails(officeId: string): Promise<RequestResponseLawOfficeDetails> {
+    return await this.fetchFromApi<RequestParamsLawOfficeDetails, RequestResponseLawOfficeDetails>(
+      ROUTER_LAW_OFFICE,
+      ROUTE_LAW_OFFICE_DETAILS,
+      { officeId },
+      this._accessToken,
+    )
   }
 }

@@ -1,32 +1,29 @@
 import React, { useEffect, useState } from 'react'
-import { Text, TouchableOpacity, Button, Linking, Image, View } from 'react-native'
+import { Text, TouchableOpacity, Button, Linking, Image, View, Alert, FlatList } from 'react-native'
 import { Styles } from '@/constants/Styles'
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
 import { router, useLocalSearchParams } from 'expo-router'
-
-type ItemData = {
-  id: string
-  office: string
-  title: string
-  number: string
-}
-
-const DATA: ItemData[] = [
-  { id: 'Lawyer_1', office: 'Goodman Law Office', title: 'Saul Goodman', number: '123-456-7890' },
-  { id: 'Lawyer_2', office: 'Spectre Law Office', title: 'Harvey Spectre', number: '123-456-7891' },
-  { id: 'Lawyer_3', office: 'Ross Law Office', title: 'Mike Ross', number: '123-456-7892' },
-  { id: 'Lawyer_4', office: 'Litt Law Office', title: 'Louis Litt', number: '123-456-7893' },
-]
+import { LawOfficeDetailsSingle } from 'livelawyerlibrary/api/types/law-office'
+import { useSessionData } from '../components/context-manager'
 
 export default function LawOfficeInfo() {
   const { id }: { id: string | undefined } = useLocalSearchParams() as { id: string | undefined }
-  const [officeInfo, setLawOfficeInfo] = useState<ItemData | null>(null)
+  const { api } = useSessionData()
+  const [officeInfo, setLawOfficeInfo] = useState<LawOfficeDetailsSingle | null>(null)
 
   useEffect(() => {
     if (id === undefined) {
       router.back()
     } else {
-      setLawOfficeInfo(DATA.find(x => x.id === id) ?? null)
+      ;(async () => {
+        try {
+          const result = await api.fetchLawOfficeDetails(id)
+          setLawOfficeInfo(result.details)
+        } catch {
+          Alert.alert('Something went wrong when trying to fetch that law office! Try again later.')
+          router.back()
+        }
+      })()
     }
   }, [id])
 
@@ -37,7 +34,7 @@ export default function LawOfficeInfo() {
   return (
     <SafeAreaProvider>
       {officeInfo && (
-        <SafeAreaView style={Styles.LawyerInfoContainer}>
+        <SafeAreaView>
           <Image
             // eslint-disable-next-line @typescript-eslint/no-require-imports
             source={require('@/assets/images/main-call-image.jpeg')}
@@ -45,12 +42,16 @@ export default function LawOfficeInfo() {
             resizeMode="contain"
           />
           <View style={Styles.lawyerInfoBox}>
-            <Text style={Styles.LawofficeName}>{officeInfo.office}</Text>
+            <Text style={Styles.LawofficeName}>{officeInfo.name}</Text>
 
-            <Text style={Styles.nameText}>{officeInfo.title}</Text>
+            <FlatList
+              data={officeInfo.lawyers}
+              renderItem={({ item }) => <Text style={Styles.nameText}>{item.name}</Text>}
+              keyExtractor={item => item.id}
+            />
 
-            <TouchableOpacity onPress={() => handleCall(officeInfo.number)}>
-              <Text style={Styles.phoneText}>{officeInfo.number}</Text>
+            <TouchableOpacity onPress={() => handleCall('+12223334444')}>
+              <Text style={Styles.phoneText}>+12223334444</Text>
             </TouchableOpacity>
           </View>
           <Button title="Back" onPress={router.back} />

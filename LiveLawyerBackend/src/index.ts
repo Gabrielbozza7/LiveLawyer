@@ -4,10 +4,8 @@ import cors from 'cors'
 import { createServer } from 'node:http'
 import { Server } from 'socket.io'
 import TwilioManager from './TwilioManager'
-import userRoutes from './database/routes/users'
-import contactsRoutes from './database/routes/contacts'
-import lawyerRoutes from './database/routes/lawyers'
-import callHistoryRoutes from './database/routes/call-history'
+import callHistoryRoutes from './routes/call-history'
+import lawOfficeRoutes from './routes/law-office'
 import CallCenter from './calls/CallCenter'
 import {
   ClientToServerEvents,
@@ -19,6 +17,7 @@ import IdentityMap from './IdentityMap'
 import { getSupabaseClient } from './database/supabase'
 import { ROUTER_CALL_HISTORY } from 'livelawyerlibrary/api/types/call-history'
 import { loadGeolocationFunction } from './coord2state'
+import { ROUTER_LAW_OFFICE } from 'livelawyerlibrary/api/types/law-office'
 
 async function main() {
   await loadGeolocationFunction()
@@ -148,10 +147,7 @@ async function main() {
   })
 
   // DB routes
-  app.use('/users', userRoutes)
-  app.use('/contacts', contactsRoutes)
-  app.use('/lawyers', lawyerRoutes)
-
+  app.use(ROUTER_LAW_OFFICE, lawOfficeRoutes)
   app.use(ROUTER_CALL_HISTORY, callHistoryRoutes)
 
   app.post('/signup', async (req, res) => {
