@@ -2,10 +2,9 @@ import { Styles } from '@/constants/Styles'
 import React, { useState, useEffect } from 'react'
 import { Alert, FlatList, Text, TouchableOpacity, Platform, Linking } from 'react-native'
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context'
-import LawyerInfo from '../lawyer_info/lawyer_info'
 import * as Location from 'expo-location'
 import { setCoordinates } from '@/components/locationStore'
-import { BACKEND_URL } from '@/constants/BackendVariables'
+import { router } from 'expo-router'
 
 type ItemData = {
   id: string
@@ -13,47 +12,22 @@ type ItemData = {
   title: string
   number: string
 }
-//Data place holder
-var Data: ItemData[] = [
+
+const DATA: ItemData[] = [
   { id: 'Lawyer_1', office: 'Goodman Law Office', title: 'Saul Goodman', number: '123-456-7890' },
   { id: 'Lawyer_2', office: 'Spectre Law Office', title: 'Harvey Spectre', number: '123-456-7891' },
   { id: 'Lawyer_3', office: 'Ross Law Office', title: 'Mike Ross', number: '123-456-7892' },
   { id: 'Lawyer_4', office: 'Litt Law Office', title: 'Louis Litt', number: '123-456-7893' },
 ]
 
-type User = {
-  id: string
-  first_name: string
-  last_name: string
-}
-
 export default function LawyerView() {
-  const [lawyer, setLawyer] = useState<ItemData | null>(null)
-  const [, setUsers] = useState<User[]>([])
   const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(null)
 
   useEffect(() => {
-    async function getDB() {
-      try {
-        const response = await fetch(`${BACKEND_URL}/users`)
-        if (!response.ok) {
-          throw new Error(`Failed to fetch: ${response.status} ${response.statusText}`)
-        }
-
-        const data = await response.json()
-        console.log('Fetched Users:', data)
-
-        setUsers(data.users)
-      } catch (error) {
-        console.error('Error fetching users:', error)
-      }
-    }
-
     const getLocation = async () => {
       const { status } = await Location.getForegroundPermissionsAsync()
       if (status === 'granted') {
         const loc = await Location.getCurrentPositionAsync({})
-        console.log(`lat: ${loc.coords.latitude}, lon: ${loc.coords.longitude}`)
         setCoords({ lat: loc.coords.latitude, lon: loc.coords.longitude })
         setCoordinates({ lat: loc.coords.latitude, lon: loc.coords.longitude })
       } else {
@@ -62,7 +36,6 @@ export default function LawyerView() {
     }
 
     getLocation()
-    getDB()
   }, [])
 
   type ItemProps = {
@@ -94,7 +67,6 @@ export default function LawyerView() {
   */
   const showCoordinatesAlert = () => {
     if (coords) {
-      Alert.alert(`Latitude: ${coords.lat}\nLongitude: ${coords.lon}`)
       openMapWithQuery(`Lawyers near me`)
     } else {
       Alert.alert('Coordinates not available')
@@ -106,17 +78,18 @@ export default function LawyerView() {
       <TouchableOpacity onPress={showCoordinatesAlert} style={Styles.localLawyerButton}>
         <Text style={Styles.localText}>Local Lawfirms</Text>
       </TouchableOpacity>
-      {lawyer ? (
-        <LawyerInfo onPressBack={() => setLawyer(null)} lawyer={lawyer}></LawyerInfo>
-      ) : (
-        <SafeAreaView style={Styles.container}>
-          <FlatList
-            data={Data}
-            renderItem={({ item }) => <Item item={item} onPress={() => setLawyer(item)} />}
-            keyExtractor={item => item.id}
-          />
-        </SafeAreaView>
-      )}
+      <SafeAreaView style={Styles.container}>
+        <FlatList
+          data={DATA}
+          renderItem={({ item }) => (
+            <Item
+              item={item}
+              onPress={() => router.push(`/screens/law-office-info?id=${item.id}`)}
+            />
+          )}
+          keyExtractor={item => item.id}
+        />
+      </SafeAreaView>
     </SafeAreaProvider>
   )
 }

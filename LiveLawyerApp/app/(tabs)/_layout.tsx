@@ -37,7 +37,7 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="lawyerlist"
+        name="lawyers"
         options={{
           title: 'Lawyers',
           tabBarIcon: () => <Octicons name="law" size={24} color="black" />,
