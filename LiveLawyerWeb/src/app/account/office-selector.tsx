@@ -1,7 +1,6 @@
 import React, { Dispatch, SetStateAction, useEffect, useState } from 'react'
 import { Card, Form } from 'react-bootstrap'
-import { SupabaseClient } from '@supabase/supabase-js'
-import { Database } from 'livelawyerlibrary/database-types'
+import { useSupabaseClient } from 'livelawyerlibrary/context-manager'
 
 export interface OfficeOption {
   id: string
@@ -17,15 +16,14 @@ interface OfficeSelectorProps {
   loading: boolean
   currentOffice: OfficeOption | undefined
   setSelection: Dispatch<SetStateAction<OfficeSelection | undefined>>
-  supabase: SupabaseClient<Database>
 }
 
 export default function OfficeSelector({
   loading,
   currentOffice,
   setSelection,
-  supabase,
 }: OfficeSelectorProps) {
+  const supabaseRef = useSupabaseClient()
   const [placeholder, setPlaceholder] = useState<string>('Loading...')
   const [offices, setOffices] = useState<OfficeOption[]>([])
   const [selectionType, setSelectionType] = useState<'Existing Office' | 'New Office'>(
@@ -37,7 +35,7 @@ export default function OfficeSelector({
   // Fetching the existing offices:
   useEffect(() => {
     ;(async () => {
-      const { data, error } = await supabase.from('LawOffice').select()
+      const { data, error } = await supabaseRef.current.from('LawOffice').select()
       if (error || data === null) {
         setPlaceholder('Unable to find law offices right now! Try again later')
       } else {
@@ -68,7 +66,7 @@ export default function OfficeSelector({
         setPlaceholder('')
       }
     })()
-  }, [currentOffice, setSelection, supabase])
+  }, [currentOffice, setSelection, supabaseRef])
 
   // Dynamically syncing the form changes to the account model:
   const handleChangeSelectionType = (e: React.ChangeEvent<HTMLSelectElement>) => {

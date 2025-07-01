@@ -6,7 +6,11 @@ import Image from 'next/image'
 export default function LiveLawyerNav() {
   return (
     <Navbar expand="lg" className="navbar-dark" style={{ backgroundColor: '#000066', padding: 8 }}>
-      <Navbar.Brand href="/" style={{ display: 'flex', alignItems: 'center', color: '#FFFFFF' }}>
+      <Navbar.Brand
+        as={Link}
+        href="/"
+        style={{ display: 'flex', alignItems: 'center', color: '#FFFFFF' }}
+      >
         <Image
           // eslint-disable-next-line @typescript-eslint/no-require-imports
           src={require('@/assets/images/main-call-image.jpeg')}

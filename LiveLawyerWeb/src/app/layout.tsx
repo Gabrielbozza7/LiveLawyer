@@ -1,3 +1,8 @@
+import 'bootstrap/dist/css/bootstrap.min.css'
+import { ContextManager } from 'livelawyerlibrary/context-manager'
+import LiveLawyerNav from '@/components/LiveLawyerNav'
+import SessionlessMenu from '@/components/sessionless/SessionlessMenu'
+import { BACKEND_URL, SUPABASE_ANON_KEY, SUPABASE_URL } from 'livelawyerlibrary/env'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -11,7 +16,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <ContextManager
+          env={{
+            supabaseUrl: SUPABASE_URL,
+            supabaseAnonKey: SUPABASE_ANON_KEY,
+            backendUrl: BACKEND_URL,
+          }}
+          loadingComponent={<p>Loading...</p>}
+          sessionlessComponent={<SessionlessMenu />}
+        >
+          <LiveLawyerNav />
+          {children}
+        </ContextManager>
+      </body>
     </html>
   )
 }

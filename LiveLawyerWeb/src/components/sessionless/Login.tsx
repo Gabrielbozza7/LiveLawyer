@@ -1,6 +1,6 @@
+import { useSupabaseClient } from 'livelawyerlibrary/context-manager'
 import { FormEvent, useState } from 'react'
 import { Button, Card, Form, Toast } from 'react-bootstrap'
-import { useSupabaseClient } from '../ContextManager'
 
 interface FormModel {
   email: string
@@ -8,7 +8,7 @@ interface FormModel {
 }
 
 export default function Login() {
-  const supabase = useSupabaseClient()
+  const supabaseRef = useSupabaseClient()
   const [loading, setLoading] = useState<boolean>(false)
   const [showToast, setShowToast] = useState<string | null>(null)
   const [formModel, setFormModel] = useState<FormModel>({
@@ -26,7 +26,7 @@ export default function Login() {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
-    const { error } = await supabase.auth.signInWithPassword({
+    const { error } = await supabaseRef.current.auth.signInWithPassword({
       email: formModel.email,
       password: formModel.password,
     })

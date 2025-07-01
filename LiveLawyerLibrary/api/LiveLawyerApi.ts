@@ -1,3 +1,4 @@
+import { RefObject } from 'react'
 import {
   RequestParamsCallHistoryDetails,
   RequestParamsCallHistoryDownload,
@@ -17,23 +18,23 @@ import {
   ROUTE_LAW_OFFICE_DETAILS,
   ROUTER_LAW_OFFICE,
 } from './types/law-office'
+import { Session } from '@supabase/supabase-js'
 
 export default class LiveLawyerApi {
   private readonly _baseUrl: string
-  private readonly _accessToken: string
+  private readonly _sessionRef: RefObject<Session>
 
-  constructor(backendUrl: string, accessToken: string) {
+  constructor(backendUrl: string, sessionRef: RefObject<Session>) {
     this._baseUrl = backendUrl
-    this._accessToken = accessToken
+    this._sessionRef = sessionRef
   }
 
   private async fetchFromApi<Q extends object, R extends object>(
     router: string,
     route: string,
     queryParams: Q,
-    accessToken: string,
   ): Promise<R> {
-    const encodedQueryParams = `${new URLSearchParams({ accessToken, ...queryParams })}`
+    const encodedQueryParams = `${new URLSearchParams({ accessToken: this._sessionRef.current.access_token, ...queryParams })}`
     const response = await fetch(new URL(`${router + route}?${encodedQueryParams}`, this._baseUrl))
     const json = (await response.json()) as ApiResponse<R>
     if (json.success) {
@@ -48,7 +49,6 @@ export default class LiveLawyerApi {
       ROUTER_CALL_HISTORY,
       ROUTE_CALL_HISTORY_LIST,
       {},
-      this._accessToken,
     )
   }
 
@@ -56,14 +56,14 @@ export default class LiveLawyerApi {
     return await this.fetchFromApi<
       RequestParamsCallHistoryDetails,
       RequestResponseCallHistoryDetails
-    >(ROUTER_CALL_HISTORY, ROUTE_CALL_HISTORY_DETAILS, { callId }, this._accessToken)
+    >(ROUTER_CALL_HISTORY, ROUTE_CALL_HISTORY_DETAILS, { callId })
   }
 
   public async fetchCallDownload(recordingId: string): Promise<RequestResponseCallHistoryDownload> {
     return await this.fetchFromApi<
       RequestParamsCallHistoryDownload,
       RequestResponseCallHistoryDownload
-    >(ROUTER_CALL_HISTORY, ROUTE_CALL_HISTORY_DOWNLOAD, { recordingId }, this._accessToken)
+    >(ROUTER_CALL_HISTORY, ROUTE_CALL_HISTORY_DOWNLOAD, { recordingId })
   }
 
   public async fetchLawOfficeDetails(officeId: string): Promise<RequestResponseLawOfficeDetails> {
@@ -71,7 +71,6 @@ export default class LiveLawyerApi {
       ROUTER_LAW_OFFICE,
       ROUTE_LAW_OFFICE_DETAILS,
       { officeId },
-      this._accessToken,
     )
   }
 }

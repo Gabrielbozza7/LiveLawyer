@@ -6,14 +6,14 @@ import {
   CallHistoryDetailsSingle,
   CallHistorySingle,
 } from 'livelawyerlibrary/api/types/call-history'
-import { useSessionData } from '@/components/ContextManager'
+import { useApi } from 'livelawyerlibrary/context-manager'
 
 interface HistoryEntryProps {
   entry: CallHistorySingle
 }
 
 export function HistoryEntry({ entry }: HistoryEntryProps) {
-  const { api } = useSessionData()
+  const apiRef = useApi()
   const [showDetails, setShowDetails] = useState<boolean>(false)
   const [details, setDetails] = useState<CallHistoryDetailsSingle | undefined>(undefined)
   const [placeholder, setPlaceholder] = useState<string | undefined>('Loading...')
@@ -24,7 +24,7 @@ export function HistoryEntry({ entry }: HistoryEntryProps) {
   useEffect(() => {
     if (showDetails && !sentRequest) {
       setSentRequest(true)
-      api
+      apiRef.current
         .fetchCallDetails(entry.id)
         .then(response => {
           setDetails(response.details)
@@ -34,12 +34,12 @@ export function HistoryEntry({ entry }: HistoryEntryProps) {
           setPlaceholder(`Something went wrong! (${(error as Error).message})`)
         })
     }
-  }, [api, entry.id, sentRequest, showDetails])
+  }, [apiRef, entry.id, sentRequest, showDetails])
 
   const attemptDownload = async (recordingId: string) => {
     setAttemptingDownload(true)
     try {
-      const response = await api.fetchCallDownload(recordingId)
+      const response = await apiRef.current.fetchCallDownload(recordingId)
       window.open(response.downloadLink, '_self')
     } catch (error) {
       setShowToast(`Error: ${(error as Error).message}`)

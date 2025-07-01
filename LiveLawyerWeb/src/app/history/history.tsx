@@ -3,17 +3,17 @@ import { Button, Card, Container, ListGroup, Toast } from 'react-bootstrap'
 import { useCallback, useEffect, useState } from 'react'
 import { CallHistorySingle } from 'livelawyerlibrary/api/types/call-history'
 import { HistoryEntry } from './history-entry'
-import { useSessionData } from '@/components/ContextManager'
+import { useApi } from 'livelawyerlibrary/context-manager'
 
 export function History() {
-  const { api } = useSessionData()
+  const apiRef = useApi()
   const [history, setHistory] = useState<CallHistorySingle[]>([])
   const [placeholder, setPlaceholder] = useState<string | null>('Loading...')
   const [showToast, setShowToast] = useState<string | null>(null)
 
   const refreshHistory = useCallback(async () => {
     try {
-      const response = await api.fetchCallHistory()
+      const response = await apiRef.current.fetchCallHistory()
       if (response.history) {
         setHistory(response.history)
       }
@@ -23,7 +23,7 @@ export function History() {
       return
     }
     setPlaceholder(null)
-  }, [api])
+  }, [apiRef])
 
   useEffect(() => {
     refreshHistory()
@@ -43,12 +43,11 @@ export function History() {
               <h4 className="mb-3">Call History</h4>
               {history.length > 0 ? (
                 <ListGroup>
-                  {api !== undefined &&
-                    history.map(entry => (
-                      <ListGroup.Item key={entry.id}>
-                        <HistoryEntry entry={entry}></HistoryEntry>
-                      </ListGroup.Item>
-                    ))}
+                  {history.map(entry => (
+                    <ListGroup.Item key={entry.id}>
+                      <HistoryEntry entry={entry}></HistoryEntry>
+                    </ListGroup.Item>
+                  ))}
                 </ListGroup>
               ) : (
                 <Card.Text>Your call history is empty.</Card.Text>

@@ -4,7 +4,7 @@ import { AccountSubFormProps } from './account'
 import OfficeSelector, { OfficeOption, OfficeSelection } from './office-selector'
 import { PostgrestError } from '@supabase/supabase-js'
 import { UserType } from 'livelawyerlibrary'
-import { useSessionData, useSupabaseClient } from '@/components/ContextManager'
+import { useSession, useSupabaseClient } from 'livelawyerlibrary/context-manager'
 
 interface FormModel {
   firstName: string
@@ -15,8 +15,8 @@ interface FormModel {
 }
 
 export default function Editor({ loading, setLoading, setStatusMessage }: AccountSubFormProps) {
-  const supabase = useSupabaseClient()
-  const { userId } = useSessionData()
+  const supabaseRef = useSupabaseClient()
+  const sessionRef = useSession()
   const [showToast, setShowToast] = useState<string | null>(null)
   const [userType, setUserType] = useState<UserType>('Client')
   const [openChangeOffice, setOpenChangeOffice] = useState<boolean>(false)
@@ -36,7 +36,11 @@ export default function Editor({ loading, setLoading, setStatusMessage }: Accoun
 
   const prefillForm = useCallback(async () => {
     setLoading(true)
-    const { data, error } = await supabase.from('User').select().eq('id', userId).single()
+    const { data, error } = await supabaseRef.current
+      .from('User')
+      .select()
+      .eq('id', sessionRef.current.user.id)
+      .single()
     if (error || data === null) {
       setStatusMessage(
         'Something went wrong when trying to fetch your account information! Try again later.',
@@ -46,10 +50,10 @@ export default function Editor({ loading, setLoading, setStatusMessage }: Accoun
       setFormModel(data)
       setUserType(data.userType)
       if (data.userType === 'Lawyer') {
-        const { data: lawyerData, error: lawyerError } = await supabase
+        const { data: lawyerData, error: lawyerError } = await supabaseRef.current
           .from('UserLawyer')
           .select('officeId(id, name)')
-          .eq('id', userId)
+          .eq('id', sessionRef.current.user.id)
           .single()
         if (lawyerError) {
           setStatusMessage(
@@ -62,7 +66,7 @@ export default function Editor({ loading, setLoading, setStatusMessage }: Accoun
       }
     }
     setLoading(false)
-  }, [setLoading, setStatusMessage, supabase, userId])
+  }, [sessionRef, setLoading, setStatusMessage, supabaseRef])
 
   // Filling the form with the user's existing data before presenting it for editing:
   useEffect(() => {
@@ -84,10 +88,10 @@ export default function Editor({ loading, setLoading, setStatusMessage }: Accoun
     let failed = false
     // Creating law office and updating lawyer profile if specified:
     if (officeSelection !== undefined && officeSelection?.selectedOfficeId === undefined) {
-      const { data, error: insertError } = await supabase
+      const { data, error: insertError } = await supabaseRef.current
         .from('LawOffice')
         .insert({
-          administratorId: userId,
+          administratorId: sessionRef.current.user.id,
           name: officeSelection.newOfficeName,
         })
         .select()
@@ -95,9 +99,9 @@ export default function Editor({ loading, setLoading, setStatusMessage }: Accoun
       let upsertError: PostgrestError | null = null
       if (data !== null) {
         // Updating lawyer profile:
-        const { error: upsertInnerError } = await supabase
+        const { error: upsertInnerError } = await supabaseRef.current
           .from('UserLawyer')
-          .upsert({ id: userId, officeId: data.id }, { onConflict: 'id' })
+          .upsert({ id: sessionRef.current.user.id, officeId: data.id }, { onConflict: 'id' })
           .single()
         upsertError = upsertInnerError
         setCurrentOffice({ id: data.id, name: officeSelection.newOfficeName })
@@ -110,9 +114,12 @@ export default function Editor({ loading, setLoading, setStatusMessage }: Accoun
       }
     } else if (officeSelection !== undefined && officeSelection?.selectedOfficeId !== undefined) {
       // Updating lawyer profile to existing law office if specified:
-      const { error: upsertError } = await supabase
+      const { error: upsertError } = await supabaseRef.current
         .from('UserLawyer')
-        .upsert({ id: userId, officeId: officeSelection.selectedOfficeId }, { onConflict: 'id' })
+        .upsert(
+          { id: sessionRef.current.user.id, officeId: officeSelection.selectedOfficeId },
+          { onConflict: 'id' },
+        )
         .single()
       setCurrentOffice({
         id: officeSelection.selectedOfficeId,
@@ -127,7 +134,7 @@ export default function Editor({ loading, setLoading, setStatusMessage }: Accoun
     }
     // Updating profile:
     if (!failed) {
-      const { error: updateError } = await supabase
+      const { error: updateError } = await supabaseRef.current
         .from('User')
         .update({
           firstName: formModel.firstName,
@@ -135,7 +142,7 @@ export default function Editor({ loading, setLoading, setStatusMessage }: Accoun
           email: formModel.email,
           phoneNumber: formModel.phoneNumber,
         })
-        .eq('id', userId)
+        .eq('id', sessionRef.current.user.id)
         .single()
       if (updateError) {
         failed = true
@@ -156,7 +163,7 @@ export default function Editor({ loading, setLoading, setStatusMessage }: Accoun
     e.preventDefault()
     setLoading(true)
     try {
-      await supabase.auth.signOut()
+      await supabaseRef.current.auth.signOut()
     } catch {
       setStatusMessage('Something went wrong when trying to log out! Try again later.')
     } finally {
@@ -229,7 +236,6 @@ export default function Editor({ loading, setLoading, setStatusMessage }: Accoun
                   loading={loading}
                   currentOffice={currentOffice}
                   setSelection={setOfficeSelection}
-                  supabase={supabase}
                 />
               )}
             </Container>
@@ -244,7 +250,7 @@ export default function Editor({ loading, setLoading, setStatusMessage }: Accoun
             </>
           )}
           <Card.Text className="mt-3">Your User Type: {userType}</Card.Text>
-          <Card.Text className="mt-3">Your User ID: {userId}</Card.Text>
+          <Card.Text className="mt-3">Your User ID: {sessionRef.current.user.id}</Card.Text>
 
           <Button disabled={loading} variant="primary" type="submit">
             Save Changes

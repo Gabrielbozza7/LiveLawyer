@@ -11,12 +11,12 @@ import {
   ServerToClientEvents,
 } from 'livelawyerlibrary/socket-event-definitions'
 import { twilioIdentityToInfo, UserType } from 'livelawyerlibrary'
-import { usePublicEnv, useSessionData, useSupabaseClient } from '@/components/ContextManager'
+import { usePublicEnv, useSession, useSupabaseClient } from 'livelawyerlibrary/context-manager'
 
 export function Call() {
   const env = usePublicEnv()
-  const supabase = useSupabaseClient()
-  const { userId, accessToken } = useSessionData()
+  const supabaseRef = useSupabaseClient()
+  const sessionRef = useSession()
   const socketRef = useRef<Socket<ServerToClientEvents, ClientToServerEvents>>(
     io(env.backendUrl, { autoConnect: false }),
   )
@@ -158,6 +158,7 @@ export function Call() {
     socketRef.current.connect()
     await connectPromise
     socketRef.current.off('connect', connectPromiseResolver)
+    const accessToken = sessionRef.current.access_token
     const authResult = await socketRef.current.emitWithAck('authenticate', {
       accessToken,
       coordinates: lawyerCoordinates,
@@ -244,10 +245,10 @@ export function Call() {
     if (placeholder === 'Loading...') {
       ;(async () => {
         // Fetching data for the logged in user (if any):
-        const { data, error } = await supabase
+        const { data, error } = await supabaseRef.current
           .from('User')
           .select('userType')
-          .eq('id', userId)
+          .eq('id', sessionRef.current.user.id)
           .single()
         if (error) {
           setPlaceholder(
@@ -267,7 +268,7 @@ export function Call() {
     return () => {
       socket.disconnect()
     }
-  }, [placeholder, supabase, userId, userType])
+  }, [placeholder, sessionRef, supabaseRef, userType])
 
   return (
     <div>

@@ -1,6 +1,6 @@
+import { useSupabaseClient } from 'livelawyerlibrary/context-manager'
 import { FormEvent, useState } from 'react'
 import { Button, Card, Form, Toast } from 'react-bootstrap'
-import { useSupabaseClient } from '../ContextManager'
 
 interface FormModel {
   firstName: string
@@ -13,7 +13,7 @@ interface FormModel {
 }
 
 export default function Register() {
-  const supabase = useSupabaseClient()
+  const supabaseRef = useSupabaseClient()
   const [loading, setLoading] = useState<boolean>(false)
   const [showToast, setShowToast] = useState<string | null>(null)
   const [passwordsMatch, setPasswordsMatch] = useState<boolean>(true)
@@ -56,7 +56,7 @@ export default function Register() {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
-    const { error: signUpError } = await supabase.auth.signUp({
+    const { error: signUpError } = await supabaseRef.current.auth.signUp({
       email: formModel.email,
       password: formModel.password,
     })
@@ -67,13 +67,13 @@ export default function Register() {
     const {
       data: { session },
       error: sessionError,
-    } = await supabase.auth.getSession()
+    } = await supabaseRef.current.auth.getSession()
     if (sessionError || session === null) {
       // TODO: This currently results in the database entry being messed up; replace with something safer if this happens.
       setShowToast('Something went wrong when trying to update your info!')
       return
     }
-    const { error: updateError } = await supabase
+    const { error: updateError } = await supabaseRef.current
       .from('User')
       .update({
         firstName: formModel.firstName,
