@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react'
 import { StyleSheet, View, Alert } from 'react-native'
 import { Button, Input } from '@rneui/themed'
 import { Session, SupabaseClient } from '@supabase/supabase-js'
-import { useSupabaseClient } from './context-manager'
+import { useSupabaseClient } from 'livelawyerlibrary/context-manager'
 
 export default function Account({ session }: { session: Session }) {
-  const supabase = useSupabaseClient()
+  const supabaseRef = useSupabaseClient()
   const [loading, setLoading] = useState(true)
   const [username, setUsername] = useState('')
   const [website, setWebsite] = useState('')
@@ -22,7 +22,7 @@ export default function Account({ session }: { session: Session }) {
 
       // We don't have a table called 'profiles', so I think that this logic is unfinished.
       // I noticed it when switching the app over to use the type-safe Supabase client.
-      const { data, error, status } = await (supabase as SupabaseClient)
+      const { data, error, status } = await (supabaseRef.current as unknown as SupabaseClient)
         .from('profiles')
         .select(`username, website, avatar_url`)
         .eq('id', session?.user.id)
@@ -66,7 +66,9 @@ export default function Account({ session }: { session: Session }) {
         updated_at: new Date(),
       }
 
-      const { error } = await (supabase as SupabaseClient).from('profiles').upsert(updates)
+      const { error } = await (supabaseRef.current as unknown as SupabaseClient)
+        .from('profiles')
+        .upsert(updates)
 
       if (error) {
         throw error
@@ -103,7 +105,7 @@ export default function Account({ session }: { session: Session }) {
       </View>
 
       <View style={styles.verticallySpaced}>
-        <Button title="Sign Out" onPress={() => supabase.auth.signOut()} />
+        <Button title="Sign Out" onPress={() => supabaseRef.current.auth.signOut()} />
       </View>
     </View>
   )

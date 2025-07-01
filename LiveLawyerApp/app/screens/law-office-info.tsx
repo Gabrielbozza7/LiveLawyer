@@ -4,11 +4,11 @@ import { Styles } from '@/constants/Styles'
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
 import { router, useLocalSearchParams } from 'expo-router'
 import { LawOfficeDetailsSingle } from 'livelawyerlibrary/api/types/law-office'
-import { useSessionData } from '../components/context-manager'
+import { useApi } from 'livelawyerlibrary/context-manager'
 
 export default function LawOfficeInfo() {
   const { id }: { id: string | undefined } = useLocalSearchParams() as { id: string | undefined }
-  const { api } = useSessionData()
+  const apiRef = useApi()
   const [officeInfo, setLawOfficeInfo] = useState<LawOfficeDetailsSingle | null>(null)
 
   useEffect(() => {
@@ -17,7 +17,7 @@ export default function LawOfficeInfo() {
     } else {
       ;(async () => {
         try {
-          const result = await api.fetchLawOfficeDetails(id)
+          const result = await apiRef.current.fetchLawOfficeDetails(id)
           setLawOfficeInfo(result.details)
         } catch {
           Alert.alert('Something went wrong when trying to fetch that law office! Try again later.')

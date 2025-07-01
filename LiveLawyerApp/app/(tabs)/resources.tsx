@@ -1,18 +1,18 @@
 import { Colors } from '@/constants/Colors'
 import { Styles } from '@/constants/Styles'
+import { useSession, useSupabaseClient } from 'livelawyerlibrary/context-manager'
 import { Alert, Button, Linking, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
-import { useSessionData, useSupabaseClient } from '../components/context-manager'
 
 export default function Resources() {
-  const supabase = useSupabaseClient()
-  const { userId } = useSessionData()
+  const supabaseRef = useSupabaseClient()
+  const sessionRef = useSession()
   const handleOpenURL = () => {
     Linking.openURL('https://www.findlaw.com/traffic/traffic-tickets/state-traffic-laws.html')
   }
   // Logout
   const logOut = async () => {
-    const { error } = await supabase.auth.signOut()
+    const { error } = await supabaseRef.current.auth.signOut()
     if (error) {
       Alert.alert('Failed to log out.', error.message)
     }
@@ -36,7 +36,7 @@ export default function Resources() {
           />
         </View>
         <View>
-          <Text>{userId}</Text>
+          <Text>{sessionRef.current.user.id}</Text>
         </View>
       </SafeAreaView>
     </SafeAreaProvider>

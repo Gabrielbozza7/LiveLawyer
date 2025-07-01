@@ -5,7 +5,7 @@ import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context'
 import * as Location from 'expo-location'
 import { setCoordinates } from '@/components/locationStore'
 import { router } from 'expo-router'
-import { useSupabaseClient } from '../components/context-manager'
+import { useSupabaseClient } from 'livelawyerlibrary/context-manager'
 
 interface LawOfficeListingProps {
   id: string
@@ -24,7 +24,7 @@ function LawOfficeListing({ id, name }: LawOfficeListingProps) {
 }
 
 export default function LawyerView() {
-  const supabase = useSupabaseClient()
+  const supabaseRef = useSupabaseClient()
   const [offices, setOffices] = useState<LawOfficeListingProps[]>([])
   const [placeholder, setPlaceholder] = useState<string | null>('Loading...')
   const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(null)
@@ -41,7 +41,7 @@ export default function LawyerView() {
       }
     }
     const refreshLawOffices = async () => {
-      const { data, error } = await supabase.from('LawOffice').select('id, name')
+      const { data, error } = await supabaseRef.current.from('LawOffice').select('id, name')
       if (data) {
         setOffices(data)
       }

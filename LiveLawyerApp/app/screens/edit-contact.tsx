@@ -2,23 +2,23 @@ import { useEffect, useState } from 'react'
 import { View, Text, TextInput, Button, ActivityIndicator, Alert } from 'react-native'
 import { Styles } from '@/constants/Styles'
 import { Database } from 'livelawyerlibrary/database-types'
-import { useSessionData, useSupabaseClient } from '../components/context-manager'
 import { router, useLocalSearchParams } from 'expo-router'
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
+import { useSession, useSupabaseClient } from 'livelawyerlibrary/context-manager'
 
 export default function EditContact() {
-  const supabase = useSupabaseClient()
-  const { userId } = useSessionData()
+  const supabaseRef = useSupabaseClient()
+  const sessionRef = useSession()
   const { id }: { id: string | undefined } = useLocalSearchParams() as { id: string | undefined }
   const [contactModel, setContactModel] = useState<
     Database['public']['Tables']['Contact']['Insert']
-  >({ userId, name: '', phoneNumber: '+1' })
+  >({ userId: sessionRef.current.user.id, name: '', phoneNumber: '+1' })
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     ;(async () => {
       if (id !== undefined) {
-        const { data: contact, error } = await supabase
+        const { data: contact, error } = await supabaseRef.current
           .from('Contact')
           .select()
           .eq('id', id)
@@ -35,7 +35,7 @@ export default function EditContact() {
 
   const handleSave = async () => {
     setLoading(true)
-    const { error } = await supabase.from('Contact').upsert(contactModel)
+    const { error } = await supabaseRef.current.from('Contact').upsert(contactModel)
     setLoading(false)
 
     if (error) {
@@ -52,7 +52,7 @@ export default function EditContact() {
       return
     }
     setLoading(true)
-    const { error } = await supabase.from('Contact').delete().eq('id', id)
+    const { error } = await supabaseRef.current.from('Contact').delete().eq('id', id)
     setLoading(false)
 
     if (error) {

@@ -1,15 +1,13 @@
 import { useEffect, useState } from 'react'
-import LiveLawyerApi from 'livelawyerlibrary/api/LiveLawyerApi'
 import { CallHistorySingle } from 'livelawyerlibrary/api/types/call-history'
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
 import { Styles } from '@/constants/Styles'
 import { Text, Button, FlatList, View } from 'react-native'
-import { BACKEND_URL } from '@/constants/BackendVariables'
 import { Colors } from '@/constants/Colors'
-import { useSupabaseClient } from '../components/context-manager'
+import { useApi } from 'livelawyerlibrary/context-manager'
 
 export default function History() {
-  const supabase = useSupabaseClient()
+  const apiRef = useApi()
   const [history, setHistory] = useState<CallHistorySingle[]>([])
   const [placeholder, setPlaceholder] = useState<string | null>('Loading...')
 
@@ -18,17 +16,8 @@ export default function History() {
   }, [])
 
   const refreshHistory = async () => {
-    const {
-      data: { session },
-      error,
-    } = await supabase.auth.getSession()
-    if (error || session === null) {
-      setPlaceholder('Your session is invalid! Try restarting the app or logging in again.')
-      return
-    }
-    const api = new LiveLawyerApi(BACKEND_URL, session.access_token)
     try {
-      const response = await api.fetchCallHistory()
+      const response = await apiRef.current.fetchCallHistory()
       if (response.history) {
         setHistory(response.history)
       }

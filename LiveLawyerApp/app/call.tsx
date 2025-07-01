@@ -11,10 +11,10 @@ import {
   ServerToClientEvents,
 } from 'livelawyerlibrary/socket-event-definitions'
 import { BACKEND_URL } from '@/constants/BackendVariables'
-import { useSupabaseClient } from './components/context-manager'
+import { useSession } from 'livelawyerlibrary/context-manager'
 
 export default function Call() {
-  const supabase = useSupabaseClient()
+  const sessionRef = useSession()
   const coordinates = getCoordinates()
   const router = useRouter()
   const socketRef = useRef<Socket<ServerToClientEvents, ClientToServerEvents>>(
@@ -45,14 +45,7 @@ export default function Call() {
       // Only runs for initialization even with strict mode
       setInCall(false)
       ;(async (): Promise<void> => {
-        // Get User ID
-        const {
-          data: { session },
-        } = await supabase.auth.getSession()
-        if (session === null) {
-          Alert.alert('Your session is invalid! Try restarting the app or logging in again.')
-          router.back()
-        } else if (coordinates === null) {
+        if (coordinates === null) {
           Alert.alert(
             "Your location could not be read! Try restarting the app or changing the app's permissions",
           )
@@ -73,7 +66,7 @@ export default function Call() {
           await connectPromise
           socketRef.current.off('connect', connectPromiseResolver)
           const authResult = await socketRef.current.emitWithAck('authenticate', {
-            accessToken: session.access_token,
+            accessToken: sessionRef.current.access_token,
             coordinates,
           })
           if (authResult.result === 'INVALID_AUTH') {

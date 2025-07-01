@@ -1,4 +1,3 @@
-import { RefObject } from 'react'
 import {
   RequestParamsCallHistoryDetails,
   RequestParamsCallHistoryDownload,
@@ -18,15 +17,14 @@ import {
   ROUTE_LAW_OFFICE_DETAILS,
   ROUTER_LAW_OFFICE,
 } from './types/law-office'
-import { Session } from '@supabase/supabase-js'
 
 export default class LiveLawyerApi {
   private readonly _baseUrl: string
-  private readonly _sessionRef: RefObject<Session>
+  private readonly _accessTokenFetcher: () => string
 
-  constructor(backendUrl: string, sessionRef: RefObject<Session>) {
+  constructor(backendUrl: string, accessTokenFetcher: () => string) {
     this._baseUrl = backendUrl
-    this._sessionRef = sessionRef
+    this._accessTokenFetcher = accessTokenFetcher
   }
 
   private async fetchFromApi<Q extends object, R extends object>(
@@ -34,7 +32,7 @@ export default class LiveLawyerApi {
     route: string,
     queryParams: Q,
   ): Promise<R> {
-    const encodedQueryParams = `${new URLSearchParams({ accessToken: this._sessionRef.current.access_token, ...queryParams })}`
+    const encodedQueryParams = `${new URLSearchParams({ accessToken: this._accessTokenFetcher(), ...queryParams })}`
     const response = await fetch(new URL(`${router + route}?${encodedQueryParams}`, this._baseUrl))
     const json = (await response.json()) as ApiResponse<R>
     if (json.success) {

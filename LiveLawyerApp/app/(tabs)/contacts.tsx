@@ -2,10 +2,10 @@ import { Colors } from '@/constants/Colors'
 import { Styles } from '@/constants/Styles'
 import { Text, View, Button, Linking, TouchableOpacity, FlatList } from 'react-native'
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context'
-import { useSessionData, useSupabaseClient } from '../components/context-manager'
 import { Database } from 'livelawyerlibrary/database-types'
 import { useEffect, useState } from 'react'
 import { router } from 'expo-router'
+import { useSession, useSupabaseClient } from 'livelawyerlibrary/context-manager'
 
 interface ContactDisplayProps {
   id: string
@@ -35,8 +35,8 @@ function ContactDisplay({ id, name, phone }: ContactDisplayProps) {
 }
 
 export default function Contacts() {
-  const supabase = useSupabaseClient()
-  const { userId } = useSessionData()
+  const supabaseRef = useSupabaseClient()
+  const sessionRef = useSession()
   const [contacts, setContacts] = useState<Database['public']['Tables']['Contact']['Row'][]>([])
   const [placeholder, setPlaceholder] = useState<string | null>('Loading...')
 
@@ -45,7 +45,10 @@ export default function Contacts() {
   }, [])
 
   const refreshContacts = async () => {
-    const { data, error } = await supabase.from('Contact').select().eq('userId', userId)
+    const { data, error } = await supabaseRef.current
+      .from('Contact')
+      .select()
+      .eq('userId', sessionRef.current.user.id)
     if (data) {
       setContacts(data)
     }

@@ -1,17 +1,17 @@
 import React, { useState } from 'react'
 import { Alert, StyleSheet, View } from 'react-native'
 import { Button, Input } from '@rneui/themed'
-import { useSupabaseClient } from '../components/context-manager'
+import { useSupabaseClient } from 'livelawyerlibrary/context-manager'
 
 export default function Login() {
-  const supabase = useSupabaseClient()
+  const supabaseRef = useSupabaseClient()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
 
   async function signInWithEmail() {
     setLoading(true)
-    const { error } = await supabase.auth.signInWithPassword({
+    const { error } = await supabaseRef.current.auth.signInWithPassword({
       email: email,
       password: password,
     })
@@ -25,7 +25,7 @@ export default function Login() {
     const {
       data: { session },
       error,
-    } = await supabase.auth.signUp({
+    } = await supabaseRef.current.auth.signUp({
       email: email,
       password: password,
     })

@@ -1,5 +1,5 @@
 'use client'
-import { createClient, Session, SupabaseClient } from '@supabase/supabase-js'
+import { createClient, Session, SupabaseClient, SupportedStorage } from '@supabase/supabase-js'
 import { Database } from './database-types'
 import React, {
   createContext,
@@ -68,6 +68,7 @@ export function useApi(): RefObject<LiveLawyerApi> {
 interface ContextManagerProps {
   env: PublicEnv
   sessionlessComponent: ReactNode
+  storage?: SupportedStorage
   loadingComponent?: ReactNode
   children?: ReactNode
 }
@@ -75,24 +76,33 @@ interface ContextManagerProps {
 export function ContextManager({
   env,
   sessionlessComponent,
+  storage,
   loadingComponent,
   children,
 }: ContextManagerProps) {
   const supabaseClientRef = useRef<SupabaseClient<Database> | null>(null)
-  const sessionRef = useRef<Session>(null)
+  const sessionRef = useRef<Session | null>(null)
   const [userType, setUserType] = useState<Database['public']['Enums']['UserType'] | null>(null)
-  const apiRef = useRef<LiveLawyerApi>(null)
+  const apiRef = useRef<LiveLawyerApi | null>(null)
   const [clientInitialized, setClientInitialized] = useState<boolean>(false)
 
   useEffect(() => {
     supabaseClientRef.current = createClient(env.supabaseUrl, env.supabaseAnonKey, {
-      auth: { autoRefreshToken: true },
+      auth: {
+        storage,
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: false,
+      },
     })
-    apiRef.current = new LiveLawyerApi(env.backendUrl, sessionRef as RefObject<Session>)
+    console.log(supabaseClientRef.current === null)
+    apiRef.current = new LiveLawyerApi(
+      env.backendUrl,
+      () => (sessionRef as RefObject<Session>).current?.access_token,
+    )
     const {
       data: { subscription },
     } = supabaseClientRef.current.auth.onAuthStateChange((event, session) => {
-      console.log('auth event: ' + event)
       if (sessionRef.current !== session) {
         sessionRef.current = session
       }
@@ -123,9 +133,9 @@ export function ContextManager({
             ) : (
               <SessionContext.Provider value={sessionRef as RefObject<Session>}>
                 <UserTypeContext.Provider value={userType}>
-                  <ApiContext value={apiRef as RefObject<LiveLawyerApi>}>
+                  <ApiContext.Provider value={apiRef as RefObject<LiveLawyerApi>}>
                     {children ?? <></>}
-                  </ApiContext>
+                  </ApiContext.Provider>
                 </UserTypeContext.Provider>
               </SessionContext.Provider>
             )}

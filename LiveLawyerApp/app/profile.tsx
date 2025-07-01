@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
 import { View, Text, TextInput, Button, ActivityIndicator, Alert } from 'react-native'
 import { Styles } from '@/constants/Styles'
-import { useSessionData, useSupabaseClient } from './components/context-manager'
 import { Database } from 'livelawyerlibrary/database-types'
+import { useSession, useSupabaseClient } from 'livelawyerlibrary/context-manager'
 
 export default function Profile() {
-  const supabase = useSupabaseClient()
-  const { userId } = useSessionData()
+  const supabaseRef = useSupabaseClient()
+  const sessionRef = useSession()
   const [userInfo, setUserInfo] = useState<Database['public']['Tables']['User']['Row'] | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -14,10 +14,10 @@ export default function Profile() {
 
   useEffect(() => {
     ;(async () => {
-      const { data: userData, error: userError } = await supabase
+      const { data: userData, error: userError } = await supabaseRef.current
         .from('User')
         .select()
-        .eq('id', userId)
+        .eq('id', sessionRef.current.user.id)
         .single()
 
       if (userData) setUserInfo(userData)
@@ -31,7 +31,7 @@ export default function Profile() {
     if (!userInfo) return
     setSaving(true)
 
-    const { error } = await supabase
+    const { error } = await supabaseRef.current
       .from('User')
       .update({
         firstName: userInfo.firstName,
