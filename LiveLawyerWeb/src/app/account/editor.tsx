@@ -5,6 +5,7 @@ import OfficeSelector, { OfficeOption, OfficeSelection } from './office-selector
 import { PostgrestError } from '@supabase/supabase-js'
 import { UserType } from 'livelawyerlibrary'
 import { useSession, useSupabaseClient } from 'livelawyerlibrary/context-manager'
+import { useRouter } from 'next/navigation'
 
 interface FormModel {
   firstName: string
@@ -15,6 +16,7 @@ interface FormModel {
 }
 
 export default function Editor({ loading, setLoading, setStatusMessage }: AccountSubFormProps) {
+  const router = useRouter()
   const supabaseRef = useSupabaseClient()
   const sessionRef = useSession()
   const [showToast, setShowToast] = useState<string | null>(null)
@@ -164,6 +166,7 @@ export default function Editor({ loading, setLoading, setStatusMessage }: Accoun
     setLoading(true)
     try {
       await supabaseRef.current.auth.signOut()
+      router.push('/')
     } catch {
       setStatusMessage('Something went wrong when trying to log out! Try again later.')
     } finally {

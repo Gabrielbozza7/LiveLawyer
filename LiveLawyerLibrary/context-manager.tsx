@@ -95,7 +95,6 @@ export function ContextManager({
         detectSessionInUrl: false,
       },
     })
-    console.log(supabaseClientRef.current === null)
     apiRef.current = new LiveLawyerApi(
       env.backendUrl,
       () => (sessionRef as RefObject<Session>).current?.access_token,
@@ -112,6 +111,8 @@ export function ContextManager({
           (decodedJwt as { user_metadata: { user_type: string } }).user_metadata
             .user_type as Database['public']['Enums']['UserType'],
         )
+      } else {
+        setUserType(null)
       }
     })
     setClientInitialized(true)
