@@ -70,6 +70,7 @@ interface ContextManagerProps {
   sessionlessComponent: ReactNode
   storage?: SupportedStorage
   loadingComponent?: ReactNode
+  uninitializedUserComponent?: ReactNode
   children?: ReactNode
 }
 
@@ -78,6 +79,7 @@ export function ContextManager({
   sessionlessComponent,
   storage,
   loadingComponent,
+  uninitializedUserComponent,
   children,
 }: ContextManagerProps) {
   const supabaseClientRef = useRef<SupabaseClient<Database> | null>(null)
@@ -135,7 +137,11 @@ export function ContextManager({
               <SessionContext.Provider value={sessionRef as RefObject<Session>}>
                 <UserTypeContext.Provider value={userType}>
                   <ApiContext.Provider value={apiRef as RefObject<LiveLawyerApi>}>
-                    {children ?? <></>}
+                    {uninitializedUserComponent !== undefined && userType === 'Uninitialized' ? (
+                      <>{uninitializedUserComponent}</>
+                    ) : (
+                      <>{children ?? <></>}</>
+                    )}
                   </ApiContext.Provider>
                 </UserTypeContext.Provider>
               </SessionContext.Provider>

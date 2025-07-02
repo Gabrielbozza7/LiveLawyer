@@ -56,10 +56,10 @@ export default function Editor({ loading, setLoading, setStatusMessage }: Accoun
           .from('UserLawyer')
           .select('officeId(id, name)')
           .eq('id', sessionRef.current.user.id)
-          .single()
+          .maybeSingle()
         if (lawyerError) {
           setStatusMessage(
-            'Something went wrong when trying to fetch your lawyer information! Try again later.',
+            `Something went wrong when trying to fetch your lawyer information! Try again later. (${lawyerError.message})`,
           )
         }
         if (lawyerData?.officeId) {

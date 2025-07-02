@@ -1,11 +1,12 @@
 import 'react-native-reanimated'
 import { Stack } from 'expo-router'
-import Login from './auth/login'
+import Login from '../components/auth/login-register'
 import * as SecureStore from 'expo-secure-store'
 import { ContextManager } from 'livelawyerlibrary/context-manager'
 import { Text } from 'react-native'
 import { BACKEND_URL } from '@/constants/BackendVariables'
-import { AuthRefreshManager } from '../components/auth-refresh-manager'
+import { AuthRefreshManager } from '../components/auth/auth-refresh-manager'
+import CompleteRegistration from '@/components/auth/complete-registration'
 
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY
@@ -33,6 +34,7 @@ export default function RootLayout() {
       storage={ExpoSecureStoreAdapter}
       loadingComponent={<Text>Loading...</Text>}
       sessionlessComponent={<Login />}
+      uninitializedUserComponent={<CompleteRegistration />}
     >
       <AuthRefreshManager>
         <Stack>

@@ -1,9 +1,10 @@
 import 'bootstrap/dist/css/bootstrap.min.css'
 import { ContextManager } from 'livelawyerlibrary/context-manager'
-import LiveLawyerNav from '@/components/LiveLawyerNav'
-import SessionlessMenu from '@/components/sessionless/SessionlessMenu'
+import LoginRegister from '@/components/auth/login-register'
 import { BACKEND_URL, SUPABASE_ANON_KEY, SUPABASE_URL } from 'livelawyerlibrary/env'
 import type { Metadata } from 'next'
+import CompleteRegistration from '@/components/auth/complete-registration'
+import LiveLawyerNav from '@/components/LiveLawyerNav'
 
 export const metadata: Metadata = {
   description: 'Live Lawyer Web',
@@ -24,7 +25,8 @@ export default function RootLayout({
             backendUrl: BACKEND_URL,
           }}
           loadingComponent={<p>Loading...</p>}
-          sessionlessComponent={<SessionlessMenu />}
+          sessionlessComponent={<LoginRegister />}
+          uninitializedUserComponent={<CompleteRegistration />}
         >
           <LiveLawyerNav />
           {children}

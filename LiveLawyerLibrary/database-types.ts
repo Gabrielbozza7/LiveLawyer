@@ -202,7 +202,7 @@ export type Database = {
           id?: string
           name: string
           phoneNumber: string
-          userId: string
+          userId?: string
         }
         Update: {
           id?: string
@@ -286,17 +286,17 @@ export type Database = {
           firstName: string
           id: string
           lastName: string
-          phoneNumber: string
+          phoneNumber: string | null
           profPicUrl: string | null
           userType: Database['public']['Enums']['UserType']
         }
         Insert: {
           dateJoined?: string
           email: string
-          firstName: string
+          firstName?: string
           id: string
-          lastName: string
-          phoneNumber: string
+          lastName?: string
+          phoneNumber?: string | null
           profPicUrl?: string | null
           userType?: Database['public']['Enums']['UserType']
         }
@@ -306,7 +306,7 @@ export type Database = {
           firstName?: string
           id?: string
           lastName?: string
-          phoneNumber?: string
+          phoneNumber?: string | null
           profPicUrl?: string | null
           userType?: Database['public']['Enums']['UserType']
         }
@@ -347,12 +347,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      custom_access_token_hook: {
+        Args: { event: Json }
+        Returns: Json
+      }
     }
     Enums: {
       Action: 'Ended Call' | 'Token Issued' | 'Connected' | 'Disconnected'
       TrackType: 'Audio' | 'Video'
-      UserType: 'Observer' | 'Lawyer' | 'Client' | 'Dev'
+      UserType: 'Uninitialized' | 'Observer' | 'Lawyer' | 'Client' | 'Dev'
     }
     CompositeTypes: {
       [_ in never]: never
@@ -469,7 +472,7 @@ export const Constants = {
     Enums: {
       Action: ['Ended Call', 'Token Issued', 'Connected', 'Disconnected'],
       TrackType: ['Audio', 'Video'],
-      UserType: ['Observer', 'Lawyer', 'Client', 'Dev'],
+      UserType: ['Uninitialized', 'Observer', 'Lawyer', 'Client', 'Dev'],
     },
   },
 } as const
