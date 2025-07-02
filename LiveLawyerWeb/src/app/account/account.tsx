@@ -5,8 +5,9 @@ import UserEditor from './user-editor'
 import { useUserType } from 'livelawyerlibrary/context-manager'
 import OfficeMenu from './office-menu'
 import { Database } from 'livelawyerlibrary/database-types'
+import StatesSelector from './states-selector'
 
-export type ActiveForm = 'UserEditor' | 'OfficeMenu'
+export type ActiveForm = 'UserEditor' | 'StatesSelector' | 'OfficeMenu'
 
 export interface AccountSubFormProps {
   loading: boolean
@@ -42,16 +43,31 @@ export default function Account() {
               User
             </Button>
             {userType === 'Lawyer' && (
-              <Button
-                variant="primary"
-                onClick={() => setActiveForm('OfficeMenu')}
-                className="mt-3"
-              >
-                Office
-              </Button>
+              <>
+                <Button
+                  variant="primary"
+                  onClick={() => setActiveForm('StatesSelector')}
+                  className="mt-3"
+                >
+                  States
+                </Button>
+                <Button
+                  variant="primary"
+                  onClick={() => setActiveForm('OfficeMenu')}
+                  className="mt-3"
+                >
+                  Office
+                </Button>
+              </>
             )}
             {activeForm === 'UserEditor' ? (
               <UserEditor
+                loading={loading}
+                setLoading={setLoading}
+                setStatusMessage={setStatusMessage}
+              />
+            ) : activeForm === 'StatesSelector' ? (
+              <StatesSelector
                 loading={loading}
                 setLoading={setLoading}
                 setStatusMessage={setStatusMessage}

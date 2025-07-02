@@ -327,14 +327,17 @@ export type Database = {
       UserLawyer: {
         Row: {
           id: string
+          licensedStates: Database['public']['Enums']['UsState'][]
           officeId: string | null
         }
         Insert: {
           id: string
+          licensedStates?: Database['public']['Enums']['UsState'][]
           officeId?: string | null
         }
         Update: {
           id?: string
+          licensedStates?: Database['public']['Enums']['UsState'][]
           officeId?: string | null
         }
         Relationships: [
@@ -368,6 +371,57 @@ export type Database = {
       Action: 'Ended Call' | 'Token Issued' | 'Connected' | 'Disconnected'
       TrackType: 'Audio' | 'Video'
       UserType: 'Uninitialized' | 'Observer' | 'Lawyer' | 'Client' | 'Dev'
+      UsState:
+        | 'AL'
+        | 'AK'
+        | 'AZ'
+        | 'AR'
+        | 'CA'
+        | 'CO'
+        | 'CT'
+        | 'DE'
+        | 'FL'
+        | 'GA'
+        | 'HI'
+        | 'ID'
+        | 'IL'
+        | 'IN'
+        | 'IA'
+        | 'KS'
+        | 'KY'
+        | 'LA'
+        | 'ME'
+        | 'MD'
+        | 'MA'
+        | 'MI'
+        | 'MN'
+        | 'MS'
+        | 'MO'
+        | 'MT'
+        | 'NE'
+        | 'NV'
+        | 'NH'
+        | 'NJ'
+        | 'NM'
+        | 'NY'
+        | 'NC'
+        | 'ND'
+        | 'OH'
+        | 'OK'
+        | 'OR'
+        | 'PA'
+        | 'RI'
+        | 'SC'
+        | 'SD'
+        | 'TN'
+        | 'TX'
+        | 'UT'
+        | 'VT'
+        | 'VA'
+        | 'WA'
+        | 'WV'
+        | 'WI'
+        | 'WY'
     }
     CompositeTypes: {
       [_ in never]: never
@@ -485,6 +539,58 @@ export const Constants = {
       Action: ['Ended Call', 'Token Issued', 'Connected', 'Disconnected'],
       TrackType: ['Audio', 'Video'],
       UserType: ['Uninitialized', 'Observer', 'Lawyer', 'Client', 'Dev'],
+      UsState: [
+        'AL',
+        'AK',
+        'AZ',
+        'AR',
+        'CA',
+        'CO',
+        'CT',
+        'DE',
+        'FL',
+        'GA',
+        'HI',
+        'ID',
+        'IL',
+        'IN',
+        'IA',
+        'KS',
+        'KY',
+        'LA',
+        'ME',
+        'MD',
+        'MA',
+        'MI',
+        'MN',
+        'MS',
+        'MO',
+        'MT',
+        'NE',
+        'NV',
+        'NH',
+        'NJ',
+        'NM',
+        'NY',
+        'NC',
+        'ND',
+        'OH',
+        'OK',
+        'OR',
+        'PA',
+        'RI',
+        'SC',
+        'SD',
+        'TN',
+        'TX',
+        'UT',
+        'VT',
+        'VA',
+        'WA',
+        'WV',
+        'WI',
+        'WY',
+      ],
     },
   },
 } as const
