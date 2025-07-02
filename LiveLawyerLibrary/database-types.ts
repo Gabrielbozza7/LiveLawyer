@@ -222,22 +222,34 @@ export type Database = {
       }
       LawOffice: {
         Row: {
+          address: string | null
           administratorId: string
           createdAt: string
+          email: string | null
           id: string
           name: string
+          phoneNumber: string | null
+          websiteUrl: string | null
         }
         Insert: {
+          address?: string | null
           administratorId: string
           createdAt?: string
+          email?: string | null
           id?: string
           name: string
+          phoneNumber?: string | null
+          websiteUrl?: string | null
         }
         Update: {
+          address?: string | null
           administratorId?: string
           createdAt?: string
+          email?: string | null
           id?: string
           name?: string
+          phoneNumber?: string | null
+          websiteUrl?: string | null
         }
         Relationships: [
           {

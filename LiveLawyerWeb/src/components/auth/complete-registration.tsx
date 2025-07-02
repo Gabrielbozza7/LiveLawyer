@@ -112,6 +112,10 @@ export default function CompleteRegistration() {
                 />
               </Form.Group>
 
+              <Card.Text className="mt-3">
+                Phone number must conform to E.164 format: {phoneNumberValid ? '✔️' : '❌'}
+              </Card.Text>
+
               <Form.Group controlId="formUserType" className="mt-3">
                 <Form.Label>User Type</Form.Label>
                 <Form.Select
@@ -124,10 +128,6 @@ export default function CompleteRegistration() {
                   <option>Lawyer</option>
                 </Form.Select>
               </Form.Group>
-
-              <Card.Text className="mt-3">
-                Phone number must conform to E.164 format: {phoneNumberValid ? '✔️' : '❌'}
-              </Card.Text>
 
               <Button
                 disabled={loading || !phoneNumberValid}

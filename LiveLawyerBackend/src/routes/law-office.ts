@@ -64,7 +64,19 @@ router.get(ROUTE_LAW_OFFICE_DETAILS, async (req: RequestLawOfficeDetails, res) =
         name: `${lawyer.lawyer.firstName} ${lawyer.lawyer.lastName}`,
       }
     })
-    res.status(200).json({ success: true, result: { details: { name: officeData.name, lawyers } } })
+    res.status(200).json({
+      success: true,
+      result: {
+        details: {
+          name: officeData.name,
+          email: officeData.email,
+          phoneNumber: officeData.phoneNumber,
+          websiteUrl: officeData.websiteUrl,
+          address: officeData.address,
+          lawyers,
+        },
+      },
+    })
   } catch (error) {
     console.error(error)
     res.status(500).json({ success: false, error: 'Error' })

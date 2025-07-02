@@ -1,7 +1,10 @@
 'use client'
+import { useRouter } from 'next/navigation'
 import { Card, Container, Button } from 'react-bootstrap'
 
 export default function Landing() {
+  const router = useRouter()
+
   return (
     <>
       <title>Live Lawyer Web</title>
@@ -14,7 +17,7 @@ export default function Landing() {
               To start your call with a client in the call page, click if you are an observer or a
               lawyer.
             </Card.Text>
-            <Button variant="primary" href="/call">
+            <Button variant="primary" onClick={() => router.push('/call')}>
               Go to Call Page
             </Button>
           </Card.Body>

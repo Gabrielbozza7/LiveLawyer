@@ -2,6 +2,10 @@
 
 export interface LawOfficeDetailsSingle {
   name: string
+  email: string | null
+  phoneNumber: string | null
+  websiteUrl: string | null
+  address: string | null
   lawyers: { id: string; name: string }[]
 }
 

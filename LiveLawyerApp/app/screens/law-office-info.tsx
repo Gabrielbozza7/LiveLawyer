@@ -1,5 +1,15 @@
 import React, { useEffect, useState } from 'react'
-import { Text, TouchableOpacity, Button, Linking, Image, View, Alert, FlatList } from 'react-native'
+import {
+  Text,
+  TouchableOpacity,
+  Button,
+  Linking,
+  Image,
+  View,
+  Alert,
+  FlatList,
+  ScrollView,
+} from 'react-native'
 import { Styles } from '@/constants/Styles'
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
 import { router, useLocalSearchParams } from 'expo-router'
@@ -27,34 +37,51 @@ export default function LawOfficeInfo() {
     }
   }, [id])
 
-  const handleCall = (lawyer: string) => {
-    Linking.openURL(`tel:${lawyer}`)
-  }
-
   return (
     <SafeAreaProvider>
       {officeInfo && (
         <SafeAreaView>
-          <Image
-            // eslint-disable-next-line @typescript-eslint/no-require-imports
-            source={require('@/assets/images/main-call-image.jpeg')}
-            style={Styles.mainLogoButton}
-            resizeMode="contain"
-          />
-          <View style={Styles.lawyerInfoBox}>
-            <Text style={Styles.LawofficeName}>{officeInfo.name}</Text>
-
-            <FlatList
-              data={officeInfo.lawyers}
-              renderItem={({ item }) => <Text style={Styles.nameText}>{item.name}</Text>}
-              keyExtractor={item => item.id}
+          <ScrollView>
+            <Image
+              // eslint-disable-next-line @typescript-eslint/no-require-imports
+              source={require('@/assets/images/main-call-image.jpeg')}
+              style={Styles.mainLogoButton}
+              resizeMode="contain"
             />
+            <View style={Styles.lawyerInfoBox}>
+              <Text style={Styles.LawofficeName}>{officeInfo.name}</Text>
 
-            <TouchableOpacity onPress={() => handleCall('+12223334444')}>
-              <Text style={Styles.phoneText}>+12223334444</Text>
-            </TouchableOpacity>
-          </View>
-          <Button title="Back" onPress={router.back} />
+              {officeInfo.email && (
+                <TouchableOpacity onPress={() => Linking.openURL(`mailto:${officeInfo.email}`)}>
+                  <Text style={Styles.phoneText}>{officeInfo.email}</Text>
+                </TouchableOpacity>
+              )}
+
+              {officeInfo.phoneNumber && (
+                <TouchableOpacity onPress={() => Linking.openURL(`tel:${officeInfo.phoneNumber}`)}>
+                  <Text style={Styles.phoneText}>{officeInfo.phoneNumber}</Text>
+                </TouchableOpacity>
+              )}
+
+              {officeInfo.websiteUrl && (
+                <TouchableOpacity onPress={() => Linking.openURL(officeInfo.websiteUrl!)}>
+                  <Text style={Styles.phoneText}>{officeInfo.websiteUrl}</Text>
+                </TouchableOpacity>
+              )}
+
+              {officeInfo.address && <Text style={Styles.nameText}>{officeInfo.address}</Text>}
+
+              <Text style={Styles.LawofficeName} />
+              <Text style={Styles.LawofficeName}>Lawyers</Text>
+              <FlatList
+                data={officeInfo.lawyers}
+                renderItem={({ item }) => <Text style={Styles.nameText}>{item.name}</Text>}
+                keyExtractor={item => item.id}
+                scrollEnabled={false}
+              />
+            </View>
+            <Button title="Back" onPress={router.back} />
+          </ScrollView>
         </SafeAreaView>
       )}
     </SafeAreaProvider>
