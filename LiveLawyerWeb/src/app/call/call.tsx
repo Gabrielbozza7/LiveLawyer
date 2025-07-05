@@ -3,26 +3,37 @@ import { useState, useEffect, useRef } from 'react'
 import { Participant } from 'twilio-video'
 import TwilioParticipant from '../../components/TwilioParticipant'
 import TwilioVideoRoom from '../../classes/TwilioVideoRoom'
-import { Button, Card, Container, Table, Toast } from 'react-bootstrap'
 import { io, Socket } from 'socket.io-client'
 import {
   ClientToServerEvents,
   ServerToClientEvents,
 } from 'livelawyerlibrary/socket-event-definitions'
 import { twilioIdentityToInfo, UserType } from 'livelawyerlibrary'
-import { usePublicEnv, useSession, useSupabaseClient } from 'livelawyerlibrary/context-manager'
+import {
+  usePublicEnv,
+  useSession,
+  useSupabaseClient,
+  useUserType,
+} from 'livelawyerlibrary/context-manager'
+import Card from '@mui/material/Card'
+import CardContent from '@mui/material/CardContent'
+import Typography from '@mui/material/Typography'
+import Grid from '@mui/material/Grid'
+import Button from '@mui/material/Button'
+import Stack from '@mui/material/Stack'
+import Snackbar from '@mui/material/Snackbar'
+import Alert from '@mui/material/Alert'
 
 export function Call() {
   const env = usePublicEnv()
   const supabaseRef = useSupabaseClient()
   const sessionRef = useSession()
+  const userType = useUserType()
   const socketRef = useRef<Socket<ServerToClientEvents, ClientToServerEvents>>(
     io(env.backendUrl, { autoConnect: false }),
   )
   const socketTokenRef = useRef<string>('')
   const [loading, setLoading] = useState<boolean>(false)
-  const [placeholder, setPlaceholder] = useState<string | null>('Loading...')
-  const [userType, setUserType] = useState<'Observer' | 'Lawyer' | null>(null)
   const videoRoomRef = useRef<TwilioVideoRoom>(new TwilioVideoRoom())
   const [participants, setParticipants] = useState<Participant[]>([])
   const [clientParticipant, setClientParticipant] = useState<Participant | null>(null)
@@ -206,146 +217,140 @@ export function Call() {
   }
 
   useEffect(() => {
-    if (placeholder === 'Loading...') {
-      ;(async () => {
-        // Fetching data for the logged in user (if any):
-        const { data, error } = await supabaseRef.current
-          .from('User')
-          .select('userType')
-          .eq('id', sessionRef.current.user.id)
-          .single()
-        if (error) {
-          setPlaceholder(
-            'Something went wrong when trying to fetch your user data! Try again later.',
-          )
-          return
-        }
-        if (!(data.userType === 'Observer' || data.userType === 'Lawyer')) {
-          setPlaceholder('You must be either an observer or a lawyer to take calls on the website')
-          return
-        }
-        setUserType(data.userType)
-        setPlaceholder(null)
-      })()
-    }
     const socket = socketRef.current
     return () => {
       socket.disconnect()
     }
-  }, [placeholder, sessionRef, supabaseRef, userType])
+  }, [sessionRef, supabaseRef])
 
   return (
-    <div>
+    <>
       <title>Call</title>
-      <Container fluid="md" style={{ margin: 24 }}>
-        {placeholder !== null ? (
+      <Grid
+        container
+        alignItems="center"
+        justifyContent="center"
+        display="flex"
+        sx={{ width: '100%' }}
+        minHeight="85vh"
+      >
+        {!(userType === 'Observer' || userType === 'Lawyer') ? (
           <Card>
-            <Card.Body>{placeholder}</Card.Body>
+            <CardContent>
+              <Typography>
+                You must be either an observer or a lawyer to take calls on the website!
+              </Typography>
+            </CardContent>
           </Card>
-        ) : userType !== null ? (
-          <div>
+        ) : (
+          <>
             {videoRoomRef.current.inARoom ? (
-              <div>
-                <Table>
-                  <thead />
-                  <tbody>
-                    <tr>
-                      {clientParticipant && (
-                        <td>
-                          <TwilioParticipant
-                            room={videoRoomRef.current}
-                            participant={clientParticipant}
-                          />
-                        </td>
-                      )}
-                      {observerParticipant && (
-                        <td>
-                          <TwilioParticipant
-                            room={videoRoomRef.current}
-                            participant={observerParticipant}
-                          />
-                        </td>
-                      )}
-                      {lawyerParticipant && (
-                        <td>
-                          <TwilioParticipant
-                            room={videoRoomRef.current}
-                            participant={lawyerParticipant}
-                          />
-                        </td>
-                      )}
-                    </tr>
-                  </tbody>
-                </Table>
-                <Button
-                  disabled={loading}
-                  style={{ display: 'block' }}
-                  variant="danger"
-                  onClick={onEndCallClick}
-                >
-                  End Call
-                </Button>
-                <Button
-                  disabled={loading || hasLawyerInCall}
-                  style={{ display: 'block' }}
-                  variant="success"
-                  hidden={userType === 'Lawyer'}
-                  onClick={onSummonLawyerClick}
-                >
-                  Summon Lawyer
-                </Button>
-              </div>
-            ) : (
-              <Card>
-                {inQueueOrCall ? (
-                  <Card.Body>
-                    <Card.Text>
-                      You are now in the queue, waiting for{' '}
-                      {userType === 'Lawyer' ? 'an observer to summon you' : 'a client'}!
-                    </Card.Text>
+              <>
+                <Grid size={4} justifyItems="center" alignItems="center">
+                  {clientParticipant && (
+                    <TwilioParticipant
+                      room={videoRoomRef.current}
+                      participant={clientParticipant}
+                    />
+                  )}
+                </Grid>
+                <Grid size={4} justifyItems="center" alignItems="center">
+                  {observerParticipant && (
+                    <TwilioParticipant
+                      room={videoRoomRef.current}
+                      participant={observerParticipant}
+                    />
+                  )}
+                </Grid>
+                <Grid size={4} justifyItems="center" alignItems="center">
+                  {lawyerParticipant && (
+                    <TwilioParticipant
+                      room={videoRoomRef.current}
+                      participant={lawyerParticipant}
+                    />
+                  )}
+                </Grid>
+                <Grid size={12}>
+                  <Stack justifyContent="center" spacing={12} direction="row">
                     <Button
                       disabled={loading}
-                      variant="danger"
-                      type="submit"
-                      onClick={onExitQueueClick}
+                      variant="contained"
+                      color="warning"
+                      onClick={onEndCallClick}
                     >
-                      Exit Queue
+                      End Call
                     </Button>
-                  </Card.Body>
-                ) : (
-                  <Card.Body>
-                    {userType !== null && (
+                    {userType === 'Observer' && (
                       <Button
-                        disabled={loading}
-                        variant="primary"
-                        type="submit"
-                        onClick={onJoinQueueClick}
+                        disabled={loading || hasLawyerInCall}
+                        variant="contained"
+                        color="success"
+                        onClick={onSummonLawyerClick}
                       >
-                        Join Queue as {userType}
+                        Summon Lawyer
                       </Button>
                     )}
-                    {permissionNotice && <Card.Text>{permissionNotice}</Card.Text>}
-                  </Card.Body>
-                )}
-              </Card>
+                  </Stack>
+                </Grid>
+              </>
+            ) : (
+              <Grid size={4}>
+                <Card>
+                  <CardContent>
+                    <Stack spacing={2} alignItems="center" direction="column">
+                      {inQueueOrCall ? (
+                        <>
+                          <Typography>
+                            You are now in the queue, waiting for{' '}
+                            {userType === 'Lawyer' ? 'an observer to summon you' : 'a client'}!
+                          </Typography>
+                          <Button
+                            disabled={loading}
+                            variant="contained"
+                            color="warning"
+                            onClick={onExitQueueClick}
+                          >
+                            Exit Queue
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          {userType !== null && (
+                            <Button
+                              disabled={loading}
+                              variant="contained"
+                              color="primary"
+                              onClick={onJoinQueueClick}
+                            >
+                              Join Queue as {userType}
+                            </Button>
+                          )}
+                          {permissionNotice && <Typography>{permissionNotice}</Typography>}
+                        </>
+                      )}
+                    </Stack>
+                  </CardContent>
+                </Card>
+              </Grid>
             )}
-            <Toast
-              bg="danger"
-              onClose={() => setShowToast(null)}
-              show={showToast !== null}
-              delay={2500}
-              autohide
-            >
-              <Toast.Header>
-                <strong className="me-auto">Error</strong>
-              </Toast.Header>
-              <Toast.Body>{showToast}</Toast.Body>
-            </Toast>
-          </div>
-        ) : (
-          <></>
+          </>
         )}
-      </Container>
-    </div>
+      </Grid>
+      <Snackbar
+        open={showToast !== null}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        autoHideDuration={3000}
+        onClose={() => setShowToast(null)}
+      >
+        <Alert
+          severity="error"
+          variant="filled"
+          sx={{ width: '100%' }}
+          onClose={() => setShowToast(null)}
+        >
+          {showToast}
+        </Alert>
+      </Snackbar>
+    </>
   )
 }

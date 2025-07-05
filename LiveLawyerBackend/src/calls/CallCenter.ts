@@ -161,9 +161,7 @@ export default class CallCenter {
       removedParticipants.forEach(participant => {
         participant.socket.emit('endCall')
         participant.room = null
-        console.log('Q: ' + participant.type)
         if (participant.type === 'Observer' || participant.type === 'Lawyer') {
-          console.log('U: ' + participant.type)
           this._queues.enqueue(participant)
         }
       })
