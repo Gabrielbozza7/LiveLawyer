@@ -1,3 +1,4 @@
+import { Database } from 'livelawyerlibrary/database-types'
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 
@@ -11,7 +12,11 @@ export async function loadGeolocationFunction() {
   js = (await readFile(fileLocation)).toString() + ' getState(lat, lon)'
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function stateFromCoordinates(lat: number, lon: number): null | string {
+export function stateFromCoordinates(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  lat: number,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  lon: number,
+): null | Database['public']['Enums']['UsState'] {
   return eval(js)
 }

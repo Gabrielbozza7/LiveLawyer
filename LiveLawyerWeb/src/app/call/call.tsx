@@ -7,7 +7,6 @@ import { Button, Card, Container, Table, Toast } from 'react-bootstrap'
 import { io, Socket } from 'socket.io-client'
 import {
   ClientToServerEvents,
-  Coordinates,
   ServerToClientEvents,
 } from 'livelawyerlibrary/socket-event-definitions'
 import { twilioIdentityToInfo, UserType } from 'livelawyerlibrary'
@@ -56,6 +55,7 @@ export function Call() {
   const onEndCall = () => {
     videoRoomRef.current.disconnect()
     setParticipants([])
+    setHasLawyerInCall(false)
   }
 
   // Updating the corresponding participant slots when the participant(s) change(s):
@@ -108,42 +108,6 @@ export function Call() {
     } finally {
       setPermissionNotice(null)
     }
-    let lawyerCoordinates: Coordinates | null = null
-    if (userType === 'Lawyer') {
-      if (navigator.geolocation) {
-        setPermissionNotice(
-          'Location access is necessary to route you to clients in the same state as you.',
-        )
-        let locationPromiseResolver: (success: boolean) => void = () => {}
-        const locationPromise = new Promise<boolean>(resolve => {
-          locationPromiseResolver = resolve
-        })
-        navigator.geolocation.getCurrentPosition(
-          position => {
-            lawyerCoordinates = { lat: position.coords.latitude, lon: position.coords.longitude }
-            locationPromiseResolver(true)
-          },
-          () => {
-            locationPromiseResolver(false)
-          },
-        )
-        const allowed = await locationPromise
-        setPermissionNotice(null)
-        if (!allowed) {
-          setShowToast('You must allow geolocation as a lawyer to enter the queue.')
-          setLoading(false)
-          return
-        }
-      } else {
-        setShowToast('Your browser or connection does not support geolocation.')
-        setLoading(false)
-        return
-      }
-    }
-    if (userType === 'Lawyer' && lawyerCoordinates === null) {
-      setLoading(false)
-      return
-    }
     socketRef.current.on('sendToRoom', onSendToRoom)
     socketRef.current.on('endCall', onEndCall)
     socketRef.current.on('disconnect', () => {
@@ -161,7 +125,7 @@ export function Call() {
     const accessToken = sessionRef.current.access_token
     const authResult = await socketRef.current.emitWithAck('authenticate', {
       accessToken,
-      coordinates: lawyerCoordinates,
+      coordinates: null,
     })
     if (authResult.result === 'INVALID_AUTH') {
       setShowToast('Your session is invalid! Try logging in again.')

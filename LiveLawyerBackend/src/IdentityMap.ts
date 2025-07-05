@@ -4,6 +4,8 @@ import { Coordinates } from 'livelawyerlibrary/socket-event-definitions'
 import ActiveRoom from './calls/ActiveRoom'
 import { UserType } from 'livelawyerlibrary'
 import { stateFromCoordinates } from './coord2state'
+import { Database } from 'livelawyerlibrary/database-types'
+import { LinkedQueueNode } from './calls/LinkedQueue'
 
 export default class IdentityMap {
   // Maps socket.io socket IDs to identities
@@ -45,8 +47,8 @@ export default class IdentityMap {
     const socketToken = crypto.randomUUID()
     const type = data.userType
     if (type === 'Observer') {
-      this._map.set(socket.id, { socket, socketToken, id, type, room: null })
-    } else {
+      this._map.set(socket.id, { socket, socketToken, id, type, room: null, queueNode: null })
+    } else if (type === 'Client') {
       if (location === null) {
         return false
       }
@@ -54,7 +56,29 @@ export default class IdentityMap {
       if (state === null) {
         return false
       }
-      this._map.set(socket.id, { socket, socketToken, id, type, room: null, location, state })
+      this._map.set(socket.id, {
+        socket,
+        socketToken,
+        id,
+        type,
+        room: null,
+        location,
+        state,
+      })
+    } else if (type === 'Lawyer') {
+      const { data, error } = await supabase.from('UserLawyer').select().eq('id', id).single()
+      if (error || data === null || data.licensedStates.length < 1) {
+        return false
+      }
+      this._map.set(socket.id, {
+        socket,
+        socketToken,
+        id,
+        type,
+        room: null,
+        licensedStates: data.licensedStates,
+        queueNodes: [],
+      })
     }
     this._userIds.add(id)
     return socketToken
@@ -103,15 +127,16 @@ interface ConnectedAnyIdentity {
 export type ConnectedClientIdentity = ConnectedAnyIdentity & {
   type: 'Client'
   location: Coordinates
-  state: string
+  state: Database['public']['Enums']['UsState']
 }
 
 export type ConnectedObserverIdentity = ConnectedAnyIdentity & {
   type: 'Observer'
+  queueNode: LinkedQueueNode<ConnectedObserverIdentity> | null
 }
 
 export type ConnectedLawyerIdentity = ConnectedAnyIdentity & {
   type: 'Lawyer'
-  location: Coordinates
-  state: string
+  licensedStates: Database['public']['Enums']['UsState'][]
+  queueNodes: LinkedQueueNode<ConnectedLawyerIdentity>[]
 }
