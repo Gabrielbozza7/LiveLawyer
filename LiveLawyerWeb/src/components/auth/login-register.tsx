@@ -15,7 +15,8 @@ import { ValidatedForm } from '../forms/validated-form'
 import { ValidatedTextField } from '../forms/validated-text-field'
 import { ValidatedFormSubmitButton } from '../forms/validated-form-submit-button'
 
-export type ActiveSessionlessForm = 'Login' | 'Register'
+const POSSIBLE_TABS = ['Login', 'Register'] as const
+type ActiveSessionlessTab = (typeof POSSIBLE_TABS)[number]
 
 interface FormModel {
   email: string
@@ -24,7 +25,7 @@ interface FormModel {
 }
 
 export default function LoginRegister() {
-  const [activeForm, setActiveForm] = useState<ActiveSessionlessForm>('Login')
+  const [activeTab, setActiveTab] = useState<ActiveSessionlessTab>('Login')
   const supabaseRef = useSupabaseClient()
   const [loading, setLoading] = useState<boolean>(false)
   const [showToast, setShowToast] = useState<string | null>(null)
@@ -39,7 +40,7 @@ export default function LoginRegister() {
   const handleSubmit = async (model: object) => {
     const formModel = model as FormModel
     setLoading(true)
-    switch (activeForm) {
+    switch (activeTab) {
       case 'Login': {
         const { error } = await supabaseRef.current.auth.signInWithPassword({
           email: formModel.email,
@@ -70,10 +71,6 @@ export default function LoginRegister() {
     setLoading(false)
   }
 
-  const possibleForms: ActiveSessionlessForm[] = ['Login', 'Register']
-  const handleTabSwitch = (event: React.SyntheticEvent, index: number) => {
-    setActiveForm(possibleForms[index])
-  }
   return (
     <>
       <title>Login/Register</title>
@@ -82,11 +79,12 @@ export default function LoginRegister() {
           <CardContent>
             <Stack spacing={4}>
               <Tabs
-                value={possibleForms.findIndex(x => x === activeForm)}
-                onChange={handleTabSwitch}
+                value={POSSIBLE_TABS.findIndex(x => x === activeTab)}
+                onChange={(event, index) => setActiveTab(POSSIBLE_TABS[index])}
               >
-                <Tab label="Login" />
-                <Tab label="Register" />
+                {POSSIBLE_TABS.map(tab => (
+                  <Tab key={tab} label={tab} />
+                ))}
               </Tabs>
               <ValidatedForm
                 disabled={loading}
@@ -113,7 +111,7 @@ export default function LoginRegister() {
                   helperText="Passwords must be at least 8 characters long."
                 />
 
-                {activeForm === 'Register' && (
+                {activeTab === 'Register' && (
                   <ValidatedTextField
                     name="confirmPassword"
                     type="password"
@@ -124,7 +122,7 @@ export default function LoginRegister() {
                   />
                 )}
 
-                <ValidatedFormSubmitButton color="success">{activeForm}</ValidatedFormSubmitButton>
+                <ValidatedFormSubmitButton color="success">{activeTab}</ValidatedFormSubmitButton>
               </ValidatedForm>
             </Stack>
           </CardContent>

@@ -1,13 +1,20 @@
 'use client'
-import { Button, Card, Container } from 'react-bootstrap'
 import { Dispatch, SetStateAction, useState } from 'react'
 import UserEditor from './user-editor'
 import { useUserType } from 'livelawyerlibrary/context-manager'
 import OfficeMenu from './office-menu'
 import { Database } from 'livelawyerlibrary/database-types'
 import StatesSelector from './states-selector'
+import Stack from '@mui/material/Stack'
+import Tabs from '@mui/material/Tabs'
+import Container from '@mui/material/Container'
+import CardContent from '@mui/material/CardContent'
+import Card from '@mui/material/Card'
+import Tab from '@mui/material/Tab'
+import Typography from '@mui/material/Typography'
 
-export type ActiveForm = 'UserEditor' | 'StatesSelector' | 'OfficeMenu'
+const POSSIBLE_TABS = ['UserEditor', 'StatesSelector', 'OfficeMenu'] as const
+type ActiveAccountTab = (typeof POSSIBLE_TABS)[number]
 
 export interface AccountSubFormProps {
   loading: boolean
@@ -26,64 +33,51 @@ export default function Account() {
   const userType = useUserType()
   const [statusMessage, setStatusMessage] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(true)
-  const [activeForm, setActiveForm] = useState<ActiveForm>('UserEditor')
+  const [activeTab, setActiveTab] = useState<ActiveAccountTab>('UserEditor')
 
   return (
-    <>
-      {statusMessage !== '' ? (
-        <Container fluid="md" style={{ margin: 24 }}>
-          <Card>
-            <Card.Body>{statusMessage}</Card.Body>
-          </Card>
-        </Container>
-      ) : (
-        <>
-          <Container fluid="md" style={{ margin: 24 }}>
-            <Button variant="primary" onClick={() => setActiveForm('UserEditor')} className="mt-3">
-              User
-            </Button>
-            {userType === 'Lawyer' && (
-              <>
-                <Button
-                  variant="primary"
-                  onClick={() => setActiveForm('StatesSelector')}
-                  className="mt-3"
-                >
-                  States
-                </Button>
-                <Button
-                  variant="primary"
-                  onClick={() => setActiveForm('OfficeMenu')}
-                  className="mt-3"
-                >
-                  Office
-                </Button>
-              </>
-            )}
-            {activeForm === 'UserEditor' ? (
-              <UserEditor
-                loading={loading}
-                setLoading={setLoading}
-                setStatusMessage={setStatusMessage}
-              />
-            ) : activeForm === 'StatesSelector' ? (
-              <StatesSelector
-                loading={loading}
-                setLoading={setLoading}
-                setStatusMessage={setStatusMessage}
-              />
-            ) : activeForm === 'OfficeMenu' ? (
-              <OfficeMenu
-                loading={loading}
-                setLoading={setLoading}
-                setStatusMessage={setStatusMessage}
-              />
-            ) : (
-              <></>
-            )}
-          </Container>
-        </>
-      )}
-    </>
+    <Container maxWidth="lg" sx={{ marginTop: 4 }}>
+      <Card variant="outlined" sx={{ padding: 1 }}>
+        {statusMessage !== '' ? (
+          <CardContent>
+            <Typography variant="body1">{statusMessage}</Typography>
+          </CardContent>
+        ) : (
+          <CardContent>
+            <Stack spacing={4}>
+              <Tabs
+                value={POSSIBLE_TABS.findIndex(x => x === activeTab)}
+                onChange={(event, index) => setActiveTab(POSSIBLE_TABS[index])}
+              >
+                <Tab label="User" />
+                {userType === 'Lawyer' && <Tab label="States" />}
+                {userType === 'Lawyer' && <Tab label="Office" />}
+              </Tabs>
+              {activeTab === 'UserEditor' ? (
+                <UserEditor
+                  loading={loading}
+                  setLoading={setLoading}
+                  setStatusMessage={setStatusMessage}
+                />
+              ) : activeTab === 'StatesSelector' ? (
+                <StatesSelector
+                  loading={loading}
+                  setLoading={setLoading}
+                  setStatusMessage={setStatusMessage}
+                />
+              ) : activeTab === 'OfficeMenu' ? (
+                <OfficeMenu
+                  loading={loading}
+                  setLoading={setLoading}
+                  setStatusMessage={setStatusMessage}
+                />
+              ) : (
+                <></>
+              )}
+            </Stack>
+          </CardContent>
+        )}
+      </Card>
+    </Container>
   )
 }

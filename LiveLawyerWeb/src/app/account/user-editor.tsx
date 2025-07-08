@@ -1,8 +1,18 @@
-import { FormEvent, useCallback, useEffect, useState } from 'react'
-import { Button, Card, Form, Toast } from 'react-bootstrap'
+import { useCallback, useEffect, useState } from 'react'
 import { AccountSubFormProps } from './account'
 import { useSession, useSupabaseClient, useUserType } from 'livelawyerlibrary/context-manager'
 import { useRouter } from 'next/navigation'
+import { ValidatedForm } from '@/components/forms/validated-form'
+import { ValidatedTextField } from '@/components/forms/validated-text-field'
+import PersonOutlineIcon from '@mui/icons-material/PersonOutline'
+import { notEmpty, validateEmail, validatePhoneNumber } from 'livelawyerlibrary/input-validation'
+import EmailIcon from '@mui/icons-material/Email'
+import PhoneIcon from '@mui/icons-material/Phone'
+import { ValidatedFormSubmitButton } from '@/components/forms/validated-form-submit-button'
+import Grid from '@mui/material/Grid'
+import { Toast } from 'react-bootstrap'
+import Button from '@mui/material/Button'
+import Typography from '@mui/material/Typography'
 
 interface FormModel {
   firstName: string
@@ -60,21 +70,8 @@ export default function UserEditor({ loading, setLoading, setStatusMessage }: Ac
     }
   }, [prefillForm, prefilledFormModel])
 
-  // Dynamically syncing the form changes to the account model:
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormModel(prev => ({ ...prev, [name]: value }))
-  }
-
-  // Phone number format validation:
-  const [phoneNumberValid, setPhoneNumberValid] = useState<boolean>(false)
-  useEffect(() => {
-    setPhoneNumberValid(formModel.phoneNumber.match(/^\+[1-9]\d{1,14}$/) ? true : false)
-  }, [formModel.phoneNumber])
-
   // Updating the database based on the new account model when the form is submitted:
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+  const handleSubmit = async () => {
     setLoading(true)
     // Updating profile:
     const { error: updateError } = await supabaseRef.current
@@ -110,79 +107,89 @@ export default function UserEditor({ loading, setLoading, setStatusMessage }: Ac
   }
 
   return (
-    <Card>
-      <Card.Body>
-        <h4 className="mb-4">Account Information</h4>
-        <Form onSubmit={handleSubmit}>
-          <Form.Group controlId="formFirstName" className="mt-3">
-            <Form.Label>First Name</Form.Label>
-            <Form.Control
-              disabled={loading}
-              type="text"
-              name="firstName"
-              value={formModel.firstName}
-              onChange={handleChange}
-            />
-          </Form.Group>
+    <>
+      <Typography variant="overline">Account Information</Typography>
+      <ValidatedForm
+        disabled={loading}
+        model={formModel}
+        setModel={setFormModel}
+        onSubmit={handleSubmit}
+      >
+        <ValidatedTextField
+          name="firstName"
+          type="text"
+          icon={<PersonOutlineIcon />}
+          label="First Name"
+          defaultValue={prefilledFormModel?.firstName}
+          validator={notEmpty}
+          helperText="Value must not be empty."
+          required
+          size={6}
+        />
 
-          <Form.Group controlId="formLastName" className="mt-3">
-            <Form.Label>Last Name</Form.Label>
-            <Form.Control
-              disabled={loading}
-              type="text"
-              name="lastName"
-              value={formModel.lastName}
-              onChange={handleChange}
-            />
-          </Form.Group>
+        <ValidatedTextField
+          name="lastName"
+          type="text"
+          icon={<PersonOutlineIcon />}
+          label="Last Name"
+          defaultValue={prefilledFormModel?.lastName}
+          validator={notEmpty}
+          helperText="Value must not be empty."
+          required
+          size={6}
+        />
 
-          <Form.Group controlId="formEmail" className="mt-3">
-            <Form.Label>Email</Form.Label>
-            <Form.Control
-              disabled={loading}
-              type="email"
-              name="email"
-              value={formModel.email}
-              onChange={handleChange}
-            />
-          </Form.Group>
+        <ValidatedTextField
+          name="email"
+          type="email"
+          icon={<EmailIcon />}
+          label="Email"
+          defaultValue={prefilledFormModel?.email}
+          validator={validateEmail}
+          helperText="Email must reflect the structure of a real email address."
+          required
+          size={6}
+        />
 
-          <Form.Group controlId="formPhoneNumber" className="mt-3">
-            <Form.Label>Phone Number</Form.Label>
-            <Form.Control
-              disabled={loading}
-              type="tel"
-              name="phoneNumber"
-              value={formModel.phoneNumber}
-              onChange={handleChange}
-            />
-          </Form.Group>
+        <ValidatedTextField
+          name="phoneNumber"
+          type="tel"
+          icon={<PhoneIcon />}
+          label="Phone Number"
+          defaultValue={prefilledFormModel?.phoneNumber}
+          validator={validatePhoneNumber}
+          helperText="Phone number must conform to E.164 format"
+          required
+          size={6}
+        />
 
-          <Card.Text className="mt-3">
-            Phone number must conform to E.164 format: {phoneNumberValid ? '✔️' : '❌'}
-          </Card.Text>
+        <Grid size={12}>
+          <Typography variant="body1">
+            Your User Type: {userType}
+            <br /> <br />
+            Your User ID: {sessionRef.current.user.id}
+          </Typography>
+        </Grid>
 
-          <Card.Text className="mt-3">Your User Type: {userType}</Card.Text>
-          <Card.Text className="mt-3">Your User ID: {sessionRef.current.user.id}</Card.Text>
-
+        <ValidatedFormSubmitButton
+          disabled={JSON.stringify(prefilledFormModel) === JSON.stringify(formModel)}
+          color="success"
+          size={6}
+        >
+          Save Changes
+        </ValidatedFormSubmitButton>
+        <Grid size={6}>
           <Button
-            disabled={
-              loading ||
-              !phoneNumberValid ||
-              JSON.stringify(prefilledFormModel) === JSON.stringify(formModel)
-            }
-            variant="primary"
-            type="submit"
-            className="mt-3"
+            fullWidth
+            disabled={loading}
+            variant="contained"
+            color="error"
+            onClick={handleLogout}
           >
-            Save Changes
-          </Button>
-
-          <Button disabled={loading} variant="danger" onClick={handleLogout} className="mt-3">
             Logout
           </Button>
-        </Form>
-      </Card.Body>
+        </Grid>
+      </ValidatedForm>
       <Toast
         bg="primary"
         onClose={() => setShowToast(null)}
@@ -192,6 +199,6 @@ export default function UserEditor({ loading, setLoading, setStatusMessage }: Ac
       >
         <Toast.Body>{showToast}</Toast.Body>
       </Toast>
-    </Card>
+    </>
   )
 }

@@ -39,6 +39,12 @@ export function ValidatedTextField({
   }, [model, name, setModel, value])
 
   useEffect(() => {
+    if (defaultValue !== undefined) {
+      setValue(defaultValue)
+    }
+  }, [defaultValue])
+
+  useEffect(() => {
     if (validator !== undefined) {
       const valid = validator(value)
       if (valid) {
