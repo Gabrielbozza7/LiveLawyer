@@ -10,6 +10,7 @@ import { BACKEND_URL, SUPABASE_ANON_KEY, SUPABASE_URL } from 'livelawyerlibrary/
 import type { Metadata } from 'next'
 import CompleteRegistration from '@/components/auth/complete-registration'
 import LiveLawyerNav from '@/components/LiveLawyerNav'
+import CssBaseline from '@mui/material/CssBaseline'
 
 export const metadata: Metadata = {
   description: 'Live Lawyer Web',
@@ -22,21 +23,23 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>
-        <ContextManager
-          env={{
-            supabaseUrl: SUPABASE_URL,
-            supabaseAnonKey: SUPABASE_ANON_KEY,
-            backendUrl: BACKEND_URL,
-          }}
-          loadingComponent={<p>Loading...</p>}
-          sessionlessComponent={<LoginRegister />}
-          uninitializedUserComponent={<CompleteRegistration />}
-        >
-          <LiveLawyerNav />
-          {children}
-        </ContextManager>
-      </body>
+      <CssBaseline>
+        <body>
+          <ContextManager
+            env={{
+              supabaseUrl: SUPABASE_URL,
+              supabaseAnonKey: SUPABASE_ANON_KEY,
+              backendUrl: BACKEND_URL,
+            }}
+            loadingComponent={<p>Loading...</p>}
+            sessionlessComponent={<LoginRegister />}
+            uninitializedUserComponent={<CompleteRegistration />}
+          >
+            <LiveLawyerNav />
+            {children}
+          </ContextManager>
+        </body>
+      </CssBaseline>
     </html>
   )
 }
