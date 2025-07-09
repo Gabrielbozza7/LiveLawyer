@@ -1,47 +1,49 @@
 'use client'
-import { useSession, useSupabaseClient } from 'livelawyerlibrary/context-manager'
-import { FormEvent, useState } from 'react'
-import { Button, Card, Container, Form, Toast } from 'react-bootstrap'
+import Card from '@mui/material/Card'
+import CardContent from '@mui/material/CardContent'
+import Container from '@mui/material/Container'
+import Stack from '@mui/material/Stack'
+import Typography from '@mui/material/Typography'
+import { useAlerter, useSession, useSupabaseClient } from 'livelawyerlibrary/context-manager'
+import { useState } from 'react'
+import { ValidatedForm } from '../forms/validated-form'
+import { ValidatedTextField } from '../forms/validated-text-field'
+import PersonOutlineIcon from '@mui/icons-material/PersonOutline'
+import PhoneIcon from '@mui/icons-material/Phone'
+import BadgeIcon from '@mui/icons-material/Badge'
+import { notEmpty, validatePhoneNumber } from 'livelawyerlibrary/input-validation'
+import { ValidatedFormSubmitButton } from '../forms/validated-form-submit-button'
+import Grid from '@mui/material/Grid'
+import Button from '@mui/material/Button'
+import ValidatedAutocompleteDropdown from '../forms/validated-autocomplete-dropdown'
+
+const USER_TYPE_OPTIONS = [
+  { label: 'Observer', isNew: false },
+  { label: 'Lawyer', isNew: false },
+] as const
 
 interface FormModel {
   firstName: string
   lastName: string
   phoneNumber: string
-  userType: 'Observer' | 'Lawyer'
+  userType: (typeof USER_TYPE_OPTIONS)[number]
 }
 
 export default function CompleteRegistration() {
+  const alerterRef = useAlerter()
   const supabaseRef = useSupabaseClient()
   const sessionRef = useSession()
   const [loading, setLoading] = useState<boolean>(false)
-  const [showToast, setShowToast] = useState<string | null>(null)
-  const [phoneNumberValid, setPhoneNumberValid] = useState<boolean>(false)
 
   const [formModel, setFormModel] = useState<FormModel>({
     firstName: '',
     lastName: '',
     phoneNumber: '',
-    userType: 'Observer',
+    userType: { label: 'Observer', isNew: false },
   })
 
-  // Dynamically syncing the form changes to the account model:
-  const handleChangeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormModel(prev => ({ ...prev, [name]: value }))
-    if (name === 'phoneNumber') {
-      setPhoneNumberValid(value.match(/^\+[1-9]\d{1,14}$/) ? true : false)
-    }
-  }
-
-  // Dynamically syncing the form changes to the account model:
-  const handleChangeSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const { name, value } = e.target
-    setFormModel(prev => ({ ...prev, [name]: value }))
-  }
-
   // Making changes based on the new account model when the form is submitted:
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+  const handleSubmit = async () => {
     setLoading(true)
     const { error: updateError } = await supabaseRef.current
       .from('User')
@@ -49,12 +51,12 @@ export default function CompleteRegistration() {
         firstName: formModel.firstName,
         lastName: formModel.lastName,
         phoneNumber: formModel.phoneNumber,
-        userType: formModel.userType,
+        userType: formModel.userType.label,
       })
       .eq('id', sessionRef.current.user.id)
       .single()
     if (updateError) {
-      setShowToast(`Something went wrong when trying to update your info! Try again.`)
+      alerterRef.current.error(`Something went wrong when trying to update your info! Try again.`)
       setLoading(false)
       return
     }
@@ -63,7 +65,7 @@ export default function CompleteRegistration() {
       error: sessionError,
     } = await supabaseRef.current.auth.refreshSession()
     if (sessionError || newSession === null) {
-      setShowToast(
+      alerterRef.current.error(
         'Something went wrong when trying to retrieve your info! Try logging out and logging back in.',
       )
       return
@@ -71,83 +73,87 @@ export default function CompleteRegistration() {
     setLoading(false)
   }
 
+  const handleLogout = async () => {
+    setLoading(true)
+    try {
+      await supabaseRef.current.auth.signOut()
+    } catch {
+      alerterRef.current.error('Something went wrong when trying to log out! Try again later.')
+    }
+    setLoading(false)
+  }
+
   return (
     <>
       <title>Complete Registration</title>
-      <Container fluid="md" style={{ margin: 24 }}>
-        <Card>
-          <Card.Header>Complete New Account Registration</Card.Header>
-          <Card.Body>
-            <Form onSubmit={handleSubmit}>
-              <Form.Group controlId="formFirstName" className="mt-3">
-                <Form.Label>First Name</Form.Label>
-                <Form.Control
-                  disabled={loading}
-                  type="text"
-                  name="firstName"
-                  value={formModel.firstName}
-                  onChange={handleChangeInput}
-                />
-              </Form.Group>
-
-              <Form.Group controlId="formLastName" className="mt-3">
-                <Form.Label>Last Name</Form.Label>
-                <Form.Control
-                  disabled={loading}
-                  type="text"
-                  name="lastName"
-                  value={formModel.lastName}
-                  onChange={handleChangeInput}
-                />
-              </Form.Group>
-
-              <Form.Group controlId="formPhoneNumber" className="mt-3">
-                <Form.Label>Phone Number</Form.Label>
-                <Form.Control
-                  disabled={loading}
-                  type="tel"
-                  name="phoneNumber"
-                  value={formModel.phoneNumber}
-                  onChange={handleChangeInput}
-                />
-              </Form.Group>
-
-              <Card.Text className="mt-3">
-                Phone number must conform to E.164 format: {phoneNumberValid ? '✔️' : '❌'}
-              </Card.Text>
-
-              <Form.Group controlId="formUserType" className="mt-3">
-                <Form.Label>User Type</Form.Label>
-                <Form.Select
-                  disabled={loading}
-                  name="userType"
-                  value={formModel.userType}
-                  onChange={handleChangeSelect}
-                >
-                  <option>Observer</option>
-                  <option>Lawyer</option>
-                </Form.Select>
-              </Form.Group>
-
-              <Button
-                disabled={loading || !phoneNumberValid}
-                variant="primary"
-                type="submit"
-                className="mt-3"
+      <Container maxWidth="sm" sx={{ marginTop: 4 }}>
+        <Card variant="outlined" sx={{ padding: 1 }}>
+          <CardContent>
+            <Stack spacing={4}>
+              <Typography variant="overline">Complete New Account Registration</Typography>
+              <ValidatedForm
+                disabled={loading}
+                model={formModel}
+                setModel={setFormModel}
+                onSubmit={handleSubmit}
               >
-                Confirm
-              </Button>
-            </Form>
-          </Card.Body>
-          <Toast
-            bg="danger"
-            onClose={() => setShowToast(null)}
-            show={showToast !== null}
-            delay={2500}
-            autohide
-          >
-            <Toast.Body>{showToast}</Toast.Body>
-          </Toast>
+                <ValidatedTextField
+                  name="firstName"
+                  type="text"
+                  icon={<PersonOutlineIcon />}
+                  label="First Name"
+                  validator={notEmpty}
+                  helperText="Value must not be empty."
+                  required
+                />
+
+                <ValidatedTextField
+                  name="lastName"
+                  type="text"
+                  icon={<PersonOutlineIcon />}
+                  label="Last Name"
+                  validator={notEmpty}
+                  helperText="Value must not be empty."
+                  required
+                />
+
+                <ValidatedTextField
+                  name="phoneNumber"
+                  type="tel"
+                  icon={<PhoneIcon />}
+                  label="Phone Number"
+                  validator={validatePhoneNumber}
+                  helperText="Phone number must conform to E.164 format."
+                  required
+                />
+
+                <ValidatedAutocompleteDropdown
+                  name="userType"
+                  icon={<BadgeIcon />}
+                  label="User Type"
+                  options={USER_TYPE_OPTIONS}
+                  canAddNew={false}
+                  defaultValue={'Observer'}
+                  validator={notEmpty}
+                  helperText="Select an option."
+                  required
+                />
+
+                <ValidatedFormSubmitButton color="success">Confirm</ValidatedFormSubmitButton>
+                <Grid size={12}>
+                  <Button
+                    fullWidth
+                    disabled={loading}
+                    variant="contained"
+                    color="error"
+                    onClick={handleLogout}
+                  >
+                    Logout
+                  </Button>
+                </Grid>
+              </ValidatedForm>
+            </Stack>
+          </CardContent>
         </Card>
       </Container>
     </>
