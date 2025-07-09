@@ -10,6 +10,7 @@ import {
 } from 'livelawyerlibrary/socket-event-definitions'
 import { twilioIdentityToInfo, UserType } from 'livelawyerlibrary'
 import {
+  useAlerter,
   usePublicEnv,
   useSession,
   useSupabaseClient,
@@ -21,11 +22,10 @@ import Typography from '@mui/material/Typography'
 import Grid from '@mui/material/Grid'
 import Button from '@mui/material/Button'
 import Stack from '@mui/material/Stack'
-import Snackbar from '@mui/material/Snackbar'
-import Alert from '@mui/material/Alert'
 
 export function Call() {
   const env = usePublicEnv()
+  const alerterRef = useAlerter()
   const supabaseRef = useSupabaseClient()
   const sessionRef = useSession()
   const userType = useUserType()
@@ -40,7 +40,6 @@ export function Call() {
   const [observerParticipant, setObserverParticipant] = useState<Participant | null>(null)
   const [lawyerParticipant, setLawyerParticipant] = useState<Participant | null>(null)
   const [inQueueOrCall, setInQueueOrCall] = useState<boolean>(false)
-  const [showToast, setShowToast] = useState<string | null>(null)
   const [hasLawyerInCall, setHasLawyerInCall] = useState<boolean>(false)
   const [permissionNotice, setPermissionNotice] = useState<string | null>(null)
 
@@ -57,8 +56,7 @@ export function Call() {
 
       callback(true)
     } catch (err) {
-      console.log('Error joining room:', err)
-      alert('Unable to access webcam. Please check your browser settings and permissions.')
+      console.log('Error joining room: ', err)
       callback(false)
     }
   }
@@ -96,12 +94,14 @@ export function Call() {
 
   const onJoinQueueClick = async () => {
     if (socketRef.current.connected) {
-      setShowToast('Your connection is already open! Try refreshing the page.')
+      alerterRef.current.error('Your connection is already open! Try refreshing the page.')
       return
     }
     setLoading(true)
     if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) {
-      setShowToast('Your browser or connection does not support camera and microphone access.')
+      alerterRef.current.error(
+        'Your browser or connection does not support camera and microphone access.',
+      )
       setLoading(false)
       return
     }
@@ -113,7 +113,7 @@ export function Call() {
         track.stop()
       })
     } catch {
-      setShowToast('You must allow camera and microphone access to enter the queue.')
+      alerterRef.current.error('You must allow camera and microphone access to enter the queue.')
       setLoading(false)
       return
     } finally {
@@ -139,7 +139,7 @@ export function Call() {
       coordinates: null,
     })
     if (authResult.result === 'INVALID_AUTH') {
-      setShowToast('Your session is invalid! Try logging in again.')
+      alerterRef.current.error('Your session is invalid! Try logging in again.')
       setLoading(false)
       return
     }
@@ -148,9 +148,9 @@ export function Call() {
       socketToken: socketTokenRef.current,
     })
     if (joinResult === 'INVALID_AUTH') {
-      setShowToast('Your session is invalid! Try logging in again.')
+      alerterRef.current.error('Your session is invalid! Try logging in again.')
     } else if (joinResult === 'ALREADY_IN_QUEUE') {
-      setShowToast('You are already in the queue!')
+      alerterRef.current.error('You are already in the queue!')
       setInQueueOrCall(true)
     } else {
       setInQueueOrCall(true)
@@ -160,7 +160,7 @@ export function Call() {
 
   const onSummonLawyerClick = async () => {
     if (!socketRef.current.connected) {
-      setShowToast('Your connection is broken!')
+      alerterRef.current.error('Your connection is broken!')
       return
     }
     setLoading(true)
@@ -168,11 +168,11 @@ export function Call() {
       socketToken: socketTokenRef.current,
     })
     if (summonResult === 'INVALID_AUTH') {
-      setShowToast('Your session is invalid!')
+      alerterRef.current.error('Your session is invalid!')
     } else if (summonResult === 'NOT_IN_ROOM') {
-      setShowToast('You are not in a room!')
+      alerterRef.current.error('You are not in a room!')
     } else if (summonResult === 'NO_LAWYERS') {
-      setShowToast('There are currently no lawyers available!')
+      alerterRef.current.error('There are currently no lawyers available!')
     } else {
       setHasLawyerInCall(true)
     }
@@ -181,7 +181,7 @@ export function Call() {
 
   const onExitQueueClick = async () => {
     if (!socketRef.current.connected) {
-      setShowToast('Your connection is broken!')
+      alerterRef.current.error('Your connection is broken!')
       return
     }
     setLoading(true)
@@ -189,7 +189,7 @@ export function Call() {
       socketToken: socketTokenRef.current,
     })
     if (dequeueResult === 'INVALID_AUTH') {
-      setShowToast('Your login is invalid!')
+      alerterRef.current.error('Your login is invalid!')
     } else if (dequeueResult === 'NOT_IN_QUEUE' || dequeueResult === 'OK') {
       setInQueueOrCall(false)
       socketRef.current.disconnect()
@@ -199,7 +199,7 @@ export function Call() {
 
   const onEndCallClick = async () => {
     if (!socketRef.current.connected) {
-      setShowToast('Your connection is broken!')
+      alerterRef.current.error('Your connection is broken!')
       return
     }
     setLoading(true)
@@ -207,11 +207,11 @@ export function Call() {
       socketToken: socketTokenRef.current,
     })
     if (hangUpResult === 'INVALID_AUTH') {
-      setShowToast('Your login is invalid!')
+      alerterRef.current.error('Your login is invalid!')
     } else if (hangUpResult === 'NOT_IN_ROOM') {
-      setShowToast('You are not in a room!')
+      alerterRef.current.error('You are not in a room!')
     } else if (hangUpResult === 'CALL_ALREADY_ENDED') {
-      setShowToast('The call already ended!')
+      alerterRef.current.error('The call already ended!')
     }
     setLoading(false)
   }
@@ -224,132 +224,109 @@ export function Call() {
   }, [sessionRef, supabaseRef])
 
   return (
-    <>
-      <Grid
-        container
-        alignItems="center"
-        justifyContent="center"
-        display="flex"
-        sx={{ width: '100%' }}
-        minHeight="85vh"
-      >
-        {!(userType === 'Observer' || userType === 'Lawyer') ? (
-          <Card>
-            <CardContent>
-              <Typography>
-                You must be either an observer or a lawyer to take calls on the website!
-              </Typography>
-            </CardContent>
-          </Card>
-        ) : (
-          <>
-            {videoRoomRef.current.inARoom ? (
-              <>
-                <Grid size={4} justifyItems="center" alignItems="center">
-                  {clientParticipant && (
-                    <TwilioParticipant
-                      room={videoRoomRef.current}
-                      participant={clientParticipant}
-                    />
-                  )}
-                </Grid>
-                <Grid size={4} justifyItems="center" alignItems="center">
-                  {observerParticipant && (
-                    <TwilioParticipant
-                      room={videoRoomRef.current}
-                      participant={observerParticipant}
-                    />
-                  )}
-                </Grid>
-                <Grid size={4} justifyItems="center" alignItems="center">
-                  {lawyerParticipant && (
-                    <TwilioParticipant
-                      room={videoRoomRef.current}
-                      participant={lawyerParticipant}
-                    />
-                  )}
-                </Grid>
-                <Grid size={12}>
-                  <Stack justifyContent="center" spacing={12} direction="row">
+    <Grid
+      container
+      alignItems="center"
+      justifyContent="center"
+      display="flex"
+      sx={{ width: '100%' }}
+      minHeight="85vh"
+    >
+      {!(userType === 'Observer' || userType === 'Lawyer') ? (
+        <Card>
+          <CardContent>
+            <Typography>
+              You must be either an observer or a lawyer to take calls on the website!
+            </Typography>
+          </CardContent>
+        </Card>
+      ) : (
+        <>
+          {videoRoomRef.current.inARoom ? (
+            <>
+              <Grid size={4} justifyItems="center" alignItems="center">
+                {clientParticipant && (
+                  <TwilioParticipant room={videoRoomRef.current} participant={clientParticipant} />
+                )}
+              </Grid>
+              <Grid size={4} justifyItems="center" alignItems="center">
+                {observerParticipant && (
+                  <TwilioParticipant
+                    room={videoRoomRef.current}
+                    participant={observerParticipant}
+                  />
+                )}
+              </Grid>
+              <Grid size={4} justifyItems="center" alignItems="center">
+                {lawyerParticipant && (
+                  <TwilioParticipant room={videoRoomRef.current} participant={lawyerParticipant} />
+                )}
+              </Grid>
+              <Grid size={12}>
+                <Stack justifyContent="center" spacing={12} direction="row">
+                  <Button
+                    disabled={loading}
+                    variant="contained"
+                    color="warning"
+                    onClick={onEndCallClick}
+                  >
+                    End Call
+                  </Button>
+                  {userType === 'Observer' && (
                     <Button
-                      disabled={loading}
+                      disabled={loading || hasLawyerInCall}
                       variant="contained"
-                      color="warning"
-                      onClick={onEndCallClick}
+                      color="success"
+                      onClick={onSummonLawyerClick}
                     >
-                      End Call
+                      Summon Lawyer
                     </Button>
-                    {userType === 'Observer' && (
-                      <Button
-                        disabled={loading || hasLawyerInCall}
-                        variant="contained"
-                        color="success"
-                        onClick={onSummonLawyerClick}
-                      >
-                        Summon Lawyer
-                      </Button>
-                    )}
-                  </Stack>
-                </Grid>
-              </>
-            ) : (
-              <Grid size={4}>
-                <Card>
-                  <CardContent>
-                    <Stack spacing={2} alignItems="center" direction="column">
-                      {inQueueOrCall ? (
-                        <>
-                          <Typography>
-                            You are now in the queue, waiting for{' '}
-                            {userType === 'Lawyer' ? 'an observer to summon you' : 'a client'}!
-                          </Typography>
+                  )}
+                </Stack>
+              </Grid>
+            </>
+          ) : (
+            <Grid size={4}>
+              <Card>
+                <CardContent>
+                  <Stack spacing={2} alignItems="center" direction="column">
+                    {inQueueOrCall ? (
+                      <>
+                        <Typography>
+                          You are now in the queue, waiting for{' '}
+                          {userType === 'Lawyer' ? 'an observer to summon you' : 'a client'}!
+                        </Typography>
+                        <Button
+                          disabled={loading}
+                          variant="contained"
+                          color="warning"
+                          onClick={onExitQueueClick}
+                        >
+                          Exit Queue
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        {userType !== null && (
                           <Button
                             disabled={loading}
                             variant="contained"
-                            color="warning"
-                            onClick={onExitQueueClick}
+                            color="primary"
+                            onClick={onJoinQueueClick}
                           >
-                            Exit Queue
+                            Join Queue as {userType}
                           </Button>
-                        </>
-                      ) : (
-                        <>
-                          {userType !== null && (
-                            <Button
-                              disabled={loading}
-                              variant="contained"
-                              color="primary"
-                              onClick={onJoinQueueClick}
-                            >
-                              Join Queue as {userType}
-                            </Button>
-                          )}
-                          {permissionNotice && <Typography>{permissionNotice}</Typography>}
-                        </>
-                      )}
-                    </Stack>
-                  </CardContent>
-                </Card>
-              </Grid>
-            )}
-          </>
-        )}
-      </Grid>
-      <Snackbar
-        open={showToast !== null}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        autoHideDuration={3000}
-        onClose={() => setShowToast(null)}
-      >
-        <Alert
-          severity="error"
-          variant="filled"
-          sx={{ width: '100%' }}
-          onClose={() => setShowToast(null)}
-        >
-          {showToast}
-        </Alert>
-      </Snackbar>
-    </>
+                        )}
+                        {permissionNotice && <Typography>{permissionNotice}</Typography>}
+                      </>
+                    )}
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Grid>
+          )}
+        </>
+      )}
+    </Grid>
   )
 }

@@ -19,7 +19,42 @@ export interface PublicEnv {
   backendUrl: string
 }
 
+export interface AlertMessage {
+  kind: 'SUCCESS' | 'ERROR'
+  message: string
+}
+
+export class Alerter {
+  private readonly _callbacks: ((alert: AlertMessage) => void)[]
+
+  constructor() {
+    this._callbacks = []
+  }
+
+  public addCallback(callback: (alert: AlertMessage) => void): void {
+    this._callbacks.push(callback)
+  }
+
+  public removeCallback(callback: (alert: AlertMessage) => void): boolean {
+    const index = this._callbacks.findIndex(x => x === callback)
+    if (index === -1) {
+      return false
+    }
+    this._callbacks.splice(index, 1)
+    return true
+  }
+
+  public success(message: string): void {
+    this._callbacks.forEach(callback => callback({ kind: 'SUCCESS', message }))
+  }
+
+  public error(message: string): void {
+    this._callbacks.forEach(callback => callback({ kind: 'ERROR', message }))
+  }
+}
+
 const PublicEnvContext = createContext<PublicEnv | null>(null)
+const AlerterContext = createContext<RefObject<Alerter> | null>(null)
 const SupabaseClientContext = createContext<RefObject<SupabaseClient<Database>> | null>(null)
 const SessionContext = createContext<RefObject<Session> | null>(null)
 const UserTypeContext = createContext<Database['public']['Enums']['UserType'] | null>(null)
@@ -29,6 +64,14 @@ export function usePublicEnv(): PublicEnv {
   const context = useContext(PublicEnvContext)
   if (context === null) {
     throw new Error("Cannot use 'usePublicEnv' hook outside of a ContextManager")
+  }
+  return context
+}
+
+export function useAlerter(): RefObject<Alerter> {
+  const context = useContext(AlerterContext)
+  if (context === null) {
+    throw new Error("Cannot use 'useAlerter' hook outside of a ContextManager")
   }
   return context
 }
@@ -68,6 +111,7 @@ export function useApi(): RefObject<LiveLawyerApi> {
 interface ContextManagerProps {
   env: PublicEnv
   sessionlessComponent: ReactNode
+  alertDeliveryComponent: ReactNode
   storage?: SupportedStorage
   loadingComponent?: ReactNode
   uninitializedUserComponent?: ReactNode
@@ -77,11 +121,13 @@ interface ContextManagerProps {
 export function ContextManager({
   env,
   sessionlessComponent,
+  alertDeliveryComponent,
   storage,
   loadingComponent,
   uninitializedUserComponent,
   children,
 }: ContextManagerProps) {
+  const alerterRef = useRef<Alerter | null>(null)
   const supabaseClientRef = useRef<SupabaseClient<Database> | null>(null)
   const sessionRef = useRef<Session | null>(null)
   const [userType, setUserType] = useState<Database['public']['Enums']['UserType'] | null>(null)
@@ -89,6 +135,7 @@ export function ContextManager({
   const [clientInitialized, setClientInitialized] = useState<boolean>(false)
 
   useEffect(() => {
+    alerterRef.current = new Alerter()
     supabaseClientRef.current = createClient(env.supabaseUrl, env.supabaseAnonKey, {
       auth: {
         storage,
@@ -122,35 +169,38 @@ export function ContextManager({
     return () => {
       subscription.unsubscribe()
     }
-  }, [clientInitialized, env.backendUrl, env.supabaseAnonKey, env.supabaseUrl])
+  }, [env.backendUrl, env.supabaseAnonKey, env.supabaseUrl])
 
   return (
     <PublicEnvContext.Provider value={env}>
-      {clientInitialized ? (
-        <>
-          <SupabaseClientContext.Provider
-            value={supabaseClientRef as RefObject<SupabaseClient<Database>>}
-          >
-            {userType === null ? (
-              <>{sessionlessComponent}</>
-            ) : (
-              <SessionContext.Provider value={sessionRef as RefObject<Session>}>
-                <UserTypeContext.Provider value={userType}>
-                  <ApiContext.Provider value={apiRef as RefObject<LiveLawyerApi>}>
-                    {uninitializedUserComponent !== undefined && userType === 'Uninitialized' ? (
-                      <>{uninitializedUserComponent}</>
-                    ) : (
-                      <>{children ?? <></>}</>
-                    )}
-                  </ApiContext.Provider>
-                </UserTypeContext.Provider>
-              </SessionContext.Provider>
-            )}
-          </SupabaseClientContext.Provider>
-        </>
-      ) : (
-        <>{loadingComponent ?? <></>}</>
-      )}
+      <AlerterContext.Provider value={alerterRef as RefObject<Alerter>}>
+        {clientInitialized ? (
+          <>
+            {alertDeliveryComponent}
+            <SupabaseClientContext.Provider
+              value={supabaseClientRef as RefObject<SupabaseClient<Database>>}
+            >
+              {userType === null ? (
+                <>{sessionlessComponent}</>
+              ) : (
+                <SessionContext.Provider value={sessionRef as RefObject<Session>}>
+                  <UserTypeContext.Provider value={userType}>
+                    <ApiContext.Provider value={apiRef as RefObject<LiveLawyerApi>}>
+                      {uninitializedUserComponent !== undefined && userType === 'Uninitialized' ? (
+                        <>{uninitializedUserComponent}</>
+                      ) : (
+                        <>{children ?? <></>}</>
+                      )}
+                    </ApiContext.Provider>
+                  </UserTypeContext.Provider>
+                </SessionContext.Provider>
+              )}
+            </SupabaseClientContext.Provider>
+          </>
+        ) : (
+          <>{loadingComponent ?? <></>}</>
+        )}
+      </AlerterContext.Provider>
     </PublicEnvContext.Provider>
   )
 }

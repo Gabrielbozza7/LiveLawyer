@@ -1,7 +1,6 @@
 'use client'
-import { Toast } from 'react-bootstrap'
 import { useState } from 'react'
-import { useSupabaseClient } from 'livelawyerlibrary/context-manager'
+import { useAlerter, useSupabaseClient } from 'livelawyerlibrary/context-manager'
 import { validateEmail, validatePassword } from 'livelawyerlibrary/input-validation'
 import EmailIcon from '@mui/icons-material/Email'
 import KeyIcon from '@mui/icons-material/Key'
@@ -25,10 +24,10 @@ interface FormModel {
 }
 
 export default function LoginRegister() {
-  const [activeTab, setActiveTab] = useState<ActiveSessionlessTab>('Login')
   const supabaseRef = useSupabaseClient()
+  const alerterRef = useAlerter()
+  const [activeTab, setActiveTab] = useState<ActiveSessionlessTab>('Login')
   const [loading, setLoading] = useState<boolean>(false)
-  const [showToast, setShowToast] = useState<string | null>(null)
 
   const [formModel, setFormModel] = useState<FormModel>({
     email: '',
@@ -48,9 +47,9 @@ export default function LoginRegister() {
         })
         if (error) {
           if (error.code === 'invalid_credentials') {
-            setShowToast('Invalid credentials. Try again.')
+            alerterRef.current.error('Invalid credentials. Try again.')
           } else {
-            setShowToast('Something went wrong when trying to sign in! Try again.')
+            alerterRef.current.error('Something went wrong when trying to sign in! Try again.')
           }
         }
         break
@@ -61,7 +60,7 @@ export default function LoginRegister() {
           password: formModel.password,
         })
         if (signUpError) {
-          setShowToast(
+          alerterRef.current.error(
             `Something went wrong when trying to register! Try again. (${signUpError.message})`,
           )
         }
@@ -126,15 +125,6 @@ export default function LoginRegister() {
               </ValidatedForm>
             </Stack>
           </CardContent>
-          <Toast
-            bg="danger"
-            onClose={() => setShowToast(null)}
-            show={showToast !== null}
-            delay={2500}
-            autohide
-          >
-            <Toast.Body>{showToast}</Toast.Body>
-          </Toast>
         </Card>
       </Container>
     </>

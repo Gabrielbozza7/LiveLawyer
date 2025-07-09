@@ -1,8 +1,7 @@
-import { useSession, useSupabaseClient } from 'livelawyerlibrary/context-manager'
+import { useAlerter, useSession, useSupabaseClient } from 'livelawyerlibrary/context-manager'
 import { FormEvent, useCallback, useEffect, useState } from 'react'
-import { LegalSubFormProps } from './legal'
 import { Database } from 'livelawyerlibrary/database-types'
-import { Button, Card, Form, Toast } from 'react-bootstrap'
+import { Button, Card, Form } from 'react-bootstrap'
 import { stateCodesToNames } from 'livelawyerlibrary'
 
 function arraysEqual<T>(a1: T[], a2: T[]): boolean {
@@ -12,14 +11,12 @@ function arraysEqual<T>(a1: T[], a2: T[]): boolean {
   return a1.every((value, index) => value === a2[index])
 }
 
-export default function StatesSelector({
-  loading,
-  setLoading,
-  setStatusMessage,
-}: LegalSubFormProps) {
+export default function StatesSelector() {
+  const alerterRef = useAlerter()
   const supabaseRef = useSupabaseClient()
   const sessionRef = useSession()
-  const [showToast, setShowToast] = useState<string | null>(null)
+  const [loading, setLoading] = useState<boolean>(false)
+
   const [prefilledStates, setPrefilledStates] = useState<
     Database['public']['Enums']['UsState'][] | undefined
   >(undefined)
@@ -33,23 +30,22 @@ export default function StatesSelector({
       .eq('id', sessionRef.current.user.id)
       .single()
     if (error || data === null) {
-      setStatusMessage(
-        'Something went wrong when trying to fetch your account information! Try again later.',
+      alerterRef.current.error(
+        "Something went wrong when trying to fetch your account information, so the form couldn't be prefilled!",
       )
+      setPrefilledStates(undefined)
     } else {
       const states = data.licensedStates.sort()
-      setPrefilledStates([...states])
+      setPrefilledStates(states)
       setSelectedStates([...states])
     }
     setLoading(false)
-  }, [sessionRef, setLoading, setStatusMessage, supabaseRef])
+  }, [alerterRef, sessionRef, setLoading, supabaseRef])
 
   // Filling the form with the lawyers's existing states data before presenting it for editing:
   useEffect(() => {
-    if (prefilledStates === undefined) {
-      prefillForm()
-    }
-  }, [prefillForm, prefilledStates])
+    prefillForm()
+  }, [prefillForm])
 
   // Dynamically syncing the form changes to the states model:
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -79,12 +75,12 @@ export default function StatesSelector({
       .eq('id', sessionRef.current.user.id)
       .single()
     if (updateError) {
-      setStatusMessage(
-        'Something went wrong when trying to update your licensed states! Try again later.',
+      alerterRef.current.error(
+        'Something went wrong when trying to update your licensed states! Try again.',
       )
     } else {
       setPrefilledStates([...selectedStates])
-      setShowToast('Update successful!')
+      alerterRef.current.success('Update successful!')
     }
     setLoading(false)
   }
@@ -124,15 +120,6 @@ export default function StatesSelector({
           </Button>
         </Form>
       </Card.Body>
-      <Toast
-        bg="primary"
-        onClose={() => setShowToast(null)}
-        show={showToast !== null}
-        delay={2500}
-        autohide
-      >
-        <Toast.Body>{showToast}</Toast.Body>
-      </Toast>
     </Card>
   )
 }

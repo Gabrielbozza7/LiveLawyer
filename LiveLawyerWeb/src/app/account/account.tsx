@@ -1,6 +1,11 @@
 'use client'
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { useSession, useSupabaseClient, useUserType } from 'livelawyerlibrary/context-manager'
+import { useCallback, useEffect, useState } from 'react'
+import {
+  useAlerter,
+  useSession,
+  useSupabaseClient,
+  useUserType,
+} from 'livelawyerlibrary/context-manager'
 import { useRouter } from 'next/navigation'
 import { ValidatedForm } from '@/components/forms/validated-form'
 import { ValidatedTextField } from '@/components/forms/validated-text-field'
@@ -10,7 +15,6 @@ import EmailIcon from '@mui/icons-material/Email'
 import PhoneIcon from '@mui/icons-material/Phone'
 import { ValidatedFormSubmitButton } from '@/components/forms/validated-form-submit-button'
 import Grid from '@mui/material/Grid'
-import { Toast } from 'react-bootstrap'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import Container from '@mui/material/Container'
@@ -28,11 +32,11 @@ interface FormModel {
 
 export default function Account() {
   const router = useRouter()
+  const alerterRef = useAlerter()
   const supabaseRef = useSupabaseClient()
   const sessionRef = useSession()
   const userType = useUserType()
   const [loading, setLoading] = useState<boolean>(true)
-  const [showToast, setShowToast] = useState<string | null>(null)
 
   const [prefilledFormModel, setPrefilledFormModel] = useState<FormModel | undefined>(undefined)
   const [formModel, setFormModel] = useState<FormModel>({
@@ -42,40 +46,34 @@ export default function Account() {
     phoneNumber: '',
   })
 
-  const fetchPrefilledFormModel = useCallback(async () => {
+  const prefillForm = useCallback(async () => {
     const { data, error } = await supabaseRef.current
       .from('User')
       .select()
       .eq('id', sessionRef.current.user.id)
       .single()
-    let prefilledFormModel: FormModel
     if (error || data === null) {
-      setShowToast('Something went wrong when trying to fetch your account information!')
-      prefilledFormModel = formModel
+      alerterRef.current.error(
+        "Something went wrong when trying to fetch your account information, so the form couldn't be prefilled!",
+      )
+      setPrefilledFormModel(undefined)
     } else {
-      prefilledFormModel = {
+      const model = {
         firstName: data.firstName,
         lastName: data.lastName,
         phoneNumber: data.phoneNumber ?? '+12223334444',
         email: data.email,
       }
+      setPrefilledFormModel(model)
+      setFormModel({ ...model })
     }
     setLoading(false)
-    return prefilledFormModel
-  }, [formModel, sessionRef, supabaseRef])
+  }, [alerterRef, sessionRef, supabaseRef])
 
   // Filling the form with the user's existing data before presenting it for editing:
-  const prefilledYet = useRef<boolean>(false)
   useEffect(() => {
-    if (prefilledYet.current === false) {
-      console.log('prefilling')
-      prefilledYet.current = true
-      fetchPrefilledFormModel().then(model => {
-        setPrefilledFormModel(model)
-        setFormModel(model)
-      })
-    }
-  }, [fetchPrefilledFormModel, prefilledFormModel])
+    prefillForm()
+  }, [prefillForm])
 
   // Updating the database based on the new account model when the form is submitted:
   const handleSubmit = async () => {
@@ -92,10 +90,12 @@ export default function Account() {
       .eq('id', sessionRef.current.user.id)
       .single()
     if (updateError) {
-      setShowToast('Something went wrong when trying to update your account! Try again later.')
+      alerterRef.current.error(
+        'Something went wrong when trying to update your account! Try again later.',
+      )
     } else {
       setPrefilledFormModel(formModel)
-      setShowToast('Update successful!')
+      alerterRef.current.success('Update successful!')
     }
     setLoading(false)
   }
@@ -107,7 +107,7 @@ export default function Account() {
       await supabaseRef.current.auth.signOut()
       router.push('/')
     } catch {
-      setShowToast('Something went wrong when trying to log out! Try again later.')
+      alerterRef.current.error('Something went wrong when trying to log out! Try again later.')
     }
     setLoading(false)
   }
@@ -199,15 +199,6 @@ export default function Account() {
                 </Button>
               </Grid>
             </ValidatedForm>
-            <Toast
-              bg="primary"
-              onClose={() => setShowToast(null)}
-              show={showToast !== null}
-              delay={2500}
-              autohide
-            >
-              <Toast.Body>{showToast}</Toast.Body>
-            </Toast>
           </Stack>
         </CardContent>
       </Card>

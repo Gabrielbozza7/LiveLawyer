@@ -1,25 +1,25 @@
 'use client'
 import 'bootstrap/dist/css/bootstrap.min.css'
-import { Button, Card, Table, Toast } from 'react-bootstrap'
+import { Button, Card, Table } from 'react-bootstrap'
 import { useEffect, useState } from 'react'
 import {
   CallHistoryDetailsSingle,
   CallHistorySingle,
 } from 'livelawyerlibrary/api/types/call-history'
-import { useApi } from 'livelawyerlibrary/context-manager'
+import { useAlerter, useApi } from 'livelawyerlibrary/context-manager'
 
 interface HistoryEntryProps {
   entry: CallHistorySingle
 }
 
 export function HistoryEntry({ entry }: HistoryEntryProps) {
+  const alerterRef = useAlerter()
   const apiRef = useApi()
   const [showDetails, setShowDetails] = useState<boolean>(false)
   const [details, setDetails] = useState<CallHistoryDetailsSingle | undefined>(undefined)
   const [placeholder, setPlaceholder] = useState<string | undefined>('Loading...')
   const [sentRequest, setSentRequest] = useState<boolean>(false)
   const [attemptingDownload, setAttemptingDownload] = useState<boolean>(false)
-  const [showToast, setShowToast] = useState<string | null>(null)
 
   useEffect(() => {
     if (showDetails && !sentRequest) {
@@ -42,7 +42,7 @@ export function HistoryEntry({ entry }: HistoryEntryProps) {
       const response = await apiRef.current.fetchCallDownload(recordingId)
       window.open(response.downloadLink, '_self')
     } catch (error) {
-      setShowToast(`Error: ${(error as Error).message}`)
+      alerterRef.current.error(`Error: ${(error as Error).message}`)
     } finally {
       setAttemptingDownload(false)
     }
@@ -134,18 +134,6 @@ export function HistoryEntry({ entry }: HistoryEntryProps) {
               <Card.Text>Call details for this call are unavailable.</Card.Text>
             )}
           </Card.Body>
-          <Toast
-            bg="danger"
-            onClose={() => setShowToast(null)}
-            show={showToast !== null}
-            delay={2500}
-            autohide
-          >
-            <Toast.Header>
-              <strong className="me-auto">Error</strong>
-            </Toast.Header>
-            <Toast.Body>{showToast}</Toast.Body>
-          </Toast>
         </Card>
       )}
     </>

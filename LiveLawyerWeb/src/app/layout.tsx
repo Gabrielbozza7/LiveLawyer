@@ -11,6 +11,7 @@ import type { Metadata } from 'next'
 import CompleteRegistration from '@/components/auth/complete-registration'
 import LiveLawyerNav from '@/components/LiveLawyerNav'
 import CssBaseline from '@mui/material/CssBaseline'
+import AlertDelivery from '@/components/alert-delivery'
 
 export const metadata: Metadata = {
   description: 'Live Lawyer Web',
@@ -31,8 +32,9 @@ export default function RootLayout({
               supabaseAnonKey: SUPABASE_ANON_KEY,
               backendUrl: BACKEND_URL,
             }}
-            loadingComponent={<p>Loading...</p>}
             sessionlessComponent={<LoginRegister />}
+            alertDeliveryComponent={<AlertDelivery />}
+            loadingComponent={<p>Loading...</p>}
             uninitializedUserComponent={<CompleteRegistration />}
           >
             <LiveLawyerNav />

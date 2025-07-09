@@ -1,8 +1,8 @@
 import React, { FormEvent, useEffect, useState } from 'react'
 import { Button, Card, Form } from 'react-bootstrap'
-import { useSession, useSupabaseClient } from 'livelawyerlibrary/context-manager'
+import { useAlerter, useSession, useSupabaseClient } from 'livelawyerlibrary/context-manager'
 import { PostgrestError } from '@supabase/supabase-js'
-import { OfficeSubFormProps, LegalSubFormProps } from './legal'
+import { OfficeSubFormProps } from './office-menu'
 
 export interface OfficeOption {
   id: string
@@ -14,14 +14,11 @@ export interface OfficeSelection {
   selectedOfficeId?: string
 }
 
-export default function OfficeSelector({
-  loading,
-  setLoading,
-  setStatusMessage,
-  setCurrentOffice,
-}: LegalSubFormProps & OfficeSubFormProps) {
+export default function OfficeSelector({ setCurrentOffice }: OfficeSubFormProps) {
+  const alerterRef = useAlerter()
   const supabaseRef = useSupabaseClient()
   const sessionRef = useSession()
+  const [loading, setLoading] = useState<boolean>(false)
   const [placeholder, setPlaceholder] = useState<string | null>('Loading...')
   const [offices, setOffices] = useState<OfficeOption[]>([])
   const [selectionType, setSelectionType] = useState<'Existing Office' | 'New Office'>(
@@ -101,7 +98,7 @@ export default function OfficeSelector({
         upsertError = upsertInnerError
       }
       if (insertError || upsertError) {
-        setStatusMessage(
+        alerterRef.current.error(
           'Something went wrong when trying to create the new office! Try again later.',
         )
       }
@@ -115,7 +112,7 @@ export default function OfficeSelector({
         )
         .single()
       if (upsertError) {
-        setStatusMessage(
+        alerterRef.current.error(
           'Something went wrong when trying to add you to the office! Try again later.',
         )
       }

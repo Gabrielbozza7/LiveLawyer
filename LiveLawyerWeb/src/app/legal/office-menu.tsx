@@ -1,12 +1,19 @@
-import { useCallback, useEffect, useState } from 'react'
-import { LegalSubFormProps } from './legal'
-import { useSession, useSupabaseClient } from 'livelawyerlibrary/context-manager'
+import { Dispatch, SetStateAction, useCallback, useEffect, useState } from 'react'
+import { useAlerter, useSession, useSupabaseClient } from 'livelawyerlibrary/context-manager'
 import { Database } from 'livelawyerlibrary/database-types'
 import OfficeEditor from './office-editor'
-import { Card } from 'react-bootstrap'
 import OfficeSelector from './office-selector'
+import CircularProgress from '@mui/material/CircularProgress'
 
-export default function OfficeMenu({ loading, setLoading, setStatusMessage }: LegalSubFormProps) {
+export interface OfficeSubFormProps {
+  currentOffice: Database['public']['Tables']['LawOffice']['Row'] | null | undefined
+  setCurrentOffice: Dispatch<
+    SetStateAction<Database['public']['Tables']['LawOffice']['Row'] | null | undefined>
+  >
+}
+
+export default function OfficeMenu() {
+  const alerterRef = useAlerter()
   const supabaseRef = useSupabaseClient()
   const sessionRef = useSession()
 
@@ -15,14 +22,13 @@ export default function OfficeMenu({ loading, setLoading, setStatusMessage }: Le
   >(undefined)
 
   const fetchCurrentOffice = useCallback(async () => {
-    setLoading(true)
     const { data, error } = await supabaseRef.current
       .from('UserLawyer')
       .select('office:LawOffice(*)')
       .eq('id', sessionRef.current.user.id)
       .maybeSingle()
     if (error) {
-      setStatusMessage(
+      alerterRef.current.error(
         'Something went wrong when trying to fetch your office information! Try again later.',
       )
     } else if (data !== null && data.office !== null) {
@@ -30,8 +36,7 @@ export default function OfficeMenu({ loading, setLoading, setStatusMessage }: Le
     } else {
       setCurrentOffice(null)
     }
-    setLoading(false)
-  }, [sessionRef, setLoading, setStatusMessage, supabaseRef])
+  }, [alerterRef, sessionRef, supabaseRef])
 
   // Fetching the user's current office:
   useEffect(() => {
@@ -43,20 +48,11 @@ export default function OfficeMenu({ loading, setLoading, setStatusMessage }: Le
   return (
     <>
       {currentOffice === undefined ? (
-        <Card.Text>Loading...</Card.Text>
+        <CircularProgress />
       ) : currentOffice !== null ? (
-        <OfficeEditor
-          loading={loading}
-          setLoading={setLoading}
-          setStatusMessage={setStatusMessage}
-          currentOffice={currentOffice}
-          setCurrentOffice={setCurrentOffice}
-        />
+        <OfficeEditor currentOffice={currentOffice} setCurrentOffice={setCurrentOffice} />
       ) : (
         <OfficeSelector
-          loading={loading}
-          setLoading={setLoading}
-          setStatusMessage={setStatusMessage}
           currentOffice={currentOffice}
           setCurrentOffice={setCurrentOffice}
         ></OfficeSelector>

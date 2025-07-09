@@ -1,7 +1,7 @@
 import { FormEvent, useEffect, useState } from 'react'
-import { Button, Card, Form, Toast } from 'react-bootstrap'
-import { OfficeSubFormProps, LegalSubFormProps } from './legal'
-import { useSession, useSupabaseClient } from 'livelawyerlibrary/context-manager'
+import { Button, Card, Form } from 'react-bootstrap'
+import { useAlerter, useSession, useSupabaseClient } from 'livelawyerlibrary/context-manager'
+import { OfficeSubFormProps } from './office-menu'
 
 interface FormModel {
   name: string
@@ -11,16 +11,11 @@ interface FormModel {
   address: string
 }
 
-export default function OfficeEditor({
-  loading,
-  setLoading,
-  setStatusMessage,
-  currentOffice,
-  setCurrentOffice,
-}: LegalSubFormProps & OfficeSubFormProps) {
+export default function OfficeEditor({ currentOffice, setCurrentOffice }: OfficeSubFormProps) {
+  const alerterRef = useAlerter()
   const supabaseRef = useSupabaseClient()
   const sessionRef = useSession()
-  const [showToast, setShowToast] = useState<string | null>(null)
+  const [loading, setLoading] = useState<boolean>(false)
 
   const [prefilledFormModel, setPrefilledFormModel] = useState<FormModel | undefined>(undefined)
   const [canEdit, setCanEdit] = useState<boolean>(false)
@@ -81,10 +76,12 @@ export default function OfficeEditor({
       .eq('id', currentOffice.id)
       .single()
     if (updateError) {
-      setStatusMessage('Something went wrong when trying to update your account! Try again later.')
+      alerterRef.current.error(
+        'Something went wrong when trying to update your account! Try again later.',
+      )
     } else {
       setPrefilledFormModel(formModel)
-      setShowToast('Update successful!')
+      alerterRef.current.success('Update successful!')
     }
     setLoading(false)
   }
@@ -97,12 +94,13 @@ export default function OfficeEditor({
         .from('UserLawyer')
         .update({ officeId: null })
         .eq('id', sessionRef.current.user.id)
+      setCurrentOffice(null)
     } catch {
-      setStatusMessage('Something went wrong when trying to leave the office! Try again later.')
-    } finally {
-      setLoading(false)
+      alerterRef.current.error(
+        'Something went wrong when trying to leave the office! Try again later.',
+      )
     }
-    setCurrentOffice(null)
+    setLoading(false)
   }
 
   return (
@@ -199,15 +197,6 @@ export default function OfficeEditor({
           </Button>
         </Form>
       </Card.Body>
-      <Toast
-        bg="primary"
-        onClose={() => setShowToast(null)}
-        show={showToast !== null}
-        delay={2500}
-        autohide
-      >
-        <Toast.Body>{showToast}</Toast.Body>
-      </Toast>
     </Card>
   )
 }

@@ -1,5 +1,10 @@
 import { History } from './history'
 
 export default function Page() {
-  return <History />
+  return (
+    <>
+      <title>History</title>
+      <History />
+    </>
+  )
 }
