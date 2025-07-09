@@ -1,17 +1,24 @@
 'use client'
-import { Button, Card, Container, ListGroup } from 'react-bootstrap'
 import { useCallback, useEffect, useState } from 'react'
 import { CallHistorySingle } from 'livelawyerlibrary/api/types/call-history'
 import { HistoryEntry } from './history-entry'
 import { useAlerter, useApi } from 'livelawyerlibrary/context-manager'
+import Container from '@mui/material/Container'
+import Card from '@mui/material/Card'
+import CardContent from '@mui/material/CardContent'
+import Stack from '@mui/material/Stack'
+import CircularProgress from '@mui/material/CircularProgress'
+import Typography from '@mui/material/Typography'
+import Button from '@mui/material/Button'
 
 export function History() {
   const alerterRef = useAlerter()
   const apiRef = useApi()
   const [history, setHistory] = useState<CallHistorySingle[] | undefined>(undefined)
-  const [placeholder, setPlaceholder] = useState<string | null>('Loading...')
+  const [loading, setLoading] = useState<boolean>(false)
 
   const refreshHistory = useCallback(async () => {
+    setLoading(true)
     try {
       const response = await apiRef.current.fetchCallHistory()
       if (response.history) {
@@ -23,7 +30,7 @@ export function History() {
         'Something went wrong when trying to fetch your history! Try again later.',
       )
     }
-    setPlaceholder(null)
+    setLoading(false)
   }, [alerterRef, apiRef])
 
   useEffect(() => {
@@ -31,32 +38,34 @@ export function History() {
   }, [refreshHistory])
 
   return (
-    <Container fluid="md" style={{ margin: 24 }}>
-      {placeholder !== null ? (
-        <Card>
-          <Card.Body>{placeholder}</Card.Body>
-        </Card>
-      ) : (
-        <Card>
-          <Card.Body>
-            <h4 className="mb-3">Call History</h4>
-            {history === undefined ? (
-              <Card.Text>Your call history could not be loaded.</Card.Text>
-            ) : history.length > 0 ? (
-              <ListGroup>
-                {history.map(entry => (
-                  <ListGroup.Item key={entry.id}>
-                    <HistoryEntry entry={entry}></HistoryEntry>
-                  </ListGroup.Item>
-                ))}
-              </ListGroup>
+    <Container sx={{ marginTop: 4 }}>
+      <Card variant="outlined">
+        <CardContent>
+          <Stack spacing={2}>
+            <Typography variant="overline">Call History</Typography>
+            {loading ? (
+              <CircularProgress />
             ) : (
-              <Card.Text>Your call history is empty.</Card.Text>
+              <>
+                {history === undefined ? (
+                  <Typography variant="body1">Your call history could not be loaded.</Typography>
+                ) : history.length > 0 ? (
+                  <>
+                    {history.map(entry => (
+                      <HistoryEntry key={entry.id} entry={entry}></HistoryEntry>
+                    ))}
+                  </>
+                ) : (
+                  <Typography variant="body1">Your call history is empty.</Typography>
+                )}
+              </>
             )}
-          </Card.Body>
-        </Card>
-      )}
-      <Button onClick={refreshHistory}>Refresh</Button>
+            <Button variant="contained" onClick={refreshHistory}>
+              Refresh
+            </Button>
+          </Stack>
+        </CardContent>
+      </Card>
     </Container>
   )
 }
