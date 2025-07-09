@@ -1,3 +1,4 @@
+// TODO: Remove this once the alignment gets fixed.
 import 'bootstrap/dist/css/bootstrap.min.css'
 import '@fontsource/roboto/300.css'
 import '@fontsource/roboto/400.css'
