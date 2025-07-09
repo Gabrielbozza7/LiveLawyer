@@ -1,6 +1,6 @@
 import { useSession, useSupabaseClient } from 'livelawyerlibrary/context-manager'
 import { FormEvent, useCallback, useEffect, useState } from 'react'
-import { AccountSubFormProps } from './account'
+import { LegalSubFormProps } from './legal'
 import { Database } from 'livelawyerlibrary/database-types'
 import { Button, Card, Form, Toast } from 'react-bootstrap'
 import { stateCodesToNames } from 'livelawyerlibrary'
@@ -16,7 +16,7 @@ export default function StatesSelector({
   loading,
   setLoading,
   setStatusMessage,
-}: AccountSubFormProps) {
+}: LegalSubFormProps) {
   const supabaseRef = useSupabaseClient()
   const sessionRef = useSession()
   const [showToast, setShowToast] = useState<string | null>(null)

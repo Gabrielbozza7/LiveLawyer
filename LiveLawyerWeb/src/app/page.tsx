@@ -1,5 +1,10 @@
 import Landing from './landing'
 
 export default function Page() {
-  return <Landing />
+  return (
+    <>
+      <title>Live Lawyer Web</title>
+      <Landing />
+    </>
+  )
 }

@@ -12,12 +12,47 @@ import Tooltip from '@mui/material/Tooltip'
 import MenuItem from '@mui/material/MenuItem'
 import logo from '@/assets/images/live-lawyer-logo.jpeg'
 import Paper from '@mui/material/Paper'
-import { useState } from 'react'
+import { ReactNode, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useSupabaseClient, useUserType } from 'livelawyerlibrary/context-manager'
+import { useRouter } from 'next/navigation'
+import AccountCircleIcon from '@mui/icons-material/AccountCircle'
+import LogoutIcon from '@mui/icons-material/Logout'
 
 export default function LiveLawyerNav() {
+  const supabaseRef = useSupabaseClient()
+  const userType = useUserType()
+  const router = useRouter()
   const [anchorElementUser, setAnchorElementUser] = useState<HTMLElement | null>(null)
+
+  const navPages = new Map<string, string>([
+    ['Call', '/call'],
+    ['History', '/history'],
+  ])
+  if (userType === 'Lawyer') {
+    navPages.set('Legal', '/legal')
+  }
+
+  const menuPages = new Map<ReactNode, string | (() => Promise<unknown>)>([
+    [
+      <>
+        <AccountCircleIcon sx={{ marginRight: 1 }} />
+        <Typography>Account</Typography>
+      </>,
+      '/account',
+    ],
+    [
+      <>
+        <LogoutIcon sx={{ marginRight: 1 }} />
+        <Typography>Logout</Typography>
+      </>,
+      async () => {
+        await supabaseRef.current.auth.signOut()
+        router.push('/')
+      },
+    ],
+  ])
 
   const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElementUser(event.currentTarget)
@@ -26,13 +61,6 @@ export default function LiveLawyerNav() {
   const handleCloseUserMenu = () => {
     setAnchorElementUser(null)
   }
-
-  const pages = new Map<string, string>([
-    ['Call', '/call'],
-    ['Account', '/account'],
-    ['History', '/history'],
-  ])
-  const settings = ['Profile', 'Account', 'Dashboard', 'Logout']
 
   return (
     <AppBar position="static">
@@ -62,7 +90,7 @@ export default function LiveLawyerNav() {
             Live Lawyer Web
           </Typography>
           <Box sx={{ flexGrow: 1, display: 'flex' }}>
-            {Array.from(pages.entries()).map(entry => (
+            {Array.from(navPages.entries()).map(entry => (
               <Button
                 key={entry[0]}
                 LinkComponent={Link}
@@ -94,9 +122,19 @@ export default function LiveLawyerNav() {
               open={anchorElementUser !== null}
               onClose={handleCloseUserMenu}
             >
-              {settings.map(setting => (
-                <MenuItem key={setting} onClick={handleCloseUserMenu}>
-                  <Typography sx={{ textAlign: 'center' }}>{setting}</Typography>
+              {Array.from(menuPages.entries()).map((entry, index) => (
+                <MenuItem
+                  key={index}
+                  onClick={async () => {
+                    handleCloseUserMenu()
+                    if (typeof entry[1] === 'string') {
+                      router.push(entry[1])
+                    } else {
+                      await entry[1]()
+                    }
+                  }}
+                >
+                  {entry[0]}
                 </MenuItem>
               ))}
             </Menu>

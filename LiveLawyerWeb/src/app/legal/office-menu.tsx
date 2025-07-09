@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
-import { AccountSubFormProps } from './account'
+import { LegalSubFormProps } from './legal'
 import { useSession, useSupabaseClient } from 'livelawyerlibrary/context-manager'
 import { Database } from 'livelawyerlibrary/database-types'
 import OfficeEditor from './office-editor'
 import { Card } from 'react-bootstrap'
 import OfficeSelector from './office-selector'
 
-export default function OfficeMenu({ loading, setLoading, setStatusMessage }: AccountSubFormProps) {
+export default function OfficeMenu({ loading, setLoading, setStatusMessage }: LegalSubFormProps) {
   const supabaseRef = useSupabaseClient()
   const sessionRef = useSession()
 

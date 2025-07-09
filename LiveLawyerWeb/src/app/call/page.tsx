@@ -1,5 +1,10 @@
 import { Call } from './call'
 
 export default function Page() {
-  return <Call />
+  return (
+    <>
+      <title>Call</title>
+      <Call />
+    </>
+  )
 }

@@ -84,6 +84,18 @@ export function ValidatedTextField({
     }
   }, [name, required, setInvalidations, validator, value])
 
+  // This fixes an animation bug.
+  const [displayAsDisabled, setDisplayAsDisabled] = useState<boolean>(false)
+  useEffect(() => {
+    if (disabled) {
+      setDisplayAsDisabled(true)
+    } else {
+      new Promise(resolve => setTimeout(resolve, 10)).then(() => {
+        setDisplayAsDisabled(false)
+      })
+    }
+  }, [disabled])
+
   return (
     <Grid size={size ?? 12}>
       <TextField
@@ -111,7 +123,7 @@ export function ValidatedTextField({
         }}
         required={required ?? false}
         error={value !== '' && error}
-        helperText={(value === '' || error) && helperText}
+        helperText={(value === '' || error) && !displayAsDisabled && helperText}
       />
     </Grid>
   )

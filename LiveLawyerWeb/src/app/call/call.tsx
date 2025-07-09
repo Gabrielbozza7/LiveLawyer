@@ -225,7 +225,6 @@ export function Call() {
 
   return (
     <>
-      <title>Call</title>
       <Grid
         container
         alignItems="center"

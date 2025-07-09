@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react'
 import { Button, Card, Form, Toast } from 'react-bootstrap'
-import { AccountOfficeSubFormProps, AccountSubFormProps } from './account'
+import { OfficeSubFormProps, LegalSubFormProps } from './legal'
 import { useSession, useSupabaseClient } from 'livelawyerlibrary/context-manager'
 
 interface FormModel {
@@ -17,7 +17,7 @@ export default function OfficeEditor({
   setStatusMessage,
   currentOffice,
   setCurrentOffice,
-}: AccountSubFormProps & AccountOfficeSubFormProps) {
+}: LegalSubFormProps & OfficeSubFormProps) {
   const supabaseRef = useSupabaseClient()
   const sessionRef = useSession()
   const [showToast, setShowToast] = useState<string | null>(null)

@@ -2,7 +2,7 @@ import React, { FormEvent, useEffect, useState } from 'react'
 import { Button, Card, Form } from 'react-bootstrap'
 import { useSession, useSupabaseClient } from 'livelawyerlibrary/context-manager'
 import { PostgrestError } from '@supabase/supabase-js'
-import { AccountOfficeSubFormProps, AccountSubFormProps } from './account'
+import { OfficeSubFormProps, LegalSubFormProps } from './legal'
 
 export interface OfficeOption {
   id: string
@@ -19,7 +19,7 @@ export default function OfficeSelector({
   setLoading,
   setStatusMessage,
   setCurrentOffice,
-}: AccountSubFormProps & AccountOfficeSubFormProps) {
+}: LegalSubFormProps & OfficeSubFormProps) {
   const supabaseRef = useSupabaseClient()
   const sessionRef = useSession()
   const [placeholder, setPlaceholder] = useState<string | null>('Loading...')

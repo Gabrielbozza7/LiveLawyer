@@ -1,82 +1,215 @@
 'use client'
-import { Dispatch, SetStateAction, useState } from 'react'
-import UserEditor from './user-editor'
-import { useUserType } from 'livelawyerlibrary/context-manager'
-import OfficeMenu from './office-menu'
-import { Database } from 'livelawyerlibrary/database-types'
-import StatesSelector from './states-selector'
-import Stack from '@mui/material/Stack'
-import Tabs from '@mui/material/Tabs'
-import Container from '@mui/material/Container'
-import CardContent from '@mui/material/CardContent'
-import Card from '@mui/material/Card'
-import Tab from '@mui/material/Tab'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useSession, useSupabaseClient, useUserType } from 'livelawyerlibrary/context-manager'
+import { useRouter } from 'next/navigation'
+import { ValidatedForm } from '@/components/forms/validated-form'
+import { ValidatedTextField } from '@/components/forms/validated-text-field'
+import PersonOutlineIcon from '@mui/icons-material/PersonOutline'
+import { notEmpty, validateEmail, validatePhoneNumber } from 'livelawyerlibrary/input-validation'
+import EmailIcon from '@mui/icons-material/Email'
+import PhoneIcon from '@mui/icons-material/Phone'
+import { ValidatedFormSubmitButton } from '@/components/forms/validated-form-submit-button'
+import Grid from '@mui/material/Grid'
+import { Toast } from 'react-bootstrap'
+import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
+import Container from '@mui/material/Container'
+import Card from '@mui/material/Card'
+import CardContent from '@mui/material/CardContent'
+import Stack from '@mui/material/Stack'
 
-const POSSIBLE_TABS = ['UserEditor', 'StatesSelector', 'OfficeMenu'] as const
-type ActiveAccountTab = (typeof POSSIBLE_TABS)[number]
-
-export interface AccountSubFormProps {
-  loading: boolean
-  setLoading: Dispatch<SetStateAction<boolean>>
-  setStatusMessage: (statusMessage: string) => void
-}
-
-export interface AccountOfficeSubFormProps {
-  currentOffice: Database['public']['Tables']['LawOffice']['Row'] | null | undefined
-  setCurrentOffice: Dispatch<
-    SetStateAction<Database['public']['Tables']['LawOffice']['Row'] | null | undefined>
-  >
+interface FormModel {
+  firstName: string
+  lastName: string
+  email: string
+  phoneNumber: string
+  officeId?: string
 }
 
 export default function Account() {
+  const router = useRouter()
+  const supabaseRef = useSupabaseClient()
+  const sessionRef = useSession()
   const userType = useUserType()
-  const [statusMessage, setStatusMessage] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(true)
-  const [activeTab, setActiveTab] = useState<ActiveAccountTab>('UserEditor')
+  const [showToast, setShowToast] = useState<string | null>(null)
+
+  const [prefilledFormModel, setPrefilledFormModel] = useState<FormModel | undefined>(undefined)
+  const [formModel, setFormModel] = useState<FormModel>({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phoneNumber: '',
+  })
+
+  const fetchPrefilledFormModel = useCallback(async () => {
+    const { data, error } = await supabaseRef.current
+      .from('User')
+      .select()
+      .eq('id', sessionRef.current.user.id)
+      .single()
+    let prefilledFormModel: FormModel
+    if (error || data === null) {
+      setShowToast('Something went wrong when trying to fetch your account information!')
+      prefilledFormModel = formModel
+    } else {
+      prefilledFormModel = {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        phoneNumber: data.phoneNumber ?? '+12223334444',
+        email: data.email,
+      }
+    }
+    setLoading(false)
+    return prefilledFormModel
+  }, [formModel, sessionRef, supabaseRef])
+
+  // Filling the form with the user's existing data before presenting it for editing:
+  const prefilledYet = useRef<boolean>(false)
+  useEffect(() => {
+    if (prefilledYet.current === false) {
+      console.log('prefilling')
+      prefilledYet.current = true
+      fetchPrefilledFormModel().then(model => {
+        setPrefilledFormModel(model)
+        setFormModel(model)
+      })
+    }
+  }, [fetchPrefilledFormModel, prefilledFormModel])
+
+  // Updating the database based on the new account model when the form is submitted:
+  const handleSubmit = async () => {
+    setLoading(true)
+    // Updating profile:
+    const { error: updateError } = await supabaseRef.current
+      .from('User')
+      .update({
+        firstName: formModel.firstName,
+        lastName: formModel.lastName,
+        email: formModel.email,
+        phoneNumber: formModel.phoneNumber,
+      })
+      .eq('id', sessionRef.current.user.id)
+      .single()
+    if (updateError) {
+      setShowToast('Something went wrong when trying to update your account! Try again later.')
+    } else {
+      setPrefilledFormModel(formModel)
+      setShowToast('Update successful!')
+    }
+    setLoading(false)
+  }
+
+  const handleLogout = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    e.preventDefault()
+    setLoading(true)
+    try {
+      await supabaseRef.current.auth.signOut()
+      router.push('/')
+    } catch {
+      setShowToast('Something went wrong when trying to log out! Try again later.')
+    }
+    setLoading(false)
+  }
 
   return (
     <Container maxWidth="lg" sx={{ marginTop: 4 }}>
       <Card variant="outlined" sx={{ padding: 1 }}>
-        {statusMessage !== '' ? (
-          <CardContent>
-            <Typography variant="body1">{statusMessage}</Typography>
-          </CardContent>
-        ) : (
-          <CardContent>
-            <Stack spacing={4}>
-              <Tabs
-                value={POSSIBLE_TABS.findIndex(x => x === activeTab)}
-                onChange={(event, index) => setActiveTab(POSSIBLE_TABS[index])}
+        <CardContent>
+          <Stack spacing={4}>
+            <Typography variant="overline">Account Information</Typography>
+            <ValidatedForm
+              disabled={loading}
+              model={formModel}
+              setModel={setFormModel}
+              onSubmit={handleSubmit}
+            >
+              <ValidatedTextField
+                name="firstName"
+                type="text"
+                icon={<PersonOutlineIcon />}
+                label="First Name"
+                defaultValue={prefilledFormModel?.firstName}
+                validator={notEmpty}
+                helperText="Value must not be empty."
+                required
+                size={6}
+              />
+
+              <ValidatedTextField
+                name="lastName"
+                type="text"
+                icon={<PersonOutlineIcon />}
+                label="Last Name"
+                defaultValue={prefilledFormModel?.lastName}
+                validator={notEmpty}
+                helperText="Value must not be empty."
+                required
+                size={6}
+              />
+
+              <ValidatedTextField
+                name="email"
+                type="email"
+                icon={<EmailIcon />}
+                label="Email"
+                defaultValue={prefilledFormModel?.email}
+                validator={validateEmail}
+                helperText="Email must reflect the structure of a real email address."
+                required
+                size={6}
+              />
+
+              <ValidatedTextField
+                name="phoneNumber"
+                type="tel"
+                icon={<PhoneIcon />}
+                label="Phone Number"
+                defaultValue={prefilledFormModel?.phoneNumber}
+                validator={validatePhoneNumber}
+                helperText="Phone number must conform to E.164 format"
+                required
+                size={6}
+              />
+
+              <Grid size={12}>
+                <Typography variant="body1">
+                  Your User Type: {userType}
+                  <br /> <br />
+                  Your User ID: {sessionRef.current.user.id}
+                </Typography>
+              </Grid>
+
+              <ValidatedFormSubmitButton
+                disabled={JSON.stringify(prefilledFormModel) === JSON.stringify(formModel)}
+                color="success"
+                size={6}
               >
-                <Tab label="User" />
-                {userType === 'Lawyer' && <Tab label="States" />}
-                {userType === 'Lawyer' && <Tab label="Office" />}
-              </Tabs>
-              {activeTab === 'UserEditor' ? (
-                <UserEditor
-                  loading={loading}
-                  setLoading={setLoading}
-                  setStatusMessage={setStatusMessage}
-                />
-              ) : activeTab === 'StatesSelector' ? (
-                <StatesSelector
-                  loading={loading}
-                  setLoading={setLoading}
-                  setStatusMessage={setStatusMessage}
-                />
-              ) : activeTab === 'OfficeMenu' ? (
-                <OfficeMenu
-                  loading={loading}
-                  setLoading={setLoading}
-                  setStatusMessage={setStatusMessage}
-                />
-              ) : (
-                <></>
-              )}
-            </Stack>
-          </CardContent>
-        )}
+                Save Changes
+              </ValidatedFormSubmitButton>
+              <Grid size={6}>
+                <Button
+                  fullWidth
+                  disabled={loading}
+                  variant="contained"
+                  color="error"
+                  onClick={handleLogout}
+                >
+                  Logout
+                </Button>
+              </Grid>
+            </ValidatedForm>
+            <Toast
+              bg="primary"
+              onClose={() => setShowToast(null)}
+              show={showToast !== null}
+              delay={2500}
+              autohide
+            >
+              <Toast.Body>{showToast}</Toast.Body>
+            </Toast>
+          </Stack>
+        </CardContent>
       </Card>
     </Container>
   )

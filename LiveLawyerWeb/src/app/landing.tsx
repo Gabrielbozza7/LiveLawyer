@@ -9,27 +9,24 @@ import Link from 'next/link'
 
 export default function Landing() {
   return (
-    <>
-      <title>Live Lawyer Web</title>
-      <Container sx={{ marginTop: 4 }}>
-        <Card variant="outlined">
-          <CardContent>
-            <Stack spacing={2}>
-              <Typography variant="overline">Live Lawyer Web</Typography>
-              <Typography variant="h5">Welcome to Live Lawyer Web.</Typography>
-              <Typography variant="body1">
-                To start your call with a client in the call page, click if you are an observer or a
-                lawyer.
-              </Typography>
-            </Stack>
-          </CardContent>
-          <CardActions>
-            <Button size="small" LinkComponent={Link} href="/call">
-              Go to Call Page
-            </Button>
-          </CardActions>
-        </Card>
-      </Container>
-    </>
+    <Container sx={{ marginTop: 4 }}>
+      <Card variant="outlined">
+        <CardContent>
+          <Stack spacing={2}>
+            <Typography variant="overline">Live Lawyer Web</Typography>
+            <Typography variant="h5">Welcome to Live Lawyer Web.</Typography>
+            <Typography variant="body1">
+              To start your call with a client in the call page, click if you are an observer or a
+              lawyer.
+            </Typography>
+          </Stack>
+        </CardContent>
+        <CardActions>
+          <Button size="small" LinkComponent={Link} href="/call">
+            Go to Call Page
+          </Button>
+        </CardActions>
+      </Card>
+    </Container>
   )
 }
