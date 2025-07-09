@@ -41,7 +41,7 @@ export function twilioIdentityFromInfo(info: TwilioIdentityInfo): string {
   return `${info.userType} ${info.userId}`
 }
 
-export const stateCodesToNames = {
+export const STATE_CODES_TO_NAMES = {
   AL: 'Alabama',
   AK: 'Alaska',
   AZ: 'Arizona',

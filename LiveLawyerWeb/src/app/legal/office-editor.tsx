@@ -1,7 +1,18 @@
-import { FormEvent, useEffect, useState } from 'react'
-import { Button, Card, Form } from 'react-bootstrap'
+import { useEffect, useState } from 'react'
 import { useAlerter, useSession, useSupabaseClient } from 'livelawyerlibrary/context-manager'
 import { OfficeSubFormProps } from './office-menu'
+import { ValidatedForm } from '@/components/forms/validated-form'
+import Typography from '@mui/material/Typography'
+import { ValidatedTextField } from '@/components/forms/validated-text-field'
+import BusinessIcon from '@mui/icons-material/Business'
+import EmailIcon from '@mui/icons-material/Email'
+import PhoneIcon from '@mui/icons-material/Phone'
+import PublicIcon from '@mui/icons-material/Public'
+import HomeIcon from '@mui/icons-material/Home'
+import { notEmpty, validateEmail, validatePhoneNumber } from 'livelawyerlibrary/input-validation'
+import Grid from '@mui/material/Grid'
+import { ValidatedFormSubmitButton } from '@/components/forms/validated-form-submit-button'
+import Button from '@mui/material/Button'
 
 interface FormModel {
   name: string
@@ -38,29 +49,12 @@ export default function OfficeEditor({ currentOffice, setCurrentOffice }: Office
       address: currentOffice.address ?? '',
     }
     setPrefilledFormModel(refreshModel)
-    setFormModel(refreshModel)
+    setFormModel({ ...refreshModel })
     setCanEdit(currentOffice.administratorId === sessionRef.current.user.id)
   }, [currentOffice, sessionRef])
 
-  // Dynamically syncing the form changes to the account model:
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormModel(prev => ({ ...prev, [name]: value }))
-  }
-
-  // Phone number format validation:
-  const [phoneNumberValid, setPhoneNumberValid] = useState<boolean>(false)
-  useEffect(() => {
-    setPhoneNumberValid(
-      formModel.phoneNumber === '' || formModel.phoneNumber.match(/^\+[1-9]\d{1,14}$/)
-        ? true
-        : false,
-    )
-  }, [formModel.phoneNumber])
-
   // Updating the database based on the new office model when the form is submitted:
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+  const handleSubmit = async () => {
     if (currentOffice === null || currentOffice === undefined) return
     setLoading(true)
     // Updating law office:
@@ -104,99 +98,92 @@ export default function OfficeEditor({ currentOffice, setCurrentOffice }: Office
   }
 
   return (
-    <Card>
-      <Card.Body>
-        <h4 className="mb-4">Office Information</h4>
-        <Form onSubmit={handleSubmit}>
-          {!canEdit && (
-            <Card.Text>
-              You cannot edit this office because you are not its administrator.
-            </Card.Text>
-          )}
+    <>
+      {!canEdit && (
+        <Typography variant="body1">
+          You cannot edit this office because you are not its administrator.
+        </Typography>
+      )}
 
-          <Form.Group controlId="formName" className="mt-3">
-            <Form.Label>Name</Form.Label>
-            <Form.Control
-              disabled={loading || !canEdit}
-              type="text"
-              name="name"
-              value={formModel.name}
-              onChange={handleChange}
-            />
-          </Form.Group>
+      <ValidatedForm
+        disabled={loading || !canEdit}
+        model={formModel}
+        setModel={setFormModel}
+        onSubmit={handleSubmit}
+      >
+        <ValidatedTextField
+          name="name"
+          type="text"
+          icon={<BusinessIcon />}
+          label="Name"
+          defaultValue={prefilledFormModel?.name}
+          validator={notEmpty}
+          helperText="Value must not be empty."
+          required
+        />
 
-          <Form.Group controlId="formEmail" className="mt-3">
-            <Form.Label>Email</Form.Label>
-            <Form.Control
-              disabled={loading || !canEdit}
-              type="email"
-              name="email"
-              value={formModel.email}
-              onChange={handleChange}
-            />
-          </Form.Group>
+        <ValidatedTextField
+          name="email"
+          type="email"
+          icon={<EmailIcon />}
+          label="Email"
+          defaultValue={prefilledFormModel?.email}
+          validator={validateEmail}
+          helperText="Email must reflect the structure of a real email address."
+          size={6}
+        />
 
-          <Form.Group controlId="formPhoneNumber" className="mt-3">
-            <Form.Label>Phone Number</Form.Label>
-            <Form.Control
-              disabled={loading || !canEdit}
-              type="tel"
-              name="phoneNumber"
-              value={formModel.phoneNumber}
-              onChange={handleChange}
-            />
-          </Form.Group>
+        <ValidatedTextField
+          name="phoneNumber"
+          type="tel"
+          icon={<PhoneIcon />}
+          label="Phone Number"
+          defaultValue={prefilledFormModel?.phoneNumber}
+          validator={validatePhoneNumber}
+          helperText="Phone number must conform to E.164 format."
+          size={6}
+        />
 
-          <Card.Text className="mt-3">
-            Phone number must be blank or conform to E.164 format: {phoneNumberValid ? '✔️' : '❌'}
-          </Card.Text>
+        <ValidatedTextField
+          name="websiteUrl"
+          type="text"
+          icon={<PublicIcon />}
+          label="Website URL"
+          defaultValue={prefilledFormModel?.websiteUrl}
+        />
 
-          <Form.Group controlId="formWebsiteUrl" className="mt-3">
-            <Form.Label>Website URL</Form.Label>
-            <Form.Control
-              disabled={loading || !canEdit}
-              type="text"
-              name="websiteUrl"
-              value={formModel.websiteUrl}
-              onChange={handleChange}
-            />
-          </Form.Group>
+        <ValidatedTextField
+          name="address"
+          type="text"
+          icon={<HomeIcon />}
+          label="Address"
+          defaultValue={prefilledFormModel?.address}
+        />
 
-          <Form.Group controlId="formAddress" className="mt-3">
-            <Form.Label>Address</Form.Label>
-            <Form.Control
-              disabled={loading || !canEdit}
-              type="text"
-              name="address"
-              value={formModel.address}
-              onChange={handleChange}
-            />
-          </Form.Group>
+        <Grid size={12}>
+          <Typography variant="overline">Current Office Name</Typography>
+          <Typography variant="body1">{currentOffice?.name ?? '...'}</Typography>
+        </Grid>
 
-          {currentOffice && (
-            <>
-              <Card.Text className="mt-3">Your Office Name: {currentOffice.name}</Card.Text>
-              <Card.Text className="mt-3">Your Office ID: {currentOffice.id}</Card.Text>
-            </>
-          )}
-
+        <ValidatedFormSubmitButton
+          disabled={JSON.stringify(prefilledFormModel) === JSON.stringify(formModel)}
+          color="success"
+          size={6}
+        >
+          Save Changes
+        </ValidatedFormSubmitButton>
+        <Grid size={6}>
           <Button
-            disabled={
-              loading ||
-              !phoneNumberValid ||
-              JSON.stringify(prefilledFormModel) === JSON.stringify(formModel)
-            }
-            variant="primary"
-            type="submit"
+            fullWidth
+            disabled={loading}
+            variant="contained"
+            color="error"
+            onClick={handleLeave}
           >
-            Save Changes
-          </Button>
-
-          <Button disabled={loading} variant="danger" type="button" onClick={handleLeave}>
             Leave Office
           </Button>
-        </Form>
-      </Card.Body>
-    </Card>
+        </Grid>
+      </ValidatedForm>
+    </>
   )
 }

@@ -15,18 +15,25 @@ import { notEmpty, validatePhoneNumber } from 'livelawyerlibrary/input-validatio
 import { ValidatedFormSubmitButton } from '../forms/validated-form-submit-button'
 import Grid from '@mui/material/Grid'
 import Button from '@mui/material/Button'
-import ValidatedAutocompleteDropdown from '../forms/validated-autocomplete-dropdown'
+import ValidatedAutocompleteDropdown, {
+  AutocompleteOptionNotNew,
+} from '../forms/validated-autocomplete-dropdown'
+import { UserType } from 'livelawyerlibrary'
 
-const USER_TYPE_OPTIONS = [
-  { label: 'Observer', isNew: false },
-  { label: 'Lawyer', isNew: false },
+interface UserTypeOptionExtra {
+  userType: UserType
+}
+
+const USER_TYPE_OPTIONS: AutocompleteOptionNotNew<UserTypeOptionExtra>[] = [
+  { label: 'Observer', isNew: false, extra: { userType: 'Observer' } },
+  { label: 'Lawyer', isNew: false, extra: { userType: 'Lawyer' } },
 ] as const
 
 interface FormModel {
   firstName: string
   lastName: string
   phoneNumber: string
-  userType: (typeof USER_TYPE_OPTIONS)[number]
+  userType: AutocompleteOptionNotNew<UserTypeOptionExtra>
 }
 
 export default function CompleteRegistration() {
@@ -39,7 +46,7 @@ export default function CompleteRegistration() {
     firstName: '',
     lastName: '',
     phoneNumber: '',
-    userType: { label: 'Observer', isNew: false },
+    userType: USER_TYPE_OPTIONS[0],
   })
 
   // Making changes based on the new account model when the form is submitted:
@@ -51,7 +58,7 @@ export default function CompleteRegistration() {
         firstName: formModel.firstName,
         lastName: formModel.lastName,
         phoneNumber: formModel.phoneNumber,
-        userType: formModel.userType.label,
+        userType: formModel.userType.extra.userType,
       })
       .eq('id', sessionRef.current.user.id)
       .single()
@@ -133,7 +140,7 @@ export default function CompleteRegistration() {
                   label="User Type"
                   options={USER_TYPE_OPTIONS}
                   canAddNew={false}
-                  defaultValue={'Observer'}
+                  defaultValue={USER_TYPE_OPTIONS[0]}
                   validator={notEmpty}
                   helperText="Select an option."
                   required

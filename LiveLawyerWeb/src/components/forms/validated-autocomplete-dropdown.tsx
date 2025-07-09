@@ -5,30 +5,36 @@ import { FormDisablingContext, FormInvalidationsContext, FormModelContext } from
 import { ReactNode, useContext, useEffect, useState } from 'react'
 import Grid from '@mui/material/Grid'
 
-interface DropdownOption {
+export type AutocompleteOptionNotNew<T extends object> = {
   label: string
-  isNew: boolean
+  isNew: false
+  extra: T
 }
 
-export function toDropdownOptions(array: readonly string[]): readonly DropdownOption[] {
-  return array.map(entry => ({ label: entry, isNew: false }))
+export type AutocompleteOptionNew = {
+  label: string
+  isNew: true
 }
 
-interface ValidatedAutocompleteDropdownProps {
+export type AutocompleteOption<T extends object> =
+  | AutocompleteOptionNotNew<T>
+  | AutocompleteOptionNew
+
+interface ValidatedAutocompleteDropdownProps<T extends object> {
   name: string
   icon?: ReactNode
   label: string
-  options: readonly DropdownOption[]
+  options: readonly AutocompleteOption<T>[]
   canAddNew: boolean
   addNewPrefix?: string
-  defaultValue?: string
+  defaultValue?: AutocompleteOption<T> | null
   validator?: (value: string) => boolean
   helperText?: string
   required?: boolean
   size?: number
 }
 
-export default function ValidatedAutocompleteDropdown({
+export default function ValidatedAutocompleteDropdown<T extends object>({
   name,
   icon,
   label,
@@ -40,16 +46,17 @@ export default function ValidatedAutocompleteDropdown({
   helperText,
   required,
   size,
-}: ValidatedAutocompleteDropdownProps) {
+}: ValidatedAutocompleteDropdownProps<T>) {
   const disabled = useContext(FormDisablingContext)
   const { setInvalidations } = useContext(FormInvalidationsContext)
   const { model, setModel } = useContext(FormModelContext)
-  const [value, setValue] = useState<DropdownOption | null>(null)
+  const [value, setValue] = useState<AutocompleteOption<T> | null>(null)
   const [error, setError] = useState<boolean>(false)
 
   useEffect(() => {
     if (
-      JSON.stringify((model as { [name]: DropdownOption | null })[name]) !== JSON.stringify(value)
+      JSON.stringify((model as { [name]: AutocompleteOption<T> | null })[name]) !==
+      JSON.stringify(value)
     ) {
       setModel({ ...model, [name]: value })
     }
@@ -57,9 +64,9 @@ export default function ValidatedAutocompleteDropdown({
 
   useEffect(() => {
     if (defaultValue !== undefined) {
-      setValue({ label: defaultValue, isNew: false })
+      setValue(defaultValue)
     }
-  }, [defaultValue])
+  }, [defaultValue, options])
 
   useEffect(() => {
     if (validator !== undefined) {
@@ -147,7 +154,7 @@ export default function ValidatedAutocompleteDropdown({
           }
         }}
         filterOptions={(options, params) => {
-          const filtered = createFilterOptions<DropdownOption>()(options, params)
+          const filtered = createFilterOptions<AutocompleteOption<T>>()(options, params)
           const { inputValue } = params
 
           // Suggesting the creation of a new option:

@@ -167,17 +167,14 @@ export default function Account() {
                 label="Phone Number"
                 defaultValue={prefilledFormModel?.phoneNumber}
                 validator={validatePhoneNumber}
-                helperText="Phone number must conform to E.164 format"
+                helperText="Phone number must conform to E.164 format."
                 required
                 size={6}
               />
 
               <Grid size={12}>
-                <Typography variant="body1">
-                  Your User Type: {userType}
-                  <br /> <br />
-                  Your User ID: {sessionRef.current.user.id}
-                </Typography>
+                <Typography variant="overline">Your User Type</Typography>
+                <Typography variant="body1">{userType}</Typography>
               </Grid>
 
               <ValidatedFormSubmitButton

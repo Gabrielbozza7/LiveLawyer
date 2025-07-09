@@ -1,14 +1,17 @@
 import { useAlerter, useSession, useSupabaseClient } from 'livelawyerlibrary/context-manager'
 import { FormEvent, useCallback, useEffect, useState } from 'react'
 import { Database } from 'livelawyerlibrary/database-types'
-import { Button, Card, Form } from 'react-bootstrap'
-import { stateCodesToNames } from 'livelawyerlibrary'
+import { STATE_CODES_TO_NAMES } from 'livelawyerlibrary'
+import Typography from '@mui/material/Typography'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import Switch from '@mui/material/Switch'
+import Grid from '@mui/material/Grid'
+import Button from '@mui/material/Button'
+import SearchIcon from '@mui/icons-material/Search'
+import TextField from '@mui/material/TextField'
 
 function arraysEqual<T>(a1: T[], a2: T[]): boolean {
-  if (a1.length !== a2.length) {
-    return false
-  }
-  return a1.every((value, index) => value === a2[index])
+  return a1.length === a2.length && a1.every((value, index) => value === a2[index])
 }
 
 export default function StatesSelector() {
@@ -16,6 +19,7 @@ export default function StatesSelector() {
   const supabaseRef = useSupabaseClient()
   const sessionRef = useSession()
   const [loading, setLoading] = useState<boolean>(false)
+  const [searchQuery, setSearchQuery] = useState<string>('')
 
   const [prefilledStates, setPrefilledStates] = useState<
     Database['public']['Enums']['UsState'][] | undefined
@@ -51,7 +55,7 @@ export default function StatesSelector() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, checked } = e.target
     if (checked) {
-      selectedStates.push(name as keyof typeof stateCodesToNames)
+      selectedStates.push(name as keyof typeof STATE_CODES_TO_NAMES)
       selectedStates.sort()
     } else {
       selectedStates.splice(
@@ -86,40 +90,67 @@ export default function StatesSelector() {
   }
 
   return (
-    <Card>
-      <Card.Body>
-        <h4 className="mb-4">Licensed States</h4>
-        <Form onSubmit={handleSubmit}>
-          <Card.Text className="mt-3">
-            Select the states in which you are licensed to practice law.
-          </Card.Text>
+    <>
+      <Typography variant="overline">Licensed States</Typography>
+      <Typography variant="body1">
+        Select the states in which you are licensed to practice law.
+      </Typography>
 
-          {Object.keys(stateCodesToNames).map(stateCode => (
-            <Form.Group key={stateCode} controlId={`state${stateCode}`} className="mt-3">
-              <Form.Check
-                disabled={loading}
-                type="switch"
-                name={stateCode}
-                label={stateCodesToNames[stateCode as keyof typeof stateCodesToNames]}
-                checked={selectedStates.find(x => stateCode === x) !== undefined}
-                onChange={handleChange}
-              />
-            </Form.Group>
-          ))}
+      <form onSubmit={handleSubmit}>
+        <Grid container columnSpacing={4} rowSpacing={4}>
+          <Grid size={6}>
+            <TextField
+              fullWidth
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              label={
+                <>
+                  <SearchIcon />
+                  {'Search states...'}
+                </>
+              }
+            />
+          </Grid>
+          <Grid size={6}>
+            <Button
+              fullWidth
+              sx={{ display: 'flex', height: '100%' }}
+              disabled={
+                loading ||
+                (prefilledStates !== undefined && arraysEqual(prefilledStates, selectedStates))
+              }
+              variant="contained"
+              color="success"
+              type="submit"
+            >
+              Save Changes
+            </Button>
+          </Grid>
 
-          <Button
-            disabled={
-              loading ||
-              (prefilledStates !== undefined && arraysEqual(prefilledStates, selectedStates))
-            }
-            variant="primary"
-            type="submit"
-            className="mt-3"
-          >
-            Save Changes
-          </Button>
-        </Form>
-      </Card.Body>
-    </Card>
+          {Object.keys(STATE_CODES_TO_NAMES)
+            .filter(
+              stateCode =>
+                STATE_CODES_TO_NAMES[stateCode as keyof typeof STATE_CODES_TO_NAMES]
+                  .toLowerCase()
+                  .indexOf(searchQuery) !== -1,
+            )
+            .map(stateCode => (
+              <Grid key={stateCode} size={4}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      disabled={loading}
+                      name={stateCode}
+                      checked={selectedStates.find(x => stateCode === x) !== undefined}
+                      onChange={handleChange}
+                    />
+                  }
+                  label={STATE_CODES_TO_NAMES[stateCode as keyof typeof STATE_CODES_TO_NAMES]}
+                />
+              </Grid>
+            ))}
+        </Grid>
+      </form>
+    </>
   )
 }
