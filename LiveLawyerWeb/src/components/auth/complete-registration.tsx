@@ -93,7 +93,7 @@ export default function CompleteRegistration() {
   return (
     <>
       <title>Complete Registration</title>
-      <Container maxWidth="sm" sx={{ marginTop: 4 }}>
+      <Container maxWidth="xs" sx={{ marginTop: 4 }}>
         <Card variant="outlined" sx={{ padding: 1 }}>
           <CardContent>
             <Stack spacing={4}>

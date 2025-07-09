@@ -13,6 +13,7 @@ import Stack from '@mui/material/Stack'
 import { ValidatedForm } from '../forms/validated-form'
 import { ValidatedTextField } from '../forms/validated-text-field'
 import { ValidatedFormSubmitButton } from '../forms/validated-form-submit-button'
+import Typography from '@mui/material/Typography'
 
 const POSSIBLE_TABS = ['Login', 'Register'] as const
 type ActiveSessionlessTab = (typeof POSSIBLE_TABS)[number]
@@ -73,18 +74,20 @@ export default function LoginRegister() {
   return (
     <>
       <title>Login/Register</title>
-      <Container maxWidth="sm" sx={{ marginTop: 4 }}>
+      <Container maxWidth="xs" sx={{ marginTop: 4 }}>
         <Card variant="outlined" sx={{ padding: 1 }}>
           <CardContent>
             <Stack spacing={4}>
               <Tabs
                 value={POSSIBLE_TABS.findIndex(x => x === activeTab)}
                 onChange={(event, index) => setActiveTab(POSSIBLE_TABS[index])}
+                variant="fullWidth"
               >
                 {POSSIBLE_TABS.map(tab => (
                   <Tab key={tab} label={tab} />
                 ))}
               </Tabs>
+              <Typography variant="overline">{activeTab}</Typography>
               <ValidatedForm
                 disabled={loading}
                 model={formModel}
