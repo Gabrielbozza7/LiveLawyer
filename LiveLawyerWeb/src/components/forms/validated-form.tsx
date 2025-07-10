@@ -1,4 +1,3 @@
-import CssBaseline from '@mui/material/CssBaseline'
 import Grid from '@mui/material/Grid'
 import { createContext, Dispatch, FormEvent, ReactNode, SetStateAction, useState } from 'react'
 
@@ -44,7 +43,6 @@ export function ValidatedForm<T extends object>({
           <FormModelContext.Provider
             value={{ model, setModel: setModel as Dispatch<SetStateAction<object>> }}
           >
-            <CssBaseline />
             <Grid container spacing={spacing ?? 3}>
               {children}
             </Grid>
