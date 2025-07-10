@@ -67,7 +67,6 @@ export default function OfficeSelector({ setCurrentOffice }: OfficeSubFormProps)
         setLoading(false)
         return
       }
-      // TODO: Replace with database trigger
       // Updating lawyer profile:
       const { error: updateError } = await supabaseRef.current
         .from('UserLawyer')
