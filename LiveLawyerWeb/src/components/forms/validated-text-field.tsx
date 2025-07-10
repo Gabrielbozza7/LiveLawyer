@@ -2,6 +2,8 @@ import Grid from '@mui/material/Grid'
 import TextField from '@mui/material/TextField'
 import { ReactNode, useContext, useEffect, useState } from 'react'
 import { FormDisablingContext, FormInvalidationsContext, FormModelContext } from './validated-form'
+import Typography from '@mui/material/Typography'
+import Stack from '@mui/material/Stack'
 
 interface ValidatedTextFieldProps {
   name: string
@@ -104,17 +106,14 @@ export function ValidatedTextField({
         type={type}
         name={name}
         label={
-          <>
-            {icon === undefined ? (
-              label
-            ) : (
-              <>
-                {icon}
-                {` ${label}`}
-              </>
-            )}
-          </>
+          <Stack direction="row" display="flex">
+            {icon}
+            <Typography variant="body1" sx={{ marginLeft: 0.5 }}>
+              {`${label}${required ? ' *' : ''}`}
+            </Typography>
+          </Stack>
         }
+        slotProps={{ inputLabel: { required: false } }}
         variant="standard"
         value={value}
         onChange={event => {

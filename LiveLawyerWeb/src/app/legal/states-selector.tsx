@@ -9,6 +9,7 @@ import Grid from '@mui/material/Grid'
 import Button from '@mui/material/Button'
 import SearchIcon from '@mui/icons-material/Search'
 import TextField from '@mui/material/TextField'
+import Stack from '@mui/material/Stack'
 
 function arraysEqual<T>(a1: T[], a2: T[]): boolean {
   return a1.length === a2.length && a1.every((value, index) => value === a2[index])
@@ -104,10 +105,12 @@ export default function StatesSelector() {
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               label={
-                <>
+                <Stack direction="row" display="flex">
                   <SearchIcon />
-                  {'Search states...'}
-                </>
+                  <Typography variant="body1" sx={{ marginLeft: 0.5 }}>
+                    Search states...
+                  </Typography>
+                </Stack>
               }
             />
           </Grid>

@@ -111,6 +111,7 @@ export default function LoginRegister() {
                   label="Password"
                   validator={validatePassword}
                   helperText="Passwords must be at least 8 characters long."
+                  required
                 />
 
                 {activeTab === 'Register' && (
@@ -121,6 +122,7 @@ export default function LoginRegister() {
                     label="Confirm Password"
                     validator={() => formModel.password === formModel.confirmPassword}
                     helperText="Passwords must match."
+                    required
                   />
                 )}
 

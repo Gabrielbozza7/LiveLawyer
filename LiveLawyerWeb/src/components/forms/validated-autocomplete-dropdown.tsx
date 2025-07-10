@@ -1,9 +1,10 @@
-import * as React from 'react'
 import TextField from '@mui/material/TextField'
 import Autocomplete, { createFilterOptions } from '@mui/material/Autocomplete'
 import { FormDisablingContext, FormInvalidationsContext, FormModelContext } from './validated-form'
 import { ReactNode, useContext, useEffect, useState } from 'react'
 import Grid from '@mui/material/Grid'
+import Stack from '@mui/material/Stack'
+import Typography from '@mui/material/Typography'
 
 export type AutocompleteOptionNotNew<T extends object> = {
   label: string
@@ -129,17 +130,14 @@ export default function ValidatedAutocompleteDropdown<T extends object>({
           <TextField
             {...params}
             label={
-              <>
-                {icon === undefined ? (
-                  label
-                ) : (
-                  <>
-                    {icon}
-                    {` ${label}`}
-                  </>
-                )}
-              </>
+              <Stack direction="row" display="flex">
+                {icon}
+                <Typography variant="body1" sx={{ marginLeft: 0.5 }}>
+                  {`${label}${required ? ' *' : ''}`}
+                </Typography>
+              </Stack>
             }
+            slotProps={{ inputLabel: { required: false } }}
             variant="standard"
             required={required ?? false}
             error={value !== null && error}
