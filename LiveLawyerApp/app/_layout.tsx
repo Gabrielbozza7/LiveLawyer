@@ -7,6 +7,7 @@ import { Text } from 'react-native'
 import { BACKEND_URL } from '@/constants/BackendVariables'
 import { AuthRefreshManager } from '../components/auth/auth-refresh-manager'
 import CompleteRegistration from '@/components/auth/complete-registration'
+import { Provider as PaperProvider } from 'react-native-paper'
 
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY
@@ -25,26 +26,29 @@ const ExpoSecureStoreAdapter = {
 
 export default function RootLayout() {
   return (
-    <ContextManager
-      env={{
-        backendUrl: BACKEND_URL,
-        supabaseUrl: supabaseUrl!,
-        supabaseAnonKey: supabaseAnonKey!,
-      }}
-      storage={ExpoSecureStoreAdapter}
-      loadingComponent={<Text>Loading...</Text>}
-      sessionlessComponent={<Login />}
-      uninitializedUserComponent={<CompleteRegistration />}
-    >
-      <AuthRefreshManager>
-        <Stack>
-          <Stack.Screen name="index" options={{ headerShown: false }} />
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="call" options={{ headerShown: false }} />
-          <Stack.Screen name="screens/edit-contact" options={{ headerShown: false }} />
-          <Stack.Screen name="screens/law-office-info" options={{ headerShown: false }} />
-        </Stack>
-      </AuthRefreshManager>
-    </ContextManager>
+    <PaperProvider>
+      <ContextManager
+        env={{
+          backendUrl: BACKEND_URL,
+          supabaseUrl: supabaseUrl!,
+          supabaseAnonKey: supabaseAnonKey!,
+        }}
+        storage={ExpoSecureStoreAdapter}
+        sessionlessComponent={<Login />}
+        alertDeliveryComponent={<></>}
+        loadingComponent={<Text>Loading...</Text>}
+        uninitializedUserComponent={<CompleteRegistration />}
+      >
+        <AuthRefreshManager>
+          <Stack>
+            <Stack.Screen name="index" options={{ headerShown: false }} />
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="call" options={{ headerShown: false }} />
+            <Stack.Screen name="screens/edit-contact" options={{ headerShown: false }} />
+            <Stack.Screen name="screens/law-office-info" options={{ headerShown: false }} />
+          </Stack>
+        </AuthRefreshManager>
+      </ContextManager>
+    </PaperProvider>
   )
 }
