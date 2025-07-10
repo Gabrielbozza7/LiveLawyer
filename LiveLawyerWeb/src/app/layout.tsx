@@ -11,6 +11,7 @@ import CompleteRegistration from '@/components/auth/complete-registration'
 import LiveLawyerNav from '@/components/LiveLawyerNav'
 import CssBaseline from '@mui/material/CssBaseline'
 import AlertDelivery from '@/components/alert-delivery'
+import { LoadingBackdrop } from '@/components/auth/loading-backdrop'
 
 export const metadata: Metadata = {
   description: 'Live Lawyer Web',
@@ -33,7 +34,7 @@ export default function RootLayout({
             }}
             sessionlessComponent={<LoginRegister />}
             alertDeliveryComponent={<AlertDelivery />}
-            loadingComponent={<p>Loading...</p>}
+            loadingComponent={<LoadingBackdrop />}
             uninitializedUserComponent={<CompleteRegistration />}
           >
             <LiveLawyerNav />

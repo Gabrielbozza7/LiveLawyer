@@ -132,7 +132,7 @@ export function ContextManager({
   const sessionRef = useRef<Session | null>(null)
   const [userType, setUserType] = useState<Database['public']['Enums']['UserType'] | null>(null)
   const apiRef = useRef<LiveLawyerApi | null>(null)
-  const [clientInitialized, setClientInitialized] = useState<boolean>(false)
+  const [sessionInitialized, setSessionInitialized] = useState<boolean>(false)
 
   useEffect(() => {
     alerterRef.current = new Alerter()
@@ -163,8 +163,10 @@ export function ContextManager({
       } else {
         setUserType(null)
       }
+      if (event === 'INITIAL_SESSION') {
+        setSessionInitialized(true)
+      }
     })
-    setClientInitialized(true)
 
     return () => {
       subscription.unsubscribe()
@@ -174,7 +176,7 @@ export function ContextManager({
   return (
     <PublicEnvContext.Provider value={env}>
       <AlerterContext.Provider value={alerterRef as RefObject<Alerter>}>
-        {clientInitialized ? (
+        {sessionInitialized ? (
           <>
             {alertDeliveryComponent}
             <SupabaseClientContext.Provider
