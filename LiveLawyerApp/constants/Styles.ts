@@ -202,3 +202,7 @@ export const Styles = StyleSheet.create({
   callHistorySingleLabel: { fontWeight: 'bold' },
   callHistorySingleNone: { fontStyle: 'italic' },
 })
+
+export const newStyles = StyleSheet.create({
+  centeredText: { textAlign: 'center' },
+})

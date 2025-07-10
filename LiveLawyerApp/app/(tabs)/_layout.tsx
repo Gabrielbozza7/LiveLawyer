@@ -7,6 +7,8 @@ import FontAwesome from '@expo/vector-icons/FontAwesome'
 import { useRouter } from 'expo-router'
 import { Styles } from '@/constants/Styles'
 
+// https://github.com/callstack/react-native-paper/issues/4496#issuecomment-2509079425
+
 export default function TabsLayout() {
   const router = useRouter()
 

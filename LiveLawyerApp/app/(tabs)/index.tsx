@@ -1,44 +1,41 @@
-import { Styles } from '@/constants/Styles'
+import { newStyles } from '@/constants/Styles'
 import { useRouter } from 'expo-router'
 import React, { useEffect, useState } from 'react'
-import { Text, TouchableOpacity, Image, Alert } from 'react-native'
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
+import { Dimensions, StyleSheet, TouchableOpacity } from 'react-native'
 import * as Location from 'expo-location'
 import { setCoordinates } from '@/components/locationStore'
+import { useAlerter } from 'livelawyerlibrary/context-manager'
+import { Coordinates } from 'livelawyerlibrary/socket-event-definitions'
+import { Icon, Text } from 'react-native-paper'
+import { Page } from '@/components/ui/page'
+import { Colors } from '@/constants/Colors'
 
 export default function Index() {
+  const alerterRef = useAlerter()
   const router = useRouter()
-  const [, setErrorMsg] = useState<string | null>(null)
-  const [, setCoords] = useState<{ lat: number; lon: number } | null>(null)
+  const [, setCoords] = useState<Coordinates | null>(null)
 
   // Getting coordinates
-  useEffect(() => {
-    const getLocationPermission = async () => {
-      try {
-        const { status } = await Location.requestForegroundPermissionsAsync()
-        if (status !== 'granted') {
-          Alert.alert('Location Denied')
-          return
-        }
-      } catch (err) {
-        setErrorMsg('Failed to fetch location')
-        console.log(err)
-      }
-    }
-    const getLocation = async () => {
-      const { status } = await Location.getForegroundPermissionsAsync()
-      if (status === 'granted') {
+  const getLocationPermission = async () => {
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync()
+      if (status !== 'granted') {
+        alerterRef.current.error('Location Denied')
+        return
+      } else {
         const loc = await Location.getCurrentPositionAsync({})
         console.log(`lat: ${loc.coords.latitude}, lon: ${loc.coords.longitude}`)
         setCoords({ lat: loc.coords.latitude, lon: loc.coords.longitude })
         setCoordinates({ lat: loc.coords.latitude, lon: loc.coords.longitude })
-      } else {
-        console.log('Permission not granted')
       }
+    } catch (err) {
+      alerterRef.current.error('Failed to fetch location!')
+      console.log(err)
     }
+  }
 
+  useEffect(() => {
     getLocationPermission()
-    getLocation()
   }, [])
 
   const attemptCall = async () => {
@@ -46,19 +43,34 @@ export default function Index() {
   }
 
   return (
-    <SafeAreaProvider>
-      <SafeAreaView style={Styles.container}>
-        <Text style={Styles.pageTitle}>{'\n\n\n'}</Text>
-        <TouchableOpacity onPress={attemptCall}>
-          <Image
-            // eslint-disable-next-line @typescript-eslint/no-require-imports
-            source={require('@/assets/images/main-call-image.jpeg')}
-            style={Styles.mainLogoButton}
-            resizeMode="contain"
-          />
-        </TouchableOpacity>
-        <Text style={Styles.centeredText}>Press the Logo To Call A Lawyer.</Text>
-      </SafeAreaView>
-    </SafeAreaProvider>
+    <Page verticallyCenter={true} horizontallyCenter={true}>
+      <TouchableOpacity onPress={attemptCall} style={styles.callButton}>
+        <Icon source="phone" color="white" size={150} />
+        <Text
+          variant="displayLarge"
+          theme={{ colors: { onSurface: 'white' } }}
+          style={newStyles.centeredText}
+        >
+          CALL
+        </Text>
+      </TouchableOpacity>
+      <Text variant="headlineSmall" style={newStyles.centeredText}>
+        Press the button to make a call!
+      </Text>
+    </Page>
   )
 }
+
+const { width: WIDTH } = Dimensions.get('window')
+
+const styles = StyleSheet.create({
+  callButton: {
+    backgroundColor: Colors.red,
+    width: WIDTH * 0.8,
+    height: WIDTH * 0.8,
+    borderRadius: WIDTH * 0.4,
+    marginVertical: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+})

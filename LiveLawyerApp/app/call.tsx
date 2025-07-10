@@ -2,7 +2,7 @@ import VideoCall from '@/components/VideoCall'
 import { Styles } from '@/constants/Styles'
 import { useRouter } from 'expo-router'
 import { useEffect, useRef, useState } from 'react'
-import { Button, View, Text, Alert } from 'react-native'
+import { Button, View, Text } from 'react-native'
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
 import { getCoordinates } from '@/components/locationStore'
 import { io, Socket } from 'socket.io-client'
@@ -11,9 +11,10 @@ import {
   ServerToClientEvents,
 } from 'livelawyerlibrary/socket-event-definitions'
 import { BACKEND_URL } from '@/constants/BackendVariables'
-import { useSession } from 'livelawyerlibrary/context-manager'
+import { useAlerter, useSession } from 'livelawyerlibrary/context-manager'
 
 export default function Call() {
+  const alerterRef = useAlerter()
   const sessionRef = useSession()
   const coordinates = getCoordinates()
   const router = useRouter()
@@ -46,7 +47,7 @@ export default function Call() {
       setInCall(false)
       ;(async (): Promise<void> => {
         if (coordinates === null) {
-          Alert.alert(
+          alerterRef.current.error(
             "Your location could not be read! Try restarting the app or changing the app's permissions",
           )
           router.back()
@@ -70,7 +71,7 @@ export default function Call() {
             coordinates,
           })
           if (authResult.result === 'INVALID_AUTH') {
-            Alert.alert('Your session is invalid! Try logging in again.')
+            alerterRef.current.error('Your session is invalid! Try logging in again.')
             router.back()
           } else {
             socketTokenRef.current = authResult.socketToken
@@ -79,13 +80,15 @@ export default function Call() {
               socketToken: socketTokenRef.current,
             })
             if (joinResult === 'INVALID_AUTH') {
-              Alert.alert('Your session is invalid! Try logging in again.')
+              alerterRef.current.error('Your session is invalid! Try logging in again.')
               router.back()
             } else if (joinResult === 'NO_OBSERVERS') {
-              Alert.alert('There are no observers currently available to take your call.')
+              alerterRef.current.error(
+                'There are no observers currently available to take your call.',
+              )
               router.back()
             } else if (joinResult === 'ALREADY_IN_ROOM') {
-              Alert.alert('You are already in a room!')
+              alerterRef.current.error('You are already in a room!')
               router.back()
             }
           }
@@ -100,18 +103,18 @@ export default function Call() {
 
   const onEndCallClick = async () => {
     if (!socketRef.current.connected) {
-      Alert.alert('Your connection is broken!')
+      alerterRef.current.error('Your connection is broken!')
       return
     }
     const hangUpResult = await socketRef.current.emitWithAck('hangUp', {
       socketToken: socketTokenRef.current,
     })
     if (hangUpResult === 'INVALID_AUTH') {
-      Alert.alert('Your login is invalid!')
+      alerterRef.current.error('Your login is invalid!')
     } else if (hangUpResult === 'NOT_IN_ROOM') {
-      Alert.alert('You are not in a room!')
+      alerterRef.current.error('You are not in a room!')
     } else if (hangUpResult === 'CALL_ALREADY_ENDED') {
-      Alert.alert('The call already ended!')
+      alerterRef.current.error('The call already ended!')
     }
   }
 
