@@ -1,11 +1,15 @@
-import { Styles } from '@/constants/Styles'
+import { newStyles, Styles } from '@/constants/Styles'
 import React, { useState, useEffect } from 'react'
-import { Alert, FlatList, Text, TouchableOpacity, Platform, Linking } from 'react-native'
-import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context'
+import { Alert, FlatList, Platform, Linking } from 'react-native'
 import * as Location from 'expo-location'
 import { setCoordinates } from '@/components/locationStore'
 import { router } from 'expo-router'
 import { useSupabaseClient } from 'livelawyerlibrary/context-manager'
+import { TabPage } from '@/components/ui/tab-page'
+import { Avatar, Card, FAB, Text } from 'react-native-paper'
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+export const placeholderLogo = require('../../assets/images/main-call-image.jpeg')
 
 interface LawOfficeListingProps {
   id: string
@@ -14,12 +18,16 @@ interface LawOfficeListingProps {
 
 function LawOfficeListing({ id, name }: LawOfficeListingProps) {
   return (
-    <TouchableOpacity
+    <Card
+      style={newStyles.spacedCard}
       onPress={() => router.push(`/screens/law-office-info?id=${id}`)}
-      style={Styles.itemInfoBox}
     >
-      <Text style={Styles.name}>{name}</Text>
-    </TouchableOpacity>
+      <Card.Title
+        title={<Text variant="titleMedium">{name}</Text>}
+        subtitle={<Text variant="bodySmall">Some other information maybe</Text>}
+        left={({ size }) => <Avatar.Image size={size} source={placeholderLogo} />}
+      />
+    </Card>
   )
 }
 
@@ -29,6 +37,7 @@ export default function LawyerView() {
   const [placeholder, setPlaceholder] = useState<string | null>('Loading...')
   const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(null)
 
+  // For that button at the top
   useEffect(() => {
     const getLocation = async () => {
       const { status } = await Location.getForegroundPermissionsAsync()
@@ -40,35 +49,9 @@ export default function LawyerView() {
         console.log('Permission not granted')
       }
     }
-    const refreshLawOffices = async () => {
-      const { data, error } = await supabaseRef.current.from('LawOffice').select('id, name')
-      if (data) {
-        setOffices(data)
-      }
-      if (error) {
-        console.log((error as Error).message)
-        setPlaceholder(
-          `Something went wrong when trying to fetch the law offices! Try again later.`,
-        )
-      } else {
-        setPlaceholder(null)
-      }
-    }
 
     getLocation()
-    refreshLawOffices()
   }, [])
-
-  const openMapWithQuery = (query: string) => {
-    const encodedQuery = encodeURIComponent(query)
-    const url = Platform.select({
-      ios: `http://maps.apple.com/?q=${encodedQuery}`,
-      android: `geo:0,0?q=${encodedQuery}`,
-    })
-    if (url) {
-      Linking.openURL(url).catch(err => console.error('An error occurred ', err))
-    }
-  }
   /*
     Fetches Coordinates
 
@@ -82,23 +65,51 @@ export default function LawyerView() {
       Alert.alert('Coordinates not available')
     }
   }
+  const openMapWithQuery = (query: string) => {
+    const encodedQuery = encodeURIComponent(query)
+    const url = Platform.select({
+      ios: `http://maps.apple.com/?q=${encodedQuery}`,
+      android: `geo:0,0?q=${encodedQuery}`,
+    })
+    if (url) {
+      Linking.openURL(url).catch(err => console.error('An error occurred ', err))
+    }
+  }
+
+  const refreshLawOffices = async () => {
+    const { data, error } = await supabaseRef.current.from('LawOffice').select('id, name')
+    if (data) {
+      setOffices(data)
+    }
+    if (error) {
+      console.log((error as Error).message)
+      setPlaceholder(`Something went wrong when trying to fetch the law offices! Try again later.`)
+    } else {
+      setPlaceholder(null)
+    }
+  }
+
+  useEffect(() => {
+    refreshLawOffices()
+  }, [])
 
   return (
-    <SafeAreaProvider>
-      <TouchableOpacity onPress={showCoordinatesAlert} style={Styles.localLawyerButton}>
-        <Text style={Styles.localText}>Local Lawfirms</Text>
-      </TouchableOpacity>
-      <SafeAreaView style={Styles.container}>
-        {placeholder === null ? (
-          <FlatList
-            data={offices}
-            renderItem={({ item }) => <LawOfficeListing id={item.id} name={item.name} />}
-            keyExtractor={item => item.id}
-          />
-        ) : (
-          <Text style={Styles.localText}>{placeholder}</Text>
-        )}
-      </SafeAreaView>
-    </SafeAreaProvider>
+    <TabPage>
+      <FAB
+        icon="map-marker"
+        label="Local Law Firms"
+        onPress={showCoordinatesAlert}
+        style={newStyles.fab}
+      />
+      {placeholder === null ? (
+        <FlatList
+          data={offices}
+          renderItem={({ item }) => <LawOfficeListing id={item.id} name={item.name} />}
+          keyExtractor={item => item.id}
+        />
+      ) : (
+        <Text style={Styles.localText}>{placeholder}</Text>
+      )}
+    </TabPage>
   )
 }

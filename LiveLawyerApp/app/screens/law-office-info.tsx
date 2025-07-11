@@ -1,20 +1,12 @@
 import React, { useEffect, useState } from 'react'
-import {
-  Text,
-  TouchableOpacity,
-  Button,
-  Linking,
-  Image,
-  View,
-  Alert,
-  FlatList,
-  ScrollView,
-} from 'react-native'
-import { Styles } from '@/constants/Styles'
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
+import { TouchableOpacity, Linking, Alert, FlatList, ScrollView } from 'react-native'
+import { newStyles } from '@/constants/Styles'
 import { router, useLocalSearchParams } from 'expo-router'
 import { LawOfficeDetailsSingle } from 'livelawyerlibrary/api/types/law-office'
 import { useApi } from 'livelawyerlibrary/context-manager'
+import { StandalonePage } from '@/components/ui/standalone-page'
+import { Avatar, Card, Icon, Text } from 'react-native-paper'
+import { placeholderLogo } from '../(tabs)/lawyers'
 
 export default function LawOfficeInfo() {
   const { id }: { id: string | undefined } = useLocalSearchParams() as { id: string | undefined }
@@ -38,52 +30,82 @@ export default function LawOfficeInfo() {
   }, [id])
 
   return (
-    <SafeAreaProvider>
-      {officeInfo && (
-        <SafeAreaView>
-          <ScrollView>
-            <Image
-              // eslint-disable-next-line @typescript-eslint/no-require-imports
-              source={require('@/assets/images/main-call-image.jpeg')}
-              style={Styles.mainLogoButton}
-              resizeMode="contain"
+    <StandalonePage title="Office Details">
+      <ScrollView>
+        {officeInfo && (
+          <>
+            <Avatar.Image
+              source={placeholderLogo}
+              size={180}
+              style={newStyles.centeredProminentAvatar}
             />
-            <View style={Styles.lawyerInfoBox}>
-              <Text style={Styles.LawofficeName}>{officeInfo.name}</Text>
 
-              {officeInfo.email && (
-                <TouchableOpacity onPress={() => Linking.openURL(`mailto:${officeInfo.email}`)}>
-                  <Text style={Styles.phoneText}>{officeInfo.email}</Text>
-                </TouchableOpacity>
-              )}
+            <Text variant="headlineSmall" style={newStyles.spacedHeading}>
+              {officeInfo.name}
+            </Text>
 
-              {officeInfo.phoneNumber && (
-                <TouchableOpacity onPress={() => Linking.openURL(`tel:${officeInfo.phoneNumber}`)}>
-                  <Text style={Styles.phoneText}>{officeInfo.phoneNumber}</Text>
-                </TouchableOpacity>
-              )}
+            {officeInfo.email && (
+              <TouchableOpacity onPress={() => Linking.openURL(`mailto:${officeInfo.email}`)}>
+                <Card.Title
+                  title={<Text variant="titleMedium">Email</Text>}
+                  subtitle={<Text variant="bodySmall">{officeInfo.email}</Text>}
+                  left={({ size }) => <Icon source="email-outline" size={size} />}
+                />
+              </TouchableOpacity>
+            )}
 
-              {officeInfo.websiteUrl && (
-                <TouchableOpacity onPress={() => Linking.openURL(officeInfo.websiteUrl!)}>
-                  <Text style={Styles.phoneText}>{officeInfo.websiteUrl}</Text>
-                </TouchableOpacity>
-              )}
+            {officeInfo.phoneNumber && (
+              <TouchableOpacity onPress={() => Linking.openURL(`tel:${officeInfo.phoneNumber}`)}>
+                <Card.Title
+                  title={<Text variant="titleMedium">Phone Number</Text>}
+                  subtitle={<Text variant="bodySmall">{officeInfo.phoneNumber}</Text>}
+                  left={({ size }) => <Icon source="phone-dial" size={size} />}
+                />
+              </TouchableOpacity>
+            )}
 
-              {officeInfo.address && <Text style={Styles.nameText}>{officeInfo.address}</Text>}
+            {officeInfo.websiteUrl && (
+              <TouchableOpacity onPress={() => Linking.openURL(officeInfo.websiteUrl!)}>
+                <Card.Title
+                  title={<Text variant="titleMedium">Website URL</Text>}
+                  subtitle={<Text variant="bodySmall">{officeInfo.websiteUrl}</Text>}
+                  left={({ size }) => <Icon source="web" size={size} />}
+                />
+              </TouchableOpacity>
+            )}
 
-              <Text style={Styles.LawofficeName} />
-              <Text style={Styles.LawofficeName}>Lawyers</Text>
-              <FlatList
-                data={officeInfo.lawyers}
-                renderItem={({ item }) => <Text style={Styles.nameText}>{item.name}</Text>}
-                keyExtractor={item => item.id}
-                scrollEnabled={false}
-              />
-            </View>
-            <Button title="Back" onPress={router.back} />
-          </ScrollView>
-        </SafeAreaView>
-      )}
-    </SafeAreaProvider>
+            {officeInfo.address && (
+              // TODO: Make it so that the system maps app can show the address on a map.
+              <TouchableOpacity onPress={() => {}}>
+                <Card.Title
+                  title={<Text variant="titleMedium">Address</Text>}
+                  subtitle={<Text variant="bodySmall">{officeInfo.address}</Text>}
+                  left={({ size }) => <Icon source="domain" size={size} />}
+                />
+              </TouchableOpacity>
+            )}
+
+            {officeInfo.lawyers.length > 0 && (
+              <>
+                <Text variant="headlineSmall" style={newStyles.spacedHeading}>
+                  Lawyers
+                </Text>
+                <FlatList
+                  data={officeInfo.lawyers}
+                  renderItem={({ item }) => (
+                    <Card.Title
+                      title={<Text variant="titleMedium">{item.name}</Text>}
+                      left={({ size }) => <Avatar.Image size={size} source={placeholderLogo} />}
+                    />
+                  )}
+                  keyExtractor={item => item.id}
+                  scrollEnabled={false}
+                />
+              </>
+            )}
+          </>
+        )}
+      </ScrollView>
+    </StandalonePage>
   )
 }

@@ -205,4 +205,8 @@ export const Styles = StyleSheet.create({
 
 export const newStyles = StyleSheet.create({
   centeredText: { textAlign: 'center' },
+  spacedHeading: { textAlign: 'center', marginVertical: 24 },
+  fab: { alignSelf: 'center' },
+  spacedCard: { marginHorizontal: 36, marginVertical: 12 },
+  centeredProminentAvatar: { alignSelf: 'center', marginVertical: 18 },
 })

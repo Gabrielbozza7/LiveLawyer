@@ -2,13 +2,13 @@ import { Surface } from 'react-native-paper'
 import { StyleSheet } from 'react-native'
 import { ReactNode } from 'react'
 
-interface PageProps {
+interface TabPageProps {
   children?: ReactNode
   verticallyCenter?: boolean
   horizontallyCenter?: boolean
 }
 
-export function Page({ children, verticallyCenter, horizontallyCenter }: PageProps) {
+export function TabPage({ children, verticallyCenter, horizontallyCenter }: TabPageProps) {
   return (
     <Surface
       elevation={0}

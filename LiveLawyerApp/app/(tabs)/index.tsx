@@ -7,7 +7,7 @@ import { setCoordinates } from '@/components/locationStore'
 import { useAlerter } from 'livelawyerlibrary/context-manager'
 import { Coordinates } from 'livelawyerlibrary/socket-event-definitions'
 import { Icon, Text } from 'react-native-paper'
-import { Page } from '@/components/ui/page'
+import { TabPage } from '@/components/ui/tab-page'
 import { Colors } from '@/constants/Colors'
 
 export default function Index() {
@@ -43,7 +43,7 @@ export default function Index() {
   }
 
   return (
-    <Page verticallyCenter={true} horizontallyCenter={true}>
+    <TabPage verticallyCenter={true} horizontallyCenter={true}>
       <TouchableOpacity onPress={attemptCall} style={styles.callButton}>
         <Icon source="phone" color="white" size={150} />
         <Text
@@ -57,7 +57,7 @@ export default function Index() {
       <Text variant="headlineSmall" style={newStyles.centeredText}>
         Press the button to make a call!
       </Text>
-    </Page>
+    </TabPage>
   )
 }
 
