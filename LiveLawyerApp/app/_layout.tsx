@@ -32,7 +32,7 @@ const appTheme = {
     elevation: {
       level0: 'rgb(247, 243, 249)', // For standard page backgrounds
       level1: 'rgb(225, 10, 136)', // Currently unused
-      level2: 'rgb(225, 10, 136)', // Currently unused
+      level2: 'rgb(236, 230, 243)', // Tab navigation
       level3: 'rgb(225, 10, 136)', // Currently unused
       level4: 'rgb(225, 10, 136)', // Currently unused
       level5: 'rgb(225, 10, 136)', // Currently unused
@@ -59,11 +59,11 @@ export default function RootLayout() {
           >
             <AuthRefreshManager>
               <Stack>
-                <Stack.Screen name="index" options={{ headerShown: false }} />
                 <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                <Stack.Screen name="call" options={{ headerShown: false }} />
                 <Stack.Screen name="screens/edit-contact" options={{ headerShown: false }} />
                 <Stack.Screen name="screens/law-office-info" options={{ headerShown: false }} />
+                <Stack.Screen name="call" options={{ headerShown: false }} />
+                <Stack.Screen name="index" options={{ headerShown: false }} />
               </Stack>
             </AuthRefreshManager>
           </ContextManager>

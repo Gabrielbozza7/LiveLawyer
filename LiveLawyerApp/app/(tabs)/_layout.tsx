@@ -1,13 +1,7 @@
 import { Tabs } from 'expo-router'
-import { Platform, TouchableOpacity } from 'react-native'
-import Ionicons from '@expo/vector-icons/Ionicons'
-import Octicons from '@expo/vector-icons/Octicons'
-import MaterialIcons from '@expo/vector-icons/MaterialIcons'
-import FontAwesome from '@expo/vector-icons/FontAwesome'
 import { useRouter } from 'expo-router'
-import { Styles } from '@/constants/Styles'
-
-// https://github.com/callstack/react-native-paper/issues/4496#issuecomment-2509079425
+import { newStyles } from '@/constants/Styles'
+import { Appbar, BottomNavigation, Icon, Text } from 'react-native-paper'
 
 export default function TabsLayout() {
   const router = useRouter()
@@ -15,55 +9,86 @@ export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerShown: true,
-        headerTitle: 'Live Lawyer',
-        headerRight: () => (
-          <TouchableOpacity onPress={() => router.push('/profile')} style={Styles.profileIcon}>
-            <Ionicons name="person-circle-outline" size={26} />
-          </TouchableOpacity>
+        header: ({ options }) => (
+          <Appbar.Header>
+            <Appbar.Content title={options.title} />
+            <Appbar.Action icon="account-cog" onPress={() => router.push('/profile')} />
+          </Appbar.Header>
         ),
-        tabBarStyle: Platform.select({
-          ios: {
-            // Use a transparent background on iOS to show the blur effect
-            position: 'absolute',
-          },
-          default: {},
-        }),
       }}
+      tabBar={({ navigation, state, descriptors }) => (
+        <BottomNavigation.Bar
+          navigationState={state}
+          onTabPress={({ route }) => {
+            navigation.navigate(route.name)
+          }}
+          renderIcon={({ route, focused, color }) => {
+            const size = focused ? 28 : 24
+            const renderIcon = descriptors[route.key].options.tabBarIcon
+            return renderIcon !== undefined ? (
+              renderIcon({ focused, color, size })
+            ) : (
+              <Icon source="close" color={color} size={size} />
+            )
+          }}
+          renderLabel={({ route }) => {
+            let label = descriptors[route.key].options.tabBarLabel
+            if (typeof label !== 'string') {
+              label = 'UNNAMED'
+            }
+            return (
+              <Text variant="labelSmall" style={newStyles.centeredText}>
+                {label}
+              </Text>
+            )
+          }}
+        />
+      )}
     >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Hub',
-          tabBarIcon: () => <Ionicons name="call" size={24} color="black" />,
+          title: 'Call Observer',
+          tabBarLabel: 'Call',
+          tabBarIcon: ({ color, size }) => <Icon source="phone" color={color} size={size} />,
         }}
       />
       <Tabs.Screen
         name="lawyers"
         options={{
-          title: 'Lawyers',
-          tabBarIcon: () => <Octicons name="law" size={24} color="black" />,
+          title: 'Browse Law Offices',
+          tabBarLabel: 'Lawyers',
+          tabBarIcon: ({ color, size }) => (
+            <Icon source="scale-balance" color={color} size={size} />
+          ),
         }}
       />
       <Tabs.Screen
         name="contacts"
         options={{
-          title: 'Contacts',
-          tabBarIcon: () => <MaterialIcons name="contact-page" size={24} color="black" />,
+          title: 'Emergency Contacts',
+          tabBarLabel: 'Contacts',
+          tabBarIcon: ({ color, size }) => (
+            <Icon source="account-multiple" color={color} size={size} />
+          ),
         }}
       />
       <Tabs.Screen
         name="history"
         options={{
           title: 'Call History',
-          tabBarIcon: () => <MaterialIcons name="book" size={24} color="black" />,
+          tabBarLabel: 'History',
+          tabBarIcon: ({ color, size }) => <Icon source="history" color={color} size={size} />,
         }}
       />
       <Tabs.Screen
         name="resources"
         options={{
-          title: 'Resources',
-          tabBarIcon: () => <FontAwesome name="info-circle" size={24} color="black" />,
+          title: 'Legal Resources',
+          tabBarLabel: 'Resources',
+          tabBarIcon: ({ color, size }) => (
+            <Icon source="information-outline" color={color} size={size} />
+          ),
         }}
       />
     </Tabs>
