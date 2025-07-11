@@ -34,7 +34,7 @@ const appTheme = {
       level1: 'rgb(225, 223, 241)', // Cards
       level2: 'rgb(236, 230, 243)', // Tab navigation
       level3: 'rgb(141, 133, 193)', // FABs
-      level4: 'rgb(225, 10, 136)', // Currently unused
+      level4: 'rgb(244, 151, 151)', // Error banners
       level5: 'rgb(225, 10, 136)', // Currently unused
     },
   },

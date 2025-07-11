@@ -98,6 +98,7 @@ export default function LawyerView() {
       <FAB
         icon="map-marker"
         label="Local Law Firms"
+        uppercase={true}
         onPress={showCoordinatesAlert}
         style={newStyles.fab}
       />

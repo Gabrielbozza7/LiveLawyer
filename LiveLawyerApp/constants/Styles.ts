@@ -194,19 +194,28 @@ export const Styles = StyleSheet.create({
   localText: {
     fontSize: 30,
   },
-  profileIcon: { marginRight: 16 },
-  callHistorySingleText: {
-    fontSize: 16,
-    color: Colors.white,
-  },
-  callHistorySingleLabel: { fontWeight: 'bold' },
-  callHistorySingleNone: { fontStyle: 'italic' },
 })
 
 export const newStyles = StyleSheet.create({
   centeredText: { textAlign: 'center' },
+  boldText: { fontWeight: 'bold' },
+  italicText: { fontStyle: 'italic' },
   spacedHeading: { textAlign: 'center', marginVertical: 24 },
   fab: { alignSelf: 'center' },
   spacedCard: { marginHorizontal: 36, marginVertical: 12 },
   centeredProminentAvatar: { alignSelf: 'center', marginVertical: 18 },
+  bottomLeftFab: {
+    position: 'absolute',
+    margin: 18,
+    left: 0,
+    bottom: 0,
+    zIndex: 100,
+  },
+  bottomRightFab: {
+    position: 'absolute',
+    margin: 18,
+    right: 0,
+    bottom: 0,
+    zIndex: 100,
+  },
 })

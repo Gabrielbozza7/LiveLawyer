@@ -1,74 +1,70 @@
 import { useEffect, useState } from 'react'
 import { CallHistorySingle } from 'livelawyerlibrary/api/types/call-history'
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
-import { Styles } from '@/constants/Styles'
-import { Text, Button, FlatList, View } from 'react-native'
-import { Colors } from '@/constants/Colors'
+import { newStyles } from '@/constants/Styles'
+import { FlatList } from 'react-native'
 import { useApi } from 'livelawyerlibrary/context-manager'
+import { TabPage } from '@/components/ui/tab-page'
+import { ActivityIndicator, Card, FAB, Text } from 'react-native-paper'
+import { ErrorBanner } from '@/components/ui/error-banner'
+
+function HistoryEntry({ entry }: { entry: CallHistorySingle }) {
+  return (
+    <Card style={newStyles.spacedCard}>
+      <Card.Content>
+        <Text variant="bodyMedium">
+          <Text variant="titleMedium">Date/Time: </Text>
+          {new Date(entry.startTime).toLocaleString()}
+          {'\n'}
+          <Text variant="titleMedium">Client: </Text>
+          {entry.clientName}
+          {'\n'}
+          <Text variant="titleMedium">Observer: </Text>
+          {entry.observerName}
+          {'\n'}
+          <Text variant="titleMedium">Lawyer: </Text>
+          {entry.lawyerName ?? <Text style={newStyles.italicText}>None</Text>}
+        </Text>
+      </Card.Content>
+    </Card>
+  )
+}
 
 export default function History() {
   const apiRef = useApi()
-  const [history, setHistory] = useState<CallHistorySingle[]>([])
-  const [placeholder, setPlaceholder] = useState<string | null>('Loading...')
+  const [history, setHistory] = useState<CallHistorySingle[] | null | undefined>(undefined)
 
+  // Refreshing history:
   useEffect(() => {
-    refreshHistory()
-  }, [])
-
-  const refreshHistory = async () => {
-    try {
-      const response = await apiRef.current.fetchCallHistory()
-      if (response.history) {
-        setHistory(response.history)
-      }
-    } catch (error) {
-      console.log((error as Error).message)
-      setPlaceholder('Something went wrong when trying to fetch your history! Try again later.')
-      return
+    if (history === undefined) {
+      ;(async () => {
+        try {
+          const response = await apiRef.current.fetchCallHistory()
+          if (response.history) {
+            setHistory(response.history)
+          }
+        } catch (error) {
+          console.log((error as Error).message)
+          setHistory(null)
+          return
+        }
+      })()
     }
-    setPlaceholder(null)
-  }
+  }, [history])
 
   return (
-    <SafeAreaProvider>
-      <SafeAreaView style={Styles.container}>
-        {placeholder === null ? (
-          <FlatList
-            data={history}
-            renderItem={entry => (
-              <View style={Styles.itemInfoBox}>
-                <Text style={Styles.callHistorySingleText}>
-                  <Text style={Styles.callHistorySingleLabel}>Date/Time: </Text>
-                  {new Date(entry.item.startTime).toLocaleString()}
-                  {'\n'}
-                  <Text style={Styles.callHistorySingleLabel}>Client: </Text>
-                  {entry.item.clientName}
-                  {'\n'}
-                  <Text style={Styles.callHistorySingleLabel}>Observer: </Text>
-                  {entry.item.observerName}
-                  {'\n'}
-                  <Text style={Styles.callHistorySingleLabel}>Lawyer: </Text>
-                  {entry.item.lawyerName ?? <Text style={Styles.callHistorySingleNone}>None</Text>}
-                  {'\n'}
-                  <Text style={Styles.callHistorySingleLabel}>ID: </Text>
-                  {entry.item.id}
-                </Text>
-              </View>
-            )}
-            keyExtractor={entry => entry.id}
-            ListFooterComponent={
-              <Button
-                onPress={refreshHistory}
-                title="Refresh"
-                color={Colors.blue}
-                accessibilityLabel="Refresh the call history."
-              />
-            }
-          />
-        ) : (
-          <Text style={Styles.localText}>{placeholder}</Text>
-        )}
-      </SafeAreaView>
-    </SafeAreaProvider>
+    <TabPage>
+      {history === undefined ? (
+        <ActivityIndicator />
+      ) : history === null ? (
+        <ErrorBanner text="Something went wrong when trying to fetch your history! Try again later." />
+      ) : (
+        <FlatList
+          data={history}
+          renderItem={entry => <HistoryEntry entry={entry.item} />}
+          keyExtractor={entry => entry.id}
+        />
+      )}
+      <FAB icon="refresh" onPress={() => setHistory(undefined)} style={newStyles.bottomLeftFab} />
+    </TabPage>
   )
 }

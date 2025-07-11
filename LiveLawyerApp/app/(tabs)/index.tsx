@@ -45,7 +45,7 @@ export default function Index() {
   return (
     <TabPage verticallyCenter={true} horizontallyCenter={true}>
       <TouchableOpacity onPress={attemptCall} style={styles.callButton}>
-        <Icon source="phone" color="white" size={150} />
+        <Icon source="phone-in-talk" color="white" size={150} />
         <Text
           variant="displayLarge"
           theme={{ colors: { onSurface: 'white' } }}
