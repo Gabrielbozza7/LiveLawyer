@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from 'react'
-import { TouchableOpacity, Linking, Alert, FlatList, ScrollView } from 'react-native'
+import { TouchableOpacity, Linking, FlatList, ScrollView } from 'react-native'
 import { newStyles } from '@/constants/Styles'
 import { router, useLocalSearchParams } from 'expo-router'
 import { LawOfficeDetailsSingle } from 'livelawyerlibrary/api/types/law-office'
-import { useApi } from 'livelawyerlibrary/context-manager'
+import { useAlerter, useApi } from 'livelawyerlibrary/context-manager'
 import { StandalonePage } from '@/components/ui/standalone-page'
 import { Avatar, Card, Icon, Text } from 'react-native-paper'
 import { placeholderLogo } from '../(tabs)/lawyers'
 
 export default function LawOfficeInfo() {
   const { id }: { id: string | undefined } = useLocalSearchParams() as { id: string | undefined }
+  const alerterRef = useAlerter()
   const apiRef = useApi()
   const [officeInfo, setLawOfficeInfo] = useState<LawOfficeDetailsSingle | null>(null)
 
@@ -22,7 +23,9 @@ export default function LawOfficeInfo() {
           const result = await apiRef.current.fetchLawOfficeDetails(id)
           setLawOfficeInfo(result.details)
         } catch {
-          Alert.alert('Something went wrong when trying to fetch that law office! Try again later.')
+          alerterRef.current.error(
+            'Something went wrong when trying to fetch that law office! Try again later.',
+          )
           router.back()
         }
       })()

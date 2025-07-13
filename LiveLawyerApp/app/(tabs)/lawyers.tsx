@@ -1,10 +1,10 @@
 import { newStyles, Styles } from '@/constants/Styles'
 import React, { useState, useEffect } from 'react'
-import { Alert, FlatList, Platform, Linking } from 'react-native'
+import { FlatList, Platform, Linking } from 'react-native'
 import * as Location from 'expo-location'
 import { setCoordinates } from '@/components/locationStore'
 import { router } from 'expo-router'
-import { useSupabaseClient } from 'livelawyerlibrary/context-manager'
+import { useAlerter, useSupabaseClient } from 'livelawyerlibrary/context-manager'
 import { TabPage } from '@/components/ui/tab-page'
 import { Avatar, Card, FAB, Text } from 'react-native-paper'
 
@@ -32,6 +32,7 @@ function LawOfficeListing({ id, name }: LawOfficeListingProps) {
 }
 
 export default function LawyerView() {
+  const alerterRef = useAlerter()
   const supabaseRef = useSupabaseClient()
   const [offices, setOffices] = useState<LawOfficeListingProps[]>([])
   const [placeholder, setPlaceholder] = useState<string | null>('Loading...')
@@ -62,7 +63,7 @@ export default function LawyerView() {
     if (coords) {
       openMapWithQuery(`Lawyers near me`)
     } else {
-      Alert.alert('Coordinates not available')
+      alerterRef.current.error('Coordinates not available')
     }
   }
   const openMapWithQuery = (query: string) => {

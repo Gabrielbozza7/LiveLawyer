@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
-import { View, Text, TextInput, Button, ActivityIndicator, Alert } from 'react-native'
+import { View, Text, TextInput, Button, ActivityIndicator } from 'react-native'
 import { Styles } from '@/constants/Styles'
 import { Database } from 'livelawyerlibrary/database-types'
 import { router, useLocalSearchParams } from 'expo-router'
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
-import { useSession, useSupabaseClient } from 'livelawyerlibrary/context-manager'
+import { useAlerter, useSession, useSupabaseClient } from 'livelawyerlibrary/context-manager'
 
 export default function EditContact() {
+  const alerterRef = useAlerter()
   const supabaseRef = useSupabaseClient()
   const sessionRef = useSession()
   const { id }: { id: string | undefined } = useLocalSearchParams() as { id: string | undefined }
@@ -40,9 +41,9 @@ export default function EditContact() {
 
     if (error) {
       console.error('Update error:', error)
-      Alert.alert('Error', 'Could not update contacts!')
+      alerterRef.current.error('Could not update contacts!')
     } else {
-      Alert.alert('Success', 'Contacts updated!')
+      alerterRef.current.success('Contacts updated!')
     }
     router.back()
   }
@@ -57,9 +58,9 @@ export default function EditContact() {
 
     if (error) {
       console.error('Delete error:', error)
-      Alert.alert('Error', 'Could not delete contact!')
+      alerterRef.current.error('Could not delete contact!')
     } else {
-      Alert.alert('Success', 'Contact deleted!')
+      alerterRef.current.success('Contact deleted!')
     }
     router.back()
   }

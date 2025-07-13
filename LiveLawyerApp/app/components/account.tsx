@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
-import { StyleSheet, View, Alert } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 import { Button, Input } from '@rneui/themed'
 import { Session, SupabaseClient } from '@supabase/supabase-js'
-import { useSupabaseClient } from 'livelawyerlibrary/context-manager'
+import { useAlerter, useSupabaseClient } from 'livelawyerlibrary/context-manager'
 
 export default function Account({ session }: { session: Session }) {
+  const alerterRef = useAlerter()
   const supabaseRef = useSupabaseClient()
   const [loading, setLoading] = useState(true)
   const [username, setUsername] = useState('')
@@ -38,7 +39,7 @@ export default function Account({ session }: { session: Session }) {
       }
     } catch (error) {
       if (error instanceof Error) {
-        Alert.alert(error.message)
+        alerterRef.current.error(error.message)
       }
     } finally {
       setLoading(false)
@@ -75,7 +76,7 @@ export default function Account({ session }: { session: Session }) {
       }
     } catch (error) {
       if (error instanceof Error) {
-        Alert.alert(error.message)
+        alerterRef.current.error(error.message)
       }
     } finally {
       setLoading(false)

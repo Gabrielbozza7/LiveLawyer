@@ -1,10 +1,11 @@
 import { Colors } from '@/constants/Colors'
 import { Styles } from '@/constants/Styles'
-import { useSession, useSupabaseClient } from 'livelawyerlibrary/context-manager'
-import { Alert, Button, Linking, Text, TouchableOpacity, View } from 'react-native'
+import { useAlerter, useSession, useSupabaseClient } from 'livelawyerlibrary/context-manager'
+import { Button, Linking, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
 
 export default function Resources() {
+  const alerterRef = useAlerter()
   const supabaseRef = useSupabaseClient()
   const sessionRef = useSession()
   const handleOpenURL = () => {
@@ -14,7 +15,7 @@ export default function Resources() {
   const logOut = async () => {
     const { error } = await supabaseRef.current.auth.signOut()
     if (error) {
-      Alert.alert('Failed to log out.', error.message)
+      alerterRef.current.error(`Failed to log out: ${error.message}`)
     }
   }
   return (

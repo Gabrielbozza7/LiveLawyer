@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
-import { View, Text, TextInput, Button, ActivityIndicator, Alert } from 'react-native'
+import { View, Text, TextInput, Button, ActivityIndicator } from 'react-native'
 import { Styles } from '@/constants/Styles'
 import { Database } from 'livelawyerlibrary/database-types'
-import { useSession, useSupabaseClient } from 'livelawyerlibrary/context-manager'
+import { useAlerter, useSession, useSupabaseClient } from 'livelawyerlibrary/context-manager'
 
 export default function Profile() {
+  const alerterRef = useAlerter()
   const supabaseRef = useSupabaseClient()
   const sessionRef = useSession()
   const [userInfo, setUserInfo] = useState<Database['public']['Tables']['User']['Row'] | null>(null)
@@ -44,9 +45,9 @@ export default function Profile() {
 
     if (error) {
       console.error('Update error:', error)
-      Alert.alert('Error', 'Could not update profile.')
+      alerterRef.current.error('Could not update profile.')
     } else {
-      Alert.alert('Success', 'Profile updated!')
+      alerterRef.current.success('Profile updated!')
       setEditing(false)
     }
   }
