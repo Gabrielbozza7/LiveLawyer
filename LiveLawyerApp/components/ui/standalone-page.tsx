@@ -21,8 +21,8 @@ export function StandalonePage({
   return (
     <>
       <Appbar.Header>
-        <Appbar.Content title={title} />
         <Appbar.BackAction onPress={router.back} />
+        <Appbar.Content title={title} />
       </Appbar.Header>
       <Surface
         elevation={0}

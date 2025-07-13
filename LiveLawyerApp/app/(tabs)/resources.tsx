@@ -1,16 +1,76 @@
-import { Colors } from '@/constants/Colors'
-import { Styles } from '@/constants/Styles'
-import { useAlerter, useSession, useSupabaseClient } from 'livelawyerlibrary/context-manager'
-import { Button, Linking, Text, TouchableOpacity, View } from 'react-native'
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
+import { setCoordinates } from '@/components/locationStore'
+import { TabPage } from '@/components/ui/tab-page'
+import { newStyles } from '@/constants/Styles'
+import { getCurrentPositionAsync, getForegroundPermissionsAsync } from 'expo-location'
+import { useAlerter, useSupabaseClient } from 'livelawyerlibrary/context-manager'
+import { Coordinates } from 'livelawyerlibrary/socket-event-definitions'
+import { useEffect, useState } from 'react'
+import { Linking, Platform } from 'react-native'
+import { FAB } from 'react-native-paper'
+
+function LocalLawFirmsFab() {
+  const alerterRef = useAlerter()
+  const [coords, setCoords] = useState<Coordinates | null>(null)
+
+  useEffect(() => {
+    const getLocation = async () => {
+      const { status } = await getForegroundPermissionsAsync()
+      if (status === 'granted') {
+        const loc = await getCurrentPositionAsync({})
+        setCoords({ lat: loc.coords.latitude, lon: loc.coords.longitude })
+        setCoordinates({ lat: loc.coords.latitude, lon: loc.coords.longitude })
+      } else {
+        console.log('Permission not granted')
+      }
+    }
+
+    getLocation()
+  }, [])
+
+  /*
+    Fetches Coordinates
+
+    // In the future use the coordinates to map to nearest lawyer that is part of livelawyer
+  
+  */
+  const showCoordinatesAlert = () => {
+    if (coords) {
+      openMapWithQuery(`Lawyers near me`)
+    } else {
+      alerterRef.current.error('Coordinates not available')
+    }
+  }
+
+  const openMapWithQuery = (query: string) => {
+    const encodedQuery = encodeURIComponent(query)
+    const url = Platform.select({
+      ios: `http://maps.apple.com/?q=${encodedQuery}`,
+      android: `geo:0,0?q=${encodedQuery}`,
+    })
+    if (url) {
+      Linking.openURL(url).catch(err => console.error('An error occurred ', err))
+    }
+  }
+
+  return (
+    <FAB
+      icon="map-marker"
+      label="Local Law Firms"
+      uppercase={true}
+      onPress={showCoordinatesAlert}
+      style={[newStyles.fab, newStyles.spacedCard]}
+    />
+  )
+}
 
 export default function Resources() {
   const alerterRef = useAlerter()
   const supabaseRef = useSupabaseClient()
-  const sessionRef = useSession()
-  const handleOpenURL = () => {
+
+  const handleOpenTrafficLaws = () => {
     Linking.openURL('https://www.findlaw.com/traffic/traffic-tickets/state-traffic-laws.html')
   }
+
   // Logout
   const logOut = async () => {
     const { error } = await supabaseRef.current.auth.signOut()
@@ -18,28 +78,24 @@ export default function Resources() {
       alerterRef.current.error(`Failed to log out: ${error.message}`)
     }
   }
+
   return (
-    <SafeAreaProvider>
-      <SafeAreaView style={Styles.LawyerInfoContainer}>
-        <View style={Styles.itemInfoBox}>
-          <TouchableOpacity onPress={handleOpenURL}>
-            <Text style={Styles.pageTitle}>Traffic Laws for All States</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={Styles.itemInfoBox}>
-          <Button
-            onPress={() => {
-              logOut()
-            }}
-            title="Log Out"
-            color={Colors.white}
-            accessibilityLabel="Log out from the application."
-          />
-        </View>
-        <View>
-          <Text>{sessionRef.current.user.id}</Text>
-        </View>
-      </SafeAreaView>
-    </SafeAreaProvider>
+    <TabPage verticallyCenter>
+      <LocalLawFirmsFab />
+      <FAB
+        icon="gavel"
+        label="Traffic Laws for All States"
+        uppercase={true}
+        onPress={handleOpenTrafficLaws}
+        style={[newStyles.fab, newStyles.spacedCard]}
+      />
+      <FAB
+        icon="logout"
+        label="Logout"
+        uppercase={true}
+        onPress={logOut}
+        style={[newStyles.fab, newStyles.spacedCard]}
+      />
+    </TabPage>
   )
 }
