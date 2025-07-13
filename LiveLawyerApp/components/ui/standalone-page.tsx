@@ -1,7 +1,8 @@
 import { Appbar, Surface } from 'react-native-paper'
-import { StyleSheet } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 import { ReactNode } from 'react'
 import { useRouter } from 'expo-router'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 interface StandalonePageProps {
   title: string
@@ -19,27 +20,28 @@ export function StandalonePage({
   const router = useRouter()
 
   return (
-    <>
+    <Surface elevation={0} style={styles.outerViews}>
       <Appbar.Header>
         <Appbar.BackAction onPress={router.back} />
         <Appbar.Content title={title} />
       </Appbar.Header>
-      <Surface
-        elevation={0}
+      <SafeAreaView
         style={[
-          styles.surface,
+          styles.outerViews,
           verticallyCenter && styles.verticallyCentered,
           horizontallyCenter && styles.horizontallyCentered,
         ]}
+        edges={['left', 'right', 'bottom']}
       >
-        {children}
-      </Surface>
-    </>
+        <View style={styles.innerView}>{children}</View>
+      </SafeAreaView>
+    </Surface>
   )
 }
 
 const styles = StyleSheet.create({
-  surface: { height: '100%', flex: 1, flexDirection: 'column' },
+  outerViews: { flex: 1 },
+  innerView: { flex: 1, flexDirection: 'column', position: 'relative' },
   verticallyCentered: { justifyContent: 'center' },
   horizontallyCentered: { alignItems: 'center' },
 })
