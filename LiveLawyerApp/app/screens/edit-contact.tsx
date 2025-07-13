@@ -1,34 +1,51 @@
 import { useEffect, useState } from 'react'
-import { View, Text, TextInput, Button, ActivityIndicator } from 'react-native'
-import { Styles } from '@/constants/Styles'
-import { Database } from 'livelawyerlibrary/database-types'
-import { router, useLocalSearchParams } from 'expo-router'
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
-import { useAlerter, useSession, useSupabaseClient } from 'livelawyerlibrary/context-manager'
+import { useLocalSearchParams, useRouter } from 'expo-router'
+import { useAlerter, useSupabaseClient } from 'livelawyerlibrary/context-manager'
+import { StandalonePage } from '@/components/ui/standalone-page'
+import { FAB, Text, TextInput } from 'react-native-paper'
+import { ValidatedForm } from '@/components/forms/validated-form'
+import { ValidatedTextField } from '@/components/forms/validated-text-field'
+import { ValidatedFormSubmitButton } from '@/components/forms/validated-form-submit-button'
+import { notEmpty, validatePhoneNumber } from 'livelawyerlibrary/input-validation'
+import { newStyles } from '@/constants/Styles'
+
+interface FormModel {
+  name: string
+  phoneNumber: string
+}
 
 export default function EditContact() {
   const alerterRef = useAlerter()
   const supabaseRef = useSupabaseClient()
-  const sessionRef = useSession()
+  const router = useRouter()
   const { id }: { id: string | undefined } = useLocalSearchParams() as { id: string | undefined }
-  const [contactModel, setContactModel] = useState<
-    Database['public']['Tables']['Contact']['Insert']
-  >({ userId: sessionRef.current.user.id, name: '', phoneNumber: '+1' })
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState<boolean>(true)
+
+  const [prefilledFormModel, setPrefilledFormModel] = useState<FormModel | undefined>(undefined)
+  const [formModel, setFormModel] = useState<FormModel>({
+    name: '',
+    phoneNumber: '',
+  })
 
   useEffect(() => {
     ;(async () => {
       if (id !== undefined) {
         const { data: contact, error } = await supabaseRef.current
           .from('Contact')
-          .select()
+          .select('name, phoneNumber')
           .eq('id', id)
           .single()
-
-        if (contact) {
-          setContactModel(contact)
+        if (error || contact === null) {
+          alerterRef.current.error(
+            'There was an error when trying to fetch contact info! Try again later.',
+          )
+          router.back()
+          return
         }
-        if (error) console.error('Contact table error:', error)
+        setPrefilledFormModel(contact)
+        setFormModel({ ...contact })
+      } else {
+        setPrefilledFormModel({ ...formModel })
       }
       setLoading(false)
     })()
@@ -36,80 +53,72 @@ export default function EditContact() {
 
   const handleSave = async () => {
     setLoading(true)
-    const { error } = await supabaseRef.current.from('Contact').upsert(contactModel)
+    const { error } = await supabaseRef.current.from('Contact').upsert({ ...formModel, id })
     setLoading(false)
-
+    const actionType = id === undefined ? 'create' : 'update'
     if (error) {
-      console.error('Update error:', error)
-      alerterRef.current.error('Could not update contacts!')
+      alerterRef.current.error(
+        `There was an error when trying to ${actionType} your contacts! Try again later.`,
+      )
     } else {
-      alerterRef.current.success('Contacts updated!')
+      alerterRef.current.success(`Contact ${actionType}d successfully!`)
     }
     router.back()
   }
 
   const handleDelete = async () => {
-    if (id === undefined) {
-      return
-    }
+    if (id === undefined) return
     setLoading(true)
     const { error } = await supabaseRef.current.from('Contact').delete().eq('id', id)
     setLoading(false)
 
     if (error) {
-      console.error('Delete error:', error)
-      alerterRef.current.error('Could not delete contact!')
+      alerterRef.current.error(
+        'There was an error when trying to delete the contact! Try again later.',
+      )
     } else {
       alerterRef.current.success('Contact deleted!')
     }
     router.back()
   }
 
-  if (loading) {
-    return (
-      <View style={Styles.LawyerInfoContainer}>
-        <ActivityIndicator size="large" />
-      </View>
-    )
-  }
-
   return (
-    <SafeAreaProvider>
-      <SafeAreaView style={Styles.profPageContainer}>
-        <Text style={Styles.profPageTitle}>{id === undefined ? 'New' : 'Edit'} Contact</Text>
-        {contactModel && (
-          <>
-            <Text style={Styles.profItemText}>Name:</Text>
-            <TextInput
-              style={Styles.profInput}
-              placeholder="Name"
-              value={contactModel.name}
-              editable={!loading}
-              onChangeText={text => setContactModel({ ...contactModel, name: text })}
-            />
-            <Text style={Styles.profItemText}>Phone Number (+1):</Text>
-            <TextInput
-              style={Styles.profInput}
-              placeholder="Phone Number"
-              value={contactModel.phoneNumber.substring(2)}
-              onChangeText={text => setContactModel({ ...contactModel, phoneNumber: '+1' + text })}
-              editable={!loading}
-              keyboardType="phone-pad"
-            />
-            <View style={Styles.profButtonGroup}>
-              <Button
-                title={loading ? 'Saving...' : 'Save'}
-                onPress={handleSave}
-                disabled={loading}
-              />
-              {id !== undefined && (
-                <Button title="Delete" onPress={handleDelete} disabled={loading} color="red" />
-              )}
-              <Button title="Cancel" onPress={() => router.back()} color="gray" />
-            </View>
-          </>
-        )}
-      </SafeAreaView>
-    </SafeAreaProvider>
+    <StandalonePage title={id === undefined ? 'New Contact' : 'Edit Contact'}>
+      <ValidatedForm
+        disabled={loading}
+        model={formModel}
+        setModel={setFormModel}
+        onSubmit={handleSave}
+      >
+        <ValidatedTextField
+          name="name"
+          type="text"
+          icon={<TextInput.Icon icon="account" />}
+          label="Name"
+          defaultValue={prefilledFormModel?.name}
+          validator={notEmpty}
+          helperText="Value must not be empty."
+          required
+        />
+        <ValidatedTextField
+          name="phoneNumber"
+          type="tel"
+          icon={<TextInput.Icon icon="phone" />}
+          label="Phone Number"
+          defaultValue={prefilledFormModel?.phoneNumber ?? '+1'}
+          validator={validatePhoneNumber}
+          helperText="Phone number must conform to E.164 format."
+          required
+        />
+        <ValidatedFormSubmitButton
+          disabled={JSON.stringify(prefilledFormModel) === JSON.stringify(formModel)}
+        >
+          <Text>Save</Text>
+        </ValidatedFormSubmitButton>
+      </ValidatedForm>
+      {id !== undefined && (
+        <FAB icon="delete" onPress={handleDelete} style={newStyles.bottomLeftFab} />
+      )}
+    </StandalonePage>
   )
 }

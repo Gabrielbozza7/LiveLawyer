@@ -37,6 +37,7 @@ const appTheme = {
       level4: 'rgb(244, 151, 151)', // Error banners
       level5: 'rgb(225, 10, 136)', // Currently unused
     },
+    error: 'rgb(235, 15, 15)',
   },
 }
 
