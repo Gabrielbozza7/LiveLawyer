@@ -6,7 +6,6 @@ import {
 import { useAlerter, useApi } from 'livelawyerlibrary/context-manager'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
-import Stack from '@mui/material/Stack'
 import Button from '@mui/material/Button'
 import CardActions from '@mui/material/CardActions'
 import Typography from '@mui/material/Typography'
@@ -19,6 +18,8 @@ import TableRow from '@mui/material/TableRow'
 import TableCell from '@mui/material/TableCell'
 import TableBody from '@mui/material/TableBody'
 import Grid from '@mui/material/Grid'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import IconButton from '@mui/material/IconButton'
 
 interface HistoryEntryProps {
   entry: CallHistorySingle
@@ -64,8 +65,8 @@ export function HistoryEntry({ entry }: HistoryEntryProps) {
   }
 
   return (
-    <Card variant="elevation">
-      <CardContent>
+    <Card variant="elevation" sx={{ padding: 1 }}>
+      <CardContent sx={{ position: 'relative' }}>
         <Typography variant="body1">
           <strong>Date/Time:</strong> {new Date(entry.startTime).toLocaleString()}
           <br />
@@ -74,99 +75,102 @@ export function HistoryEntry({ entry }: HistoryEntryProps) {
           <strong>Observer:</strong> {entry.observerName}
           <br />
           <strong>Lawyer:</strong> {entry.lawyerName ?? <i>None</i>}
-          <br />
-          <strong>ID:</strong> {entry.id}
-          <br></br>
         </Typography>
+        <IconButton
+          onClick={() => setShowDetails(showDetails => !showDetails)}
+          sx={{
+            position: 'absolute',
+            right: 0,
+            bottom: 0,
+            transform: `rotate(${showDetails ? 180 : 0}deg)`,
+          }}
+        >
+          <ExpandMoreIcon />
+        </IconButton>
       </CardContent>
-      <CardActions>
-        <Stack spacing={2}>
-          <Button size="small" onClick={() => setShowDetails(showDetails => !showDetails)}>
-            {showDetails ? 'Hide Details' : 'Show Details'}
-          </Button>
-          {showDetails && (
-            <Grid container spacing={2}>
-              {loading ? (
-                <CircularProgress />
-              ) : details !== undefined ? (
-                <>
-                  <Grid size={6}>
-                    <Typography variant="overline">Call Events</Typography>
-                  </Grid>
-                  <Grid size={6}>
-                    <Typography variant="overline">Call Recordings</Typography>
-                  </Grid>
-                  <Grid size={6} display="flex">
-                    {details.events.length > 0 ? (
-                      <TableContainer component={Paper}>
-                        <Table>
-                          <TableHead>
-                            <TableRow>
-                              <TableCell>Timestamp</TableCell>
-                              <TableCell>User</TableCell>
-                              <TableCell>Action</TableCell>
+      {showDetails && (
+        <CardActions>
+          <Grid container spacing={2}>
+            {loading ? (
+              <CircularProgress />
+            ) : details !== undefined ? (
+              <>
+                <Grid size={6}>
+                  <Typography variant="overline">Call Events</Typography>
+                </Grid>
+                <Grid size={6}>
+                  <Typography variant="overline">Call Recordings</Typography>
+                </Grid>
+                <Grid size={6} display="flex">
+                  {details.events.length > 0 ? (
+                    <TableContainer component={Paper}>
+                      <Table>
+                        <TableHead>
+                          <TableRow>
+                            <TableCell>Timestamp</TableCell>
+                            <TableCell>User</TableCell>
+                            <TableCell>Action</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {details.events.map((event, index) => (
+                            <TableRow key={index}>
+                              <TableCell>{new Date(event.timestamp).toLocaleString()}</TableCell>
+                              <TableCell>{event.userName}</TableCell>
+                              <TableCell>{event.action}</TableCell>
                             </TableRow>
-                          </TableHead>
-                          <TableBody>
-                            {details.events.map((event, index) => (
-                              <TableRow key={index}>
-                                <TableCell>{new Date(event.timestamp).toLocaleString()}</TableCell>
-                                <TableCell>{event.userName}</TableCell>
-                                <TableCell>{event.action}</TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </TableContainer>
-                    ) : (
-                      <Typography variant="body1">There are no events available.</Typography>
-                    )}
-                  </Grid>
-                  <Grid size={6} display="flex">
-                    {details.recordings.length > 0 ? (
-                      <TableContainer component={Paper}>
-                        <Table>
-                          <TableHead>
-                            <TableRow>
-                              <TableCell>Start Timestamp</TableCell>
-                              <TableCell>User</TableCell>
-                              <TableCell>File Type</TableCell>
-                              <TableCell>Download</TableCell>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  ) : (
+                    <Typography variant="body1">There are no events available.</Typography>
+                  )}
+                </Grid>
+                <Grid size={6} display="flex">
+                  {details.recordings.length > 0 ? (
+                    <TableContainer component={Paper}>
+                      <Table>
+                        <TableHead>
+                          <TableRow>
+                            <TableCell>Start Timestamp</TableCell>
+                            <TableCell>User</TableCell>
+                            <TableCell>File Type</TableCell>
+                            <TableCell>Download</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {details.recordings.map((recording, index) => (
+                            <TableRow key={index}>
+                              <TableCell>
+                                {new Date(recording.startTime).toLocaleString()}
+                              </TableCell>
+                              <TableCell>{recording.userName}</TableCell>
+                              <TableCell>{recording.trackType}</TableCell>
+                              <TableCell>
+                                <Button
+                                  disabled={attemptingDownload}
+                                  onClick={() => attemptDownload(recording.id)}
+                                >
+                                  Download
+                                </Button>
+                              </TableCell>
                             </TableRow>
-                          </TableHead>
-                          <TableBody>
-                            {details.recordings.map((recording, index) => (
-                              <TableRow key={index}>
-                                <TableCell>
-                                  {new Date(recording.startTime).toLocaleString()}
-                                </TableCell>
-                                <TableCell>{recording.userName}</TableCell>
-                                <TableCell>{recording.trackType}</TableCell>
-                                <TableCell>
-                                  <Button
-                                    disabled={attemptingDownload}
-                                    onClick={() => attemptDownload(recording.id)}
-                                  >
-                                    Download
-                                  </Button>
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </TableContainer>
-                    ) : (
-                      <Typography variant="body1">There are no recordings available.</Typography>
-                    )}
-                  </Grid>
-                </>
-              ) : (
-                <Typography variant="body1">Call details for this call are unavailable.</Typography>
-              )}
-            </Grid>
-          )}
-        </Stack>
-      </CardActions>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  ) : (
+                    <Typography variant="body1">There are no recordings available.</Typography>
+                  )}
+                </Grid>
+              </>
+            ) : (
+              <Typography variant="body1">Call details for this call are unavailable.</Typography>
+            )}
+          </Grid>
+        </CardActions>
+      )}
     </Card>
   )
 }

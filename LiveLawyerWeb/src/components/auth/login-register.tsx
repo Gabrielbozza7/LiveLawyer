@@ -6,14 +6,13 @@ import EmailIcon from '@mui/icons-material/Email'
 import KeyIcon from '@mui/icons-material/Key'
 import Tabs from '@mui/material/Tabs'
 import Tab from '@mui/material/Tab'
-import Container from '@mui/material/Container'
-import Card from '@mui/material/Card'
-import CardContent from '@mui/material/CardContent'
-import Stack from '@mui/material/Stack'
 import { ValidatedForm } from '../forms/validated-form'
 import { ValidatedTextField } from '../forms/validated-text-field'
 import { ValidatedFormSubmitButton } from '../forms/validated-form-submit-button'
-import Typography from '@mui/material/Typography'
+import { PageContent } from '../ui/page-content'
+import Image from 'next/image'
+import logo from '@/assets/images/live-lawyer-logo.jpeg'
+import Container from '@mui/material/Container'
 
 const POSSIBLE_TABS = ['Login', 'Register'] as const
 type ActiveSessionlessTab = (typeof POSSIBLE_TABS)[number]
@@ -74,64 +73,75 @@ export default function LoginRegister() {
   return (
     <>
       <title>Login/Register</title>
-      <Container maxWidth="xs" sx={{ marginTop: 4 }}>
-        <Card variant="outlined" sx={{ padding: 1 }}>
-          <CardContent>
-            <Stack spacing={4}>
-              <Tabs
-                value={POSSIBLE_TABS.findIndex(x => x === activeTab)}
-                onChange={(event, index) => setActiveTab(POSSIBLE_TABS[index])}
-                variant="fullWidth"
-              >
-                {POSSIBLE_TABS.map(tab => (
-                  <Tab key={tab} label={tab} />
-                ))}
-              </Tabs>
-              <Typography variant="overline">{activeTab}</Typography>
-              <ValidatedForm
-                disabled={loading}
-                model={formModel}
-                setModel={setFormModel}
-                onSubmit={handleSubmit}
-              >
-                <ValidatedTextField
-                  name="email"
-                  type="email"
-                  icon={<EmailIcon />}
-                  label="Email"
-                  validator={validateEmail}
-                  helperText="Email must reflect the structure of a real email address."
-                  required
-                />
-
-                <ValidatedTextField
-                  name="password"
-                  type="password"
-                  icon={<KeyIcon />}
-                  label="Password"
-                  validator={validatePassword}
-                  helperText="Passwords must be at least 8 characters long."
-                  required
-                />
-
-                {activeTab === 'Register' && (
-                  <ValidatedTextField
-                    name="confirmPassword"
-                    type="password"
-                    icon={<KeyIcon />}
-                    label="Confirm Password"
-                    validator={() => formModel.password === formModel.confirmPassword}
-                    helperText="Passwords must match."
-                    required
-                  />
-                )}
-
-                <ValidatedFormSubmitButton color="success">{activeTab}</ValidatedFormSubmitButton>
-              </ValidatedForm>
-            </Stack>
-          </CardContent>
-        </Card>
+      <Container maxWidth="xs" sx={{ marginTop: 3 }}>
+        <Image
+          style={{
+            display: 'flex',
+            justifySelf: 'center',
+            height: '70%',
+            width: '70%',
+          }}
+          alt="Live Lawyer logo"
+          src={logo}
+        />
       </Container>
+      <PageContent
+        title={activeTab}
+        width="xs"
+        aboveTitle={
+          <Tabs
+            value={POSSIBLE_TABS.findIndex(x => x === activeTab)}
+            onChange={(event, index) => setActiveTab(POSSIBLE_TABS[index])}
+            variant="fullWidth"
+            sx={{ width: '100%' }}
+          >
+            {POSSIBLE_TABS.map(tab => (
+              <Tab key={tab} label={tab} />
+            ))}
+          </Tabs>
+        }
+      >
+        <ValidatedForm
+          disabled={loading}
+          model={formModel}
+          setModel={setFormModel}
+          onSubmit={handleSubmit}
+        >
+          <ValidatedTextField
+            name="email"
+            type="email"
+            icon={<EmailIcon />}
+            label="Email"
+            validator={validateEmail}
+            helperText="Email must reflect the structure of a real email address."
+            required
+          />
+
+          <ValidatedTextField
+            name="password"
+            type="password"
+            icon={<KeyIcon />}
+            label="Password"
+            validator={validatePassword}
+            helperText="Passwords must be at least 8 characters long."
+            required
+          />
+
+          {activeTab === 'Register' && (
+            <ValidatedTextField
+              name="confirmPassword"
+              type="password"
+              icon={<KeyIcon />}
+              label="Confirm Password"
+              validator={() => formModel.password === formModel.confirmPassword}
+              helperText="Passwords must match."
+              required
+            />
+          )}
+
+          <ValidatedFormSubmitButton color="success">{activeTab}</ValidatedFormSubmitButton>
+        </ValidatedForm>
+      </PageContent>
     </>
   )
 }

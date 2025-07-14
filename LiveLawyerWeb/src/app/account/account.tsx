@@ -17,10 +17,7 @@ import { ValidatedFormSubmitButton } from '@/components/forms/validated-form-sub
 import Grid from '@mui/material/Grid'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
-import Container from '@mui/material/Container'
-import Card from '@mui/material/Card'
-import CardContent from '@mui/material/CardContent'
-import Stack from '@mui/material/Stack'
+import { PageContent } from '@/components/ui/page-content'
 
 interface FormModel {
   firstName: string
@@ -113,92 +110,85 @@ export default function Account() {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ marginTop: 4 }}>
-      <Card variant="outlined" sx={{ padding: 1 }}>
-        <CardContent>
-          <Stack spacing={4}>
-            <Typography variant="overline">Account Information</Typography>
-            <ValidatedForm
-              disabled={loading}
-              model={formModel}
-              setModel={setFormModel}
-              onSubmit={handleSubmit}
-            >
-              <ValidatedTextField
-                name="firstName"
-                type="text"
-                icon={<PersonOutlineIcon />}
-                label="First Name"
-                defaultValue={prefilledFormModel?.firstName}
-                validator={notEmpty}
-                helperText="Value must not be empty."
-                required
-                size={6}
-              />
+    <PageContent title="Account Information">
+      <ValidatedForm
+        disabled={loading}
+        model={formModel}
+        setModel={setFormModel}
+        onSubmit={handleSubmit}
+      >
+        <ValidatedTextField
+          name="firstName"
+          type="text"
+          icon={<PersonOutlineIcon />}
+          label="First Name"
+          defaultValue={prefilledFormModel?.firstName}
+          validator={notEmpty}
+          helperText="Value must not be empty."
+          required
+          size={6}
+        />
 
-              <ValidatedTextField
-                name="lastName"
-                type="text"
-                icon={<PersonOutlineIcon />}
-                label="Last Name"
-                defaultValue={prefilledFormModel?.lastName}
-                validator={notEmpty}
-                helperText="Value must not be empty."
-                required
-                size={6}
-              />
+        <ValidatedTextField
+          name="lastName"
+          type="text"
+          icon={<PersonOutlineIcon />}
+          label="Last Name"
+          defaultValue={prefilledFormModel?.lastName}
+          validator={notEmpty}
+          helperText="Value must not be empty."
+          required
+          size={6}
+        />
 
-              <ValidatedTextField
-                name="email"
-                type="email"
-                icon={<EmailIcon />}
-                label="Email"
-                defaultValue={prefilledFormModel?.email}
-                validator={validateEmail}
-                helperText="Email must reflect the structure of a real email address."
-                required
-                size={6}
-              />
+        <ValidatedTextField
+          name="email"
+          type="email"
+          icon={<EmailIcon />}
+          label="Email"
+          defaultValue={prefilledFormModel?.email}
+          validator={validateEmail}
+          helperText="Email must reflect the structure of a real email address."
+          required
+          size={6}
+        />
 
-              <ValidatedTextField
-                name="phoneNumber"
-                type="tel"
-                icon={<PhoneIcon />}
-                label="Phone Number"
-                defaultValue={prefilledFormModel?.phoneNumber}
-                validator={validatePhoneNumber}
-                helperText="Phone number must conform to E.164 format."
-                required
-                size={6}
-              />
+        <ValidatedTextField
+          name="phoneNumber"
+          type="tel"
+          icon={<PhoneIcon />}
+          label="Phone Number"
+          defaultValue={prefilledFormModel?.phoneNumber}
+          validator={validatePhoneNumber}
+          helperText="Phone number must conform to E.164 format."
+          required
+          size={6}
+        />
 
-              <Grid size={12}>
-                <Typography variant="overline">Your User Type</Typography>
-                <Typography variant="body1">{userType}</Typography>
-              </Grid>
+        <Grid size={12}>
+          <Typography variant="overline">Your User Type</Typography>
+          <Typography variant="body1">{userType}</Typography>
+        </Grid>
 
-              <ValidatedFormSubmitButton
-                disabled={JSON.stringify(prefilledFormModel) === JSON.stringify(formModel)}
-                color="success"
-                size={6}
-              >
-                Save Changes
-              </ValidatedFormSubmitButton>
-              <Grid size={6}>
-                <Button
-                  fullWidth
-                  disabled={loading}
-                  variant="contained"
-                  color="error"
-                  onClick={handleLogout}
-                >
-                  Logout
-                </Button>
-              </Grid>
-            </ValidatedForm>
-          </Stack>
-        </CardContent>
-      </Card>
-    </Container>
+        <ValidatedFormSubmitButton
+          disabled={JSON.stringify(prefilledFormModel) === JSON.stringify(formModel)}
+          color="success"
+          size={6}
+        >
+          Save Changes
+        </ValidatedFormSubmitButton>
+        <Grid size={6}>
+          <Button
+            fullWidth
+            disabled={loading}
+            variant="contained"
+            color="error"
+            onClick={handleLogout}
+          >
+            Logout
+          </Button>
+        </Grid>
+      </ValidatedForm>
+    </PageContent>
   )
 }

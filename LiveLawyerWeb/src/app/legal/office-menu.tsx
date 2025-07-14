@@ -4,7 +4,6 @@ import { Database } from 'livelawyerlibrary/database-types'
 import OfficeEditor from './office-editor'
 import OfficeSelector from './office-selector'
 import CircularProgress from '@mui/material/CircularProgress'
-import Typography from '@mui/material/Typography'
 
 export interface OfficeSubFormProps {
   currentOffice: Database['public']['Tables']['LawOffice']['Row'] | null | undefined
@@ -48,7 +47,6 @@ export default function OfficeMenu() {
 
   return (
     <>
-      <Typography variant="overline">Office Configuration</Typography>
       {currentOffice === undefined ? (
         <CircularProgress />
       ) : currentOffice !== null ? (

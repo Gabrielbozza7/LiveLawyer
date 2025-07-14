@@ -92,7 +92,6 @@ export default function StatesSelector() {
 
   return (
     <>
-      <Typography variant="overline">Licensed States</Typography>
       <Typography variant="body1">
         Select the states in which you are licensed to practice law.
       </Typography>

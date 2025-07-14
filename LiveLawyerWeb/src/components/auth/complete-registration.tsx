@@ -1,9 +1,4 @@
 'use client'
-import Card from '@mui/material/Card'
-import CardContent from '@mui/material/CardContent'
-import Container from '@mui/material/Container'
-import Stack from '@mui/material/Stack'
-import Typography from '@mui/material/Typography'
 import { useAlerter, useSession, useSupabaseClient } from 'livelawyerlibrary/context-manager'
 import { useState } from 'react'
 import { ValidatedForm } from '../forms/validated-form'
@@ -19,6 +14,10 @@ import ValidatedAutocompleteDropdown, {
   AutocompleteOptionNotNew,
 } from '../forms/validated-autocomplete-dropdown'
 import { UserType } from 'livelawyerlibrary'
+import { PageContent } from '../ui/page-content'
+import Container from '@mui/material/Container'
+import Image from 'next/image'
+import logo from '@/assets/images/live-lawyer-logo.jpeg'
 
 interface UserTypeOptionExtra {
   userType: UserType
@@ -93,76 +92,81 @@ export default function CompleteRegistration() {
   return (
     <>
       <title>Complete Registration</title>
-      <Container maxWidth="xs" sx={{ marginTop: 4 }}>
-        <Card variant="outlined" sx={{ padding: 1 }}>
-          <CardContent>
-            <Stack spacing={4}>
-              <Typography variant="overline">Complete New Account Registration</Typography>
-              <ValidatedForm
-                disabled={loading}
-                model={formModel}
-                setModel={setFormModel}
-                onSubmit={handleSubmit}
-              >
-                <ValidatedTextField
-                  name="firstName"
-                  type="text"
-                  icon={<PersonOutlineIcon />}
-                  label="First Name"
-                  validator={notEmpty}
-                  helperText="Value must not be empty."
-                  required
-                />
-
-                <ValidatedTextField
-                  name="lastName"
-                  type="text"
-                  icon={<PersonOutlineIcon />}
-                  label="Last Name"
-                  validator={notEmpty}
-                  helperText="Value must not be empty."
-                  required
-                />
-
-                <ValidatedTextField
-                  name="phoneNumber"
-                  type="tel"
-                  icon={<PhoneIcon />}
-                  label="Phone Number"
-                  validator={validatePhoneNumber}
-                  helperText="Phone number must conform to E.164 format."
-                  required
-                />
-
-                <ValidatedAutocompleteDropdown
-                  name="userType"
-                  icon={<BadgeIcon />}
-                  label="User Type"
-                  options={USER_TYPE_OPTIONS}
-                  canAddNew={false}
-                  defaultValue={USER_TYPE_OPTIONS[0]}
-                  validator={notEmpty}
-                  helperText="Select an option."
-                  required
-                />
-
-                <ValidatedFormSubmitButton color="success">Confirm</ValidatedFormSubmitButton>
-                <Grid size={12}>
-                  <Button
-                    fullWidth
-                    disabled={loading}
-                    variant="contained"
-                    color="error"
-                    onClick={handleLogout}
-                  >
-                    Logout
-                  </Button>
-                </Grid>
-              </ValidatedForm>
-            </Stack>
-          </CardContent>
-        </Card>
+      <Container maxWidth="xs" sx={{ marginTop: 3 }}>
+        <Image
+          style={{
+            display: 'flex',
+            justifySelf: 'center',
+            height: '70%',
+            width: '70%',
+          }}
+          alt="Live Lawyer logo"
+          src={logo}
+        />
       </Container>
+      <PageContent title="Complete New Account Registration" width="xs">
+        <ValidatedForm
+          disabled={loading}
+          model={formModel}
+          setModel={setFormModel}
+          onSubmit={handleSubmit}
+        >
+          <ValidatedTextField
+            name="firstName"
+            type="text"
+            icon={<PersonOutlineIcon />}
+            label="First Name"
+            validator={notEmpty}
+            helperText="Value must not be empty."
+            required
+          />
+
+          <ValidatedTextField
+            name="lastName"
+            type="text"
+            icon={<PersonOutlineIcon />}
+            label="Last Name"
+            validator={notEmpty}
+            helperText="Value must not be empty."
+            required
+          />
+
+          <ValidatedTextField
+            name="phoneNumber"
+            type="tel"
+            icon={<PhoneIcon />}
+            label="Phone Number"
+            validator={validatePhoneNumber}
+            helperText="Phone number must conform to E.164 format."
+            required
+          />
+
+          <ValidatedAutocompleteDropdown
+            name="userType"
+            icon={<BadgeIcon />}
+            label="User Type"
+            options={USER_TYPE_OPTIONS}
+            canAddNew={false}
+            defaultValue={USER_TYPE_OPTIONS[0]}
+            validator={notEmpty}
+            helperText="Select an option."
+            required
+          />
+
+          <ValidatedFormSubmitButton color="success">Confirm</ValidatedFormSubmitButton>
+          <Grid size={12}>
+            <Button
+              fullWidth
+              disabled={loading}
+              variant="contained"
+              color="error"
+              onClick={handleLogout}
+            >
+              Logout
+            </Button>
+          </Grid>
+        </ValidatedForm>
+      </PageContent>
     </>
   )
 }
