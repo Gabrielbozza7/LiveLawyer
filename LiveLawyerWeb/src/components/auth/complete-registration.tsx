@@ -18,6 +18,7 @@ import { PageContent } from '../ui/page-content'
 import Container from '@mui/material/Container'
 import Image from 'next/image'
 import logo from '@/assets/images/live-lawyer-logo.jpeg'
+import { ValidatedPhoneNumber } from '../forms/validated-phone-number'
 
 interface UserTypeOptionExtra {
   userType: UserType
@@ -131,13 +132,12 @@ export default function CompleteRegistration() {
             required
           />
 
-          <ValidatedTextField
+          <ValidatedPhoneNumber
             name="phoneNumber"
-            type="tel"
             icon={<PhoneIcon />}
             label="Phone Number"
             validator={validatePhoneNumber}
-            helperText="Phone number must conform to E.164 format."
+            helperText="Type the 10 digits without punctuation (US numbers only)."
             required
           />
 

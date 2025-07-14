@@ -10,6 +10,7 @@ import Button from '@mui/material/Button'
 import SearchIcon from '@mui/icons-material/Search'
 import TextField from '@mui/material/TextField'
 import Stack from '@mui/material/Stack'
+import Container from '@mui/material/Container'
 
 function arraysEqual<T>(a1: T[], a2: T[]): boolean {
   return a1.length === a2.length && a1.every((value, index) => value === a2[index])
@@ -96,63 +97,65 @@ export default function StatesSelector() {
         Select the states in which you are licensed to practice law.
       </Typography>
 
-      <form onSubmit={handleSubmit}>
-        <Grid container columnSpacing={4} rowSpacing={4}>
-          <Grid size={6}>
-            <TextField
-              fullWidth
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              label={
-                <Stack direction="row" display="flex">
-                  <SearchIcon />
-                  <Typography variant="body1" sx={{ marginLeft: 0.5 }}>
-                    Search states...
-                  </Typography>
-                </Stack>
-              }
-            />
-          </Grid>
-          <Grid size={6}>
-            <Button
-              fullWidth
-              sx={{ display: 'flex', height: '100%' }}
-              disabled={
-                loading ||
-                (prefilledStates !== undefined && arraysEqual(prefilledStates, selectedStates))
-              }
-              variant="contained"
-              color="success"
-              type="submit"
-            >
-              Save Changes
-            </Button>
-          </Grid>
+      <Container style={{ alignItems: 'stretch', flexGrow: 1, padding: 0 }}>
+        <form onSubmit={handleSubmit}>
+          <Grid container columnSpacing={4} rowSpacing={4}>
+            <Grid size={6}>
+              <TextField
+                fullWidth
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                label={
+                  <Stack direction="row">
+                    <SearchIcon />
+                    <Typography variant="body1" sx={{ marginLeft: 0.5 }}>
+                      Search states...
+                    </Typography>
+                  </Stack>
+                }
+              />
+            </Grid>
+            <Grid size={6}>
+              <Button
+                fullWidth
+                sx={{ display: 'flex', height: '100%' }}
+                disabled={
+                  loading ||
+                  (prefilledStates !== undefined && arraysEqual(prefilledStates, selectedStates))
+                }
+                variant="contained"
+                color="success"
+                type="submit"
+              >
+                Save Changes
+              </Button>
+            </Grid>
 
-          {Object.keys(STATE_CODES_TO_NAMES)
-            .filter(
-              stateCode =>
-                STATE_CODES_TO_NAMES[stateCode as keyof typeof STATE_CODES_TO_NAMES]
-                  .toLowerCase()
-                  .indexOf(searchQuery) !== -1,
-            )
-            .map(stateCode => (
-              <Grid key={stateCode} size={4}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      disabled={loading}
-                      name={stateCode}
-                      checked={selectedStates.find(x => stateCode === x) !== undefined}
-                      onChange={handleChange}
-                    />
-                  }
-                  label={STATE_CODES_TO_NAMES[stateCode as keyof typeof STATE_CODES_TO_NAMES]}
-                />
-              </Grid>
-            ))}
-        </Grid>
-      </form>
+            {Object.keys(STATE_CODES_TO_NAMES)
+              .filter(
+                stateCode =>
+                  STATE_CODES_TO_NAMES[stateCode as keyof typeof STATE_CODES_TO_NAMES]
+                    .toLowerCase()
+                    .indexOf(searchQuery) !== -1,
+              )
+              .map(stateCode => (
+                <Grid key={stateCode} size={4}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        disabled={loading}
+                        name={stateCode}
+                        checked={selectedStates.find(x => stateCode === x) !== undefined}
+                        onChange={handleChange}
+                      />
+                    }
+                    label={STATE_CODES_TO_NAMES[stateCode as keyof typeof STATE_CODES_TO_NAMES]}
+                  />
+                </Grid>
+              ))}
+          </Grid>
+        </form>
+      </Container>
     </>
   )
 }

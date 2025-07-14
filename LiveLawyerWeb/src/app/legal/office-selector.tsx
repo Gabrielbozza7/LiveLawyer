@@ -10,6 +10,7 @@ import { ValidatedForm } from '@/components/forms/validated-form'
 import BusinessIcon from '@mui/icons-material/Business'
 import { notEmpty } from 'livelawyerlibrary/input-validation'
 import { ValidatedFormSubmitButton } from '@/components/forms/validated-form-submit-button'
+import Container from '@mui/material/Container'
 
 export interface OfficeOptionExtra {
   id: string
@@ -102,7 +103,7 @@ export default function OfficeSelector({ setCurrentOffice }: OfficeSubFormProps)
       {placeholder !== null ? (
         <Typography variant="body1">{placeholder}</Typography>
       ) : (
-        <>
+        <Container style={{ alignItems: 'stretch', flexGrow: 1, padding: 0, margin: 0 }}>
           <ValidatedForm
             disabled={loading}
             model={formModel}
@@ -125,7 +126,7 @@ export default function OfficeSelector({ setCurrentOffice }: OfficeSubFormProps)
               {(formModel.selection?.isNew ?? true) ? 'Create' : 'Join'}
             </ValidatedFormSubmitButton>
           </ValidatedForm>
-        </>
+        </Container>
       )}
     </>
   )

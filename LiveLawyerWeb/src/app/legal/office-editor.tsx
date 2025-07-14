@@ -13,6 +13,7 @@ import { notEmpty, validateEmail, validatePhoneNumber } from 'livelawyerlibrary/
 import Grid from '@mui/material/Grid'
 import { ValidatedFormSubmitButton } from '@/components/forms/validated-form-submit-button'
 import Button from '@mui/material/Button'
+import { ValidatedPhoneNumber } from '@/components/forms/validated-phone-number'
 
 interface FormModel {
   name: string
@@ -133,14 +134,13 @@ export default function OfficeEditor({ currentOffice, setCurrentOffice }: Office
           size={6}
         />
 
-        <ValidatedTextField
+        <ValidatedPhoneNumber
           name="phoneNumber"
-          type="tel"
           icon={<PhoneIcon />}
           label="Phone Number"
           defaultValue={prefilledFormModel?.phoneNumber}
           validator={validatePhoneNumber}
-          helperText="Phone number must conform to E.164 format."
+          helperText="Type the 10 digits without punctuation (US numbers only)."
           size={6}
         />
 
