@@ -10,7 +10,7 @@ import { useRouter } from 'next/navigation'
 import { ValidatedForm } from '@/components/forms/validated-form'
 import { ValidatedTextField } from '@/components/forms/validated-text-field'
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline'
-import { notEmpty, validateEmail } from 'livelawyerlibrary/input-validation'
+import { notEmpty, validateEmail, validatePhoneNumber } from 'livelawyerlibrary/input-validation'
 import EmailIcon from '@mui/icons-material/Email'
 import PhoneIcon from '@mui/icons-material/Phone'
 import { ValidatedFormSubmitButton } from '@/components/forms/validated-form-submit-button'
@@ -159,6 +159,8 @@ export default function Account() {
           icon={<PhoneIcon />}
           label="Phone Number"
           defaultValue={prefilledFormModel?.phoneNumber}
+          validator={validatePhoneNumber}
+          helperText="Type the 10 digits without punctuation (US numbers only)."
           required
           size={6}
         />

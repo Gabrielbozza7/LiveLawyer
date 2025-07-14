@@ -20,12 +20,12 @@
     "eslint-config-prettier": "^10.1.1",
     "eslint-plugin-prettier": "^5.2.3",
     "jwt-decode": "^4.0.0",
+    "libphonenumber-js": "^1.12.10",
     "livelawyerlibrary": "file:../LiveLawyerLibrary",
     "next": "15.3.1",
     "prettier": "^3.5.3",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "react-phone-number-input": "^3.4.12",
     "socket.io-client": "^4.8.1",
     "twilio-video": "^2.29.0"
   },

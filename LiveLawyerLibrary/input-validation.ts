@@ -7,7 +7,8 @@ export function validatePassword(input: string): boolean {
 }
 
 export function validatePhoneNumber(input: string): boolean {
-  return input.match(/^\+[1-9]\d{1,14}$/) ? true : false
+  // This regex has been restricted a bit to force the minumum length of a US phone number.
+  return input.match(/^\+[1-9]\d{7,14}$/) ? true : false
 }
 
 export function notEmpty(input: string): boolean {
