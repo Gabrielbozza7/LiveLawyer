@@ -10,7 +10,7 @@ import { useRouter } from 'next/navigation'
 import { ValidatedForm } from '@/components/forms/validated-form'
 import { ValidatedTextField } from '@/components/forms/validated-text-field'
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline'
-import { notEmpty, validateEmail, validatePhoneNumber } from 'livelawyerlibrary/input-validation'
+import { notEmpty, validateEmail } from 'livelawyerlibrary/input-validation'
 import EmailIcon from '@mui/icons-material/Email'
 import PhoneIcon from '@mui/icons-material/Phone'
 import { ValidatedFormSubmitButton } from '@/components/forms/validated-form-submit-button'
@@ -18,6 +18,7 @@ import Grid from '@mui/material/Grid'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import { PageContent } from '@/components/ui/page-content'
+import { ValidatedPhoneNumber } from '@/components/forms/validated-phone-number'
 
 interface FormModel {
   firstName: string
@@ -153,14 +154,11 @@ export default function Account() {
           size={6}
         />
 
-        <ValidatedTextField
+        <ValidatedPhoneNumber
           name="phoneNumber"
-          type="tel"
           icon={<PhoneIcon />}
           label="Phone Number"
           defaultValue={prefilledFormModel?.phoneNumber}
-          validator={validatePhoneNumber}
-          helperText="Phone number must conform to E.164 format."
           required
           size={6}
         />
