@@ -1,14 +1,15 @@
 import { newStyles } from '@/constants/Styles'
 import { useRouter } from 'expo-router'
 import React, { useEffect, useState } from 'react'
-import { Dimensions, StyleSheet, TouchableOpacity } from 'react-native'
+import { StyleSheet, Image, View, TouchableOpacity } from 'react-native'
 import * as Location from 'expo-location'
 import { setCoordinates } from '@/components/locationStore'
 import { useAlerter } from 'livelawyerlibrary/context-manager'
 import { Coordinates } from 'livelawyerlibrary/socket-event-definitions'
-import { Icon, Text } from 'react-native-paper'
+import { Text } from 'react-native-paper'
 import { TabPage } from '@/components/ui/tab-page'
 import { Colors } from '@/constants/Colors'
+import { placeholderLogo } from './lawyers'
 
 export default function Index() {
   const alerterRef = useAlerter()
@@ -44,33 +45,33 @@ export default function Index() {
 
   return (
     <TabPage verticallyCenter={true} horizontallyCenter={true}>
-      <TouchableOpacity onPress={attemptCall} style={styles.callButton}>
-        <Icon source="phone-in-talk" color="white" size={150} />
-        <Text
-          variant="displayLarge"
-          theme={{ colors: { onSurface: 'white' } }}
-          style={newStyles.centeredText}
-        >
-          CALL
-        </Text>
-      </TouchableOpacity>
+      <View style={styles.callButtonContainer}>
+        <TouchableOpacity onPress={attemptCall} style={styles.callButton}>
+          <Image style={styles.callButtonLogo} source={placeholderLogo} resizeMode="cover" />
+        </TouchableOpacity>
+      </View>
       <Text variant="headlineSmall" style={newStyles.centeredText}>
-        Press the button to make a call!
+        {'\n'}Press the logo to make a call!
       </Text>
     </TabPage>
   )
 }
 
-const { width: WIDTH } = Dimensions.get('window')
-
 const styles = StyleSheet.create({
+  callButtonContainer: {
+    shadowColor: Colors.gray,
+    shadowOffset: { height: 1, width: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 4,
+  },
   callButton: {
-    backgroundColor: Colors.red,
-    width: WIDTH * 0.8,
-    height: WIDTH * 0.8,
-    borderRadius: WIDTH * 0.4,
-    marginVertical: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: '80%',
+    aspectRatio: 1,
+    borderRadius: 50,
+    overflow: 'hidden',
+  },
+  callButtonLogo: {
+    height: '100%',
+    aspectRatio: 1,
   },
 })
