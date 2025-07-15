@@ -25,7 +25,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <CssBaseline>
-        <body style={{ backgroundColor: 'rgba(199, 235, 242, 1)' }}>
+        <body style={{ backgroundColor: '#DDEEFF' }}>
           <ContextManager
             env={{
               supabaseUrl: SUPABASE_URL,
