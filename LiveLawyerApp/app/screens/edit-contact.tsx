@@ -65,6 +65,7 @@ export default function EditContact() {
       alerterRef.current.success(`Contact ${actionType}d successfully!`)
     }
     router.back()
+    router.replace('/(tabs)/contacts?refresh=true')
   }
 
   const handleDelete = async () => {
@@ -81,6 +82,7 @@ export default function EditContact() {
       alerterRef.current.success('Contact deleted!')
     }
     router.back()
+    router.replace('/(tabs)/contacts?refresh=true')
   }
 
   return (
