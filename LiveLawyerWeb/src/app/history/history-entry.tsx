@@ -3,7 +3,7 @@ import {
   CallHistoryDetailsSingle,
   CallHistorySingle,
 } from 'livelawyerlibrary/api/types/call-history'
-import { useAlerter, useApi } from 'livelawyerlibrary/context-manager'
+import { useAlerter, useApi, useUserType } from 'livelawyerlibrary/context-manager'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Button from '@mui/material/Button'
@@ -27,6 +27,7 @@ interface HistoryEntryProps {
 
 export function HistoryEntry({ entry }: HistoryEntryProps) {
   const alerterRef = useAlerter()
+  const userType = useUserType()
   const apiRef = useApi()
   const [showDetails, setShowDetails] = useState<boolean>(false)
   const [details, setDetails] = useState<CallHistoryDetailsSingle | undefined>(undefined)
@@ -136,7 +137,7 @@ export function HistoryEntry({ entry }: HistoryEntryProps) {
                             <TableCell>Start Timestamp</TableCell>
                             <TableCell>User</TableCell>
                             <TableCell>File Type</TableCell>
-                            <TableCell>Download</TableCell>
+                            {userType === 'Lawyer' && <TableCell>Download</TableCell>}
                           </TableRow>
                         </TableHead>
                         <TableBody>
@@ -147,14 +148,16 @@ export function HistoryEntry({ entry }: HistoryEntryProps) {
                               </TableCell>
                               <TableCell>{recording.userName}</TableCell>
                               <TableCell>{recording.trackType}</TableCell>
-                              <TableCell>
-                                <Button
-                                  disabled={attemptingDownload}
-                                  onClick={() => attemptDownload(recording.id)}
-                                >
-                                  Download
-                                </Button>
-                              </TableCell>
+                              {userType === 'Lawyer' && (
+                                <TableCell>
+                                  <Button
+                                    disabled={attemptingDownload}
+                                    onClick={() => attemptDownload(recording.id)}
+                                  >
+                                    Download
+                                  </Button>
+                                </TableCell>
+                              )}
                             </TableRow>
                           ))}
                         </TableBody>

@@ -188,6 +188,15 @@ router.get(ROUTE_CALL_HISTORY_DOWNLOAD, async (req: RequestCallHistoryDownload, 
     return
   }
   try {
+    const { data: userTypeData, error: userTypeError } = await supabase
+      .from('User')
+      .select('userType')
+      .eq('id', userId)
+      .single()
+    if (userTypeError || userTypeData === null || userTypeData.userType !== 'Lawyer') {
+      res.status(400).json({ success: false, error: 'Unauthorized access' })
+      return
+    }
     const { data, error } = await supabase
       .from('CallRecording')
       .select('call:callId(observerId, lawyerId), s3Ref')
