@@ -30,9 +30,8 @@ export function ValidatedFormSubmitButton({ disabled, children }: ValidatedFormS
       theme={{
         colors: {
           elevation: {
-            level1: 'rgb(105, 239, 109)', // Cards
+            level1: 'rgb(105, 239, 109)',
           },
-          surfaceDisabled: 'rgb(193, 193, 193)',
         },
       }}
     >

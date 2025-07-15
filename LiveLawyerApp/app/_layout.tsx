@@ -37,7 +37,8 @@ const appTheme = {
       level4: 'rgb(244, 151, 151)', // Error banners
       level5: 'rgb(225, 10, 136)', // Currently unused
     },
-    error: 'rgb(235, 15, 15)',
+    surfaceDisabled: 'rgb(193, 193, 193)', // Backgrounds for disabled elements (like buttons)
+    error: 'rgb(235, 15, 15)', // Error backgrounds
   },
 }
 

@@ -1,4 +1,5 @@
 import { setCoordinates } from '@/components/locationStore'
+import { FabWithConfirmation } from '@/components/ui/fab-with-confirmation'
 import { TabPage } from '@/components/ui/tab-page'
 import { newStyles } from '@/constants/Styles'
 import { getCurrentPositionAsync, getForegroundPermissionsAsync } from 'expo-location'
@@ -89,12 +90,12 @@ export default function Resources() {
         onPress={handleOpenTrafficLaws}
         style={[newStyles.fab, newStyles.spacedCard]}
       />
-      <FAB
+      <FabWithConfirmation
         icon="logout"
-        label="Logout"
-        uppercase={true}
-        onPress={logOut}
-        style={[newStyles.fab, newStyles.spacedCard]}
+        prompt="Logout?"
+        onConfirm={logOut}
+        animateFrom="right"
+        style={newStyles.bottomRightFab}
       />
     </TabPage>
   )

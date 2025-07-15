@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useAlerter, useSupabaseClient } from 'livelawyerlibrary/context-manager'
 import { StandalonePage } from '@/components/ui/standalone-page'
-import { FAB, Text, TextInput } from 'react-native-paper'
+import { Text, TextInput } from 'react-native-paper'
 import { ValidatedForm } from '@/components/forms/validated-form'
 import { ValidatedTextField } from '@/components/forms/validated-text-field'
 import { ValidatedFormSubmitButton } from '@/components/forms/validated-form-submit-button'
 import { notEmpty, validatePhoneNumber } from 'livelawyerlibrary/input-validation'
 import { newStyles } from '@/constants/Styles'
+import { FabWithConfirmation } from '@/components/ui/fab-with-confirmation'
 
 interface FormModel {
   name: string
@@ -117,7 +118,13 @@ export default function EditContact() {
         </ValidatedFormSubmitButton>
       </ValidatedForm>
       {id !== undefined && (
-        <FAB icon="delete" onPress={handleDelete} style={newStyles.bottomLeftFab} />
+        <FabWithConfirmation
+          icon="delete"
+          prompt="Delete?"
+          onConfirm={handleDelete}
+          animateFrom="right"
+          style={newStyles.bottomRightFab}
+        />
       )}
     </StandalonePage>
   )
