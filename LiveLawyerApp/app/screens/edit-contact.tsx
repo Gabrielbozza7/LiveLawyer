@@ -3,12 +3,12 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useAlerter, useSupabaseClient } from 'livelawyerlibrary/context-manager'
 import { StandalonePage } from '@/components/ui/standalone-page'
 import { Text, TextInput } from 'react-native-paper'
-import { ValidatedForm } from '@/components/forms/validated-form'
-import { ValidatedTextField } from '@/components/forms/validated-text-field'
-import { ValidatedFormSubmitButton } from '@/components/forms/validated-form-submit-button'
 import { notEmpty, validatePhoneNumber } from 'livelawyerlibrary/input-validation'
 import { newStyles } from '@/constants/Styles'
 import { FabWithConfirmation } from '@/components/ui/fab-with-confirmation'
+import { ValidatedForm } from 'livelawyerlibrary/forms/validated-form'
+import { ValidatedTextField } from 'livelawyerlibrary/forms/validated-text-field'
+import { ValidatedFormSubmitButton } from 'livelawyerlibrary/forms/validated-form-submit-button'
 
 interface FormModel {
   name: string
@@ -110,7 +110,7 @@ export default function EditContact() {
           label="Phone Number"
           defaultValue={prefilledFormModel?.phoneNumber ?? '+1'}
           validator={validatePhoneNumber}
-          helperText="Phone number must conform to E.164 format."
+          helperText="Type the 10 digits without punctuation (US numbers only)."
           required
         />
         <ValidatedFormSubmitButton

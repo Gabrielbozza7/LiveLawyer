@@ -10,6 +10,9 @@ import CompleteRegistration from '@/components/auth/complete-registration'
 import { DefaultTheme, Provider as PaperProvider, Portal } from 'react-native-paper'
 import { AlertDelivery } from '@/components/alert-delivery'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
+import { PlatformValidatedForm } from '@/components/forms/platform-validated-form'
+import { PlatformValidatedTextField } from '@/components/forms/platform-validated-text-field'
+import { PlatformValidatedFormSubmitButton } from '@/components/forms/platform-validated-form-submit-button'
 
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY
@@ -56,6 +59,11 @@ export default function RootLayout() {
             storage={ExpoSecureStoreAdapter}
             sessionlessComponent={<Login />}
             alertDeliveryComponent={<AlertDelivery />}
+            platformValidatedFormComponents={{
+              Form: PlatformValidatedForm,
+              TextField: PlatformValidatedTextField,
+              FormSubmitButton: PlatformValidatedFormSubmitButton,
+            }}
             loadingComponent={<Text>Loading...</Text>}
             uninitializedUserComponent={<CompleteRegistration />}
           >

@@ -11,6 +11,7 @@ export const FormModelContext = createContext<{
   model: object
   setModel: Dispatch<SetStateAction<object>>
 }>({ model: {}, setModel: () => {} })
+export const FormSubmittingContext = createContext<() => void>(() => {})
 
 export interface ValidatedFormProps<T extends object> {
   disabled?: boolean
@@ -31,6 +32,7 @@ export function ValidatedForm<T extends object>({
 }: ValidatedFormProps<T>) {
   const { Form } = usePlatformValidatedFormComponents()
   const [invalidations, setInvalidations] = useState<Set<string>>(new Set())
+  const handleSubmit = () => onSubmit(model)
 
   return (
     <FormDisablingContext.Provider value={disabled ?? false}>
@@ -41,15 +43,17 @@ export function ValidatedForm<T extends object>({
             setModel: setModel as Dispatch<SetStateAction<object>>,
           }}
         >
-          <Form
-            disabled={disabled}
-            spacing={spacing}
-            model={model}
-            // TODO: Assign proper types with more advanced TypeScript
-            setModel={setModel as Dispatch<SetStateAction<object>>}
-            onSubmit={onSubmit as (model: object) => unknown}
-            children={children}
-          />
+          <FormSubmittingContext.Provider value={handleSubmit}>
+            <Form
+              disabled={disabled}
+              spacing={spacing}
+              model={model}
+              // TODO: Assign proper types with more advanced TypeScript
+              setModel={setModel as Dispatch<SetStateAction<object>>}
+              onSubmit={onSubmit as (model: object) => unknown}
+              children={children}
+            />
+          </FormSubmittingContext.Provider>
         </FormModelContext.Provider>
       </FormInvalidationsContext.Provider>
     </FormDisablingContext.Provider>

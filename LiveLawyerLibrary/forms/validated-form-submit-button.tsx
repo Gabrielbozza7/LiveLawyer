@@ -1,5 +1,9 @@
 import { ReactNode, useContext, useEffect, useState } from 'react'
-import { FormDisablingContext, FormInvalidationsContext } from './validated-form'
+import {
+  FormDisablingContext,
+  FormInvalidationsContext,
+  FormSubmittingContext,
+} from './validated-form'
 import { usePlatformValidatedFormComponents } from '../context-manager'
 import React from 'react'
 
@@ -11,6 +15,7 @@ export interface ValidatedFormSubmitButtonProps {
 
 export type PlatformValidatedFormSubmitButtonProps = ValidatedFormSubmitButtonProps & {
   displayAsDisabled: boolean
+  submit: () => void
 }
 
 export function ValidatedFormSubmitButton({
@@ -20,6 +25,7 @@ export function ValidatedFormSubmitButton({
 }: ValidatedFormSubmitButtonProps) {
   const { FormSubmitButton } = usePlatformValidatedFormComponents()
   const disabledContext = useContext(FormDisablingContext)
+  const submitContext = useContext(FormSubmittingContext)
   const { invalidations } = useContext(FormInvalidationsContext)
 
   // This fixes an animation bug.
@@ -37,6 +43,7 @@ export function ValidatedFormSubmitButton({
       size={size}
       children={children}
       displayAsDisabled={displayAsDisabled}
+      submit={submitContext}
     />
   )
 }
