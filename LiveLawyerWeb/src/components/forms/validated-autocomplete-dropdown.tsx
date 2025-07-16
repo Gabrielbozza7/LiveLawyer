@@ -1,10 +1,22 @@
 import TextField from '@mui/material/TextField'
 import Autocomplete, { createFilterOptions } from '@mui/material/Autocomplete'
-import { FormDisablingContext, FormInvalidationsContext, FormModelContext } from './validated-form'
-import { ReactNode, useContext, useEffect, useState } from 'react'
+import {
+  Context,
+  Dispatch,
+  ReactNode,
+  SetStateAction,
+  useContext,
+  useEffect,
+  useState,
+} from 'react'
 import Grid from '@mui/material/Grid'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
+import {
+  FormDisablingContext,
+  FormInvalidationsContext,
+  FormModelContext,
+} from 'livelawyerlibrary/forms/validated-form'
 
 export type AutocompleteOptionNotNew<T extends object> = {
   label: string
@@ -48,9 +60,19 @@ export default function ValidatedAutocompleteDropdown<T extends object>({
   required,
   size,
 }: ValidatedAutocompleteDropdownProps<T>) {
-  const disabled = useContext(FormDisablingContext)
-  const { setInvalidations } = useContext(FormInvalidationsContext)
-  const { model, setModel } = useContext(FormModelContext)
+  const disabled = useContext(FormDisablingContext as Context<boolean>)
+  const { setInvalidations } = useContext(
+    FormInvalidationsContext as Context<{
+      invalidations: Set<string>
+      setInvalidations: Dispatch<SetStateAction<Set<string>>>
+    }>,
+  )
+  const { model, setModel } = useContext(
+    FormModelContext as Context<{
+      model: object
+      setModel: Dispatch<SetStateAction<object>>
+    }>,
+  )
   const [value, setValue] = useState<AutocompleteOption<T> | null>(null)
   const [error, setError] = useState<boolean>(false)
 

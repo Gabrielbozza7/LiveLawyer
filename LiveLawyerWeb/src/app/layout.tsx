@@ -12,6 +12,9 @@ import LiveLawyerNav from '@/components/LiveLawyerNav'
 import CssBaseline from '@mui/material/CssBaseline'
 import AlertDelivery from '@/components/alert-delivery'
 import { LoadingBackdrop } from '@/components/auth/loading-backdrop'
+import { PlatformValidatedForm } from '@/components/forms/platform-validated-form'
+import { PlatformValidatedTextField } from '@/components/forms/platform-validated-text-field'
+import { PlatformValidatedFormSubmitButton } from '@/components/forms/platform-validated-form-submit-button'
 
 export const metadata: Metadata = {
   description: 'Live Lawyer Web',
@@ -34,6 +37,11 @@ export default function RootLayout({
             }}
             sessionlessComponent={<LoginRegister />}
             alertDeliveryComponent={<AlertDelivery />}
+            platformValidatedFormComponents={{
+              Form: PlatformValidatedForm,
+              TextField: PlatformValidatedTextField,
+              FormSubmitButton: PlatformValidatedFormSubmitButton,
+            }}
             loadingComponent={<LoadingBackdrop />}
             uninitializedUserComponent={<CompleteRegistration />}
           >

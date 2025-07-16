@@ -7,18 +7,17 @@ import {
   useUserType,
 } from 'livelawyerlibrary/context-manager'
 import { useRouter } from 'next/navigation'
-import { ValidatedForm } from '@/components/forms/validated-form'
-import { ValidatedTextField } from '@/components/forms/validated-text-field'
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline'
 import { notEmpty, validateEmail, validatePhoneNumber } from 'livelawyerlibrary/input-validation'
 import EmailIcon from '@mui/icons-material/Email'
 import PhoneIcon from '@mui/icons-material/Phone'
-import { ValidatedFormSubmitButton } from '@/components/forms/validated-form-submit-button'
 import Grid from '@mui/material/Grid'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import { PageContent } from '@/components/ui/page-content'
-import { ValidatedPhoneNumber } from '@/components/forms/validated-phone-number'
+import { ValidatedForm } from 'livelawyerlibrary/forms/validated-form'
+import { ValidatedTextField } from 'livelawyerlibrary/forms/validated-text-field'
+import { ValidatedFormSubmitButton } from 'livelawyerlibrary/forms/validated-form-submit-button'
 
 interface FormModel {
   firstName: string
@@ -154,8 +153,9 @@ export default function Account() {
           size={6}
         />
 
-        <ValidatedPhoneNumber
+        <ValidatedTextField
           name="phoneNumber"
+          type="tel"
           icon={<PhoneIcon />}
           label="Phone Number"
           defaultValue={prefilledFormModel?.phoneNumber}
@@ -172,7 +172,6 @@ export default function Account() {
 
         <ValidatedFormSubmitButton
           disabled={JSON.stringify(prefilledFormModel) === JSON.stringify(formModel)}
-          color="success"
           size={6}
         >
           Save Changes

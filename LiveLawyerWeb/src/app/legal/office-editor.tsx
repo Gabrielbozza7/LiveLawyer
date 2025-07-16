@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useAlerter, useSession, useSupabaseClient } from 'livelawyerlibrary/context-manager'
 import { OfficeSubFormProps } from './office-menu'
-import { ValidatedForm } from '@/components/forms/validated-form'
 import Typography from '@mui/material/Typography'
-import { ValidatedTextField } from '@/components/forms/validated-text-field'
 import BusinessIcon from '@mui/icons-material/Business'
 import EmailIcon from '@mui/icons-material/Email'
 import PhoneIcon from '@mui/icons-material/Phone'
@@ -11,9 +9,10 @@ import PublicIcon from '@mui/icons-material/Public'
 import HomeIcon from '@mui/icons-material/Home'
 import { notEmpty, validateEmail, validatePhoneNumber } from 'livelawyerlibrary/input-validation'
 import Grid from '@mui/material/Grid'
-import { ValidatedFormSubmitButton } from '@/components/forms/validated-form-submit-button'
 import Button from '@mui/material/Button'
-import { ValidatedPhoneNumber } from '@/components/forms/validated-phone-number'
+import { ValidatedForm } from 'livelawyerlibrary/forms/validated-form'
+import { ValidatedTextField } from 'livelawyerlibrary/forms/validated-text-field'
+import { ValidatedFormSubmitButton } from 'livelawyerlibrary/forms/validated-form-submit-button'
 
 interface FormModel {
   name: string
@@ -134,8 +133,9 @@ export default function OfficeEditor({ currentOffice, setCurrentOffice }: Office
           size={6}
         />
 
-        <ValidatedPhoneNumber
+        <ValidatedTextField
           name="phoneNumber"
+          type="tel"
           icon={<PhoneIcon />}
           label="Phone Number"
           defaultValue={prefilledFormModel?.phoneNumber}
@@ -167,7 +167,6 @@ export default function OfficeEditor({ currentOffice, setCurrentOffice }: Office
 
         <ValidatedFormSubmitButton
           disabled={JSON.stringify(prefilledFormModel) === JSON.stringify(formModel)}
-          color="success"
           size={6}
         >
           Save Changes

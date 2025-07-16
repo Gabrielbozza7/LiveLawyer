@@ -3,6 +3,7 @@ import { createClient, Session, SupabaseClient, SupportedStorage } from '@supaba
 import { Database } from './database-types'
 import React, {
   createContext,
+  ElementType,
   ReactNode,
   RefObject,
   useContext,
@@ -12,6 +13,15 @@ import React, {
 } from 'react'
 import LiveLawyerApi from './api/LiveLawyerApi'
 import { jwtDecode } from 'jwt-decode'
+import { ValidatedFormProps } from './forms/validated-form'
+import {
+  PlatformValidatedTextFieldProps,
+  ValidatedTextFieldProps,
+} from './forms/validated-text-field'
+import {
+  PlatformValidatedFormSubmitButtonProps,
+  ValidatedFormSubmitButtonProps,
+} from './forms/validated-form-submit-button'
 
 export interface PublicEnv {
   supabaseUrl: string
@@ -53,8 +63,18 @@ export class Alerter {
   }
 }
 
+export interface PlatformValidatedFormComponents {
+  Form: ElementType<ValidatedFormProps<object>>
+  TextField: ElementType<ValidatedTextFieldProps & PlatformValidatedTextFieldProps>
+  FormSubmitButton: ElementType<
+    ValidatedFormSubmitButtonProps & PlatformValidatedFormSubmitButtonProps
+  >
+}
+
 const PublicEnvContext = createContext<PublicEnv | null>(null)
 const AlerterContext = createContext<RefObject<Alerter> | null>(null)
+const PlatformValidatedFormComponentsContext =
+  createContext<PlatformValidatedFormComponents | null>(null)
 const SupabaseClientContext = createContext<RefObject<SupabaseClient<Database>> | null>(null)
 const SessionContext = createContext<RefObject<Session> | null>(null)
 const UserTypeContext = createContext<Database['public']['Enums']['UserType'] | null>(null)
@@ -72,6 +92,16 @@ export function useAlerter(): RefObject<Alerter> {
   const context = useContext(AlerterContext)
   if (context === null) {
     throw new Error("Cannot use 'useAlerter' hook outside of a ContextManager")
+  }
+  return context
+}
+
+export function usePlatformValidatedFormComponents(): PlatformValidatedFormComponents {
+  const context = useContext(PlatformValidatedFormComponentsContext)
+  if (context === null) {
+    throw new Error(
+      "Cannot use 'usePlatformValidatedFormComponents' hook outside of a ContextManager",
+    )
   }
   return context
 }
@@ -112,6 +142,7 @@ interface ContextManagerProps {
   env: PublicEnv
   sessionlessComponent: ReactNode
   alertDeliveryComponent: ReactNode
+  platformValidatedFormComponents: PlatformValidatedFormComponents
   storage?: SupportedStorage
   loadingComponent?: ReactNode
   uninitializedUserComponent?: ReactNode
@@ -122,6 +153,7 @@ export function ContextManager({
   env,
   sessionlessComponent,
   alertDeliveryComponent,
+  platformValidatedFormComponents,
   storage,
   loadingComponent,
   uninitializedUserComponent,
@@ -176,32 +208,35 @@ export function ContextManager({
   return (
     <PublicEnvContext.Provider value={env}>
       <AlerterContext.Provider value={alerterRef as RefObject<Alerter>}>
-        {sessionInitialized ? (
-          <>
-            {alertDeliveryComponent}
-            <SupabaseClientContext.Provider
-              value={supabaseClientRef as RefObject<SupabaseClient<Database>>}
-            >
-              {userType === null ? (
-                <>{sessionlessComponent}</>
-              ) : (
-                <SessionContext.Provider value={sessionRef as RefObject<Session>}>
-                  <UserTypeContext.Provider value={userType}>
-                    <ApiContext.Provider value={apiRef as RefObject<LiveLawyerApi>}>
-                      {uninitializedUserComponent !== undefined && userType === 'Uninitialized' ? (
-                        <>{uninitializedUserComponent}</>
-                      ) : (
-                        <>{children ?? <></>}</>
-                      )}
-                    </ApiContext.Provider>
-                  </UserTypeContext.Provider>
-                </SessionContext.Provider>
-              )}
-            </SupabaseClientContext.Provider>
-          </>
-        ) : (
-          <>{loadingComponent ?? <></>}</>
-        )}
+        <PlatformValidatedFormComponentsContext.Provider value={platformValidatedFormComponents}>
+          {sessionInitialized ? (
+            <>
+              {alertDeliveryComponent}
+              <SupabaseClientContext.Provider
+                value={supabaseClientRef as RefObject<SupabaseClient<Database>>}
+              >
+                {userType === null ? (
+                  <>{sessionlessComponent}</>
+                ) : (
+                  <SessionContext.Provider value={sessionRef as RefObject<Session>}>
+                    <UserTypeContext.Provider value={userType}>
+                      <ApiContext.Provider value={apiRef as RefObject<LiveLawyerApi>}>
+                        {uninitializedUserComponent !== undefined &&
+                        userType === 'Uninitialized' ? (
+                          <>{uninitializedUserComponent}</>
+                        ) : (
+                          <>{children ?? <></>}</>
+                        )}
+                      </ApiContext.Provider>
+                    </UserTypeContext.Provider>
+                  </SessionContext.Provider>
+                )}
+              </SupabaseClientContext.Provider>
+            </>
+          ) : (
+            <>{loadingComponent ?? <></>}</>
+          )}
+        </PlatformValidatedFormComponentsContext.Provider>
       </AlerterContext.Provider>
     </PublicEnvContext.Provider>
   )

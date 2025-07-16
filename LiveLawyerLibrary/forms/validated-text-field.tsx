@@ -1,11 +1,10 @@
-import Grid from '@mui/material/Grid'
-import TextField from '@mui/material/TextField'
 import { ReactNode, useContext, useEffect, useState } from 'react'
 import { FormDisablingContext, FormInvalidationsContext, FormModelContext } from './validated-form'
-import Typography from '@mui/material/Typography'
-import Stack from '@mui/material/Stack'
+import { usePlatformValidatedFormComponents } from '../context-manager'
+import React from 'react'
+import parsePhoneNumberFromString from 'libphonenumber-js'
 
-interface ValidatedTextFieldProps {
+export interface ValidatedTextFieldProps {
   name: string
   type: string
   icon?: ReactNode
@@ -15,6 +14,14 @@ interface ValidatedTextFieldProps {
   helperText?: string
   required?: boolean
   size?: number
+}
+
+export type PlatformValidatedTextFieldProps = ValidatedTextFieldProps & {
+  disabled: boolean
+  error: boolean
+  showHelperText: boolean
+  value: string
+  onChange: (newValue: string) => unknown
 }
 
 export function ValidatedTextField({
@@ -28,6 +35,7 @@ export function ValidatedTextField({
   required,
   size,
 }: ValidatedTextFieldProps) {
+  const { TextField } = usePlatformValidatedFormComponents()
   const disabled = useContext(FormDisablingContext)
   const { setInvalidations } = useContext(FormInvalidationsContext)
   const { model, setModel } = useContext(FormModelContext)
@@ -35,21 +43,23 @@ export function ValidatedTextField({
   const [error, setError] = useState<boolean>(false)
 
   useEffect(() => {
-    if ((model as { [name]: string })[name] !== value) {
-      setModel({ ...model, [name]: value })
+    const formattedValue =
+      type !== 'tel' ? value : (parsePhoneNumberFromString(value, 'US')?.number ?? '')
+    if ((model as { [name]: string })[name] !== formattedValue) {
+      setModel({ ...model, [name]: formattedValue })
     }
   }, [model, name, setModel, value])
 
   useEffect(() => {
     if (defaultValue !== undefined) {
-      setValue(defaultValue)
+      onChange(defaultValue)
     }
   }, [defaultValue])
 
   useEffect(() => {
     if (validator !== undefined) {
       const valid = validator(value)
-      if (valid) {
+      if (valid || (value === '' && !required)) {
         setInvalidations(prev => {
           if (prev.has(name)) {
             const updated = new Set([...prev])
@@ -87,43 +97,46 @@ export function ValidatedTextField({
   }, [name, required, setInvalidations, validator, value])
 
   // This fixes an animation bug.
-  const [displayAsDisabled, setDisplayAsDisabled] = useState<boolean>(false)
+  const [initialDisplayAsDisabled, setInitialDisplayAsDisabled] = useState<boolean>(false)
   useEffect(() => {
     if (disabled) {
-      setDisplayAsDisabled(true)
+      setInitialDisplayAsDisabled(true)
     } else {
       new Promise(resolve => setTimeout(resolve, 10)).then(() => {
-        setDisplayAsDisabled(false)
+        setInitialDisplayAsDisabled(false)
       })
     }
   }, [disabled])
 
+  const onChange = (newValue: string) => {
+    if (type !== 'tel') {
+      setValue(newValue)
+    } else {
+      const parsed = parsePhoneNumberFromString(newValue, 'US')
+      if (parsed !== undefined) {
+        setValue(parsed.formatNational())
+      } else {
+        setValue(newValue.replace(/[^0-9]/g, ''))
+      }
+    }
+  }
+
   return (
-    <Grid size={size ?? 12}>
-      <TextField
-        fullWidth
-        disabled={disabled}
-        type={type}
-        name={name}
-        label={
-          <Stack direction="row" display="flex">
-            {icon}
-            <Typography variant="body1" sx={{ marginLeft: 0.5 }}>
-              {`${label}${required ? ' *' : ''}`}
-            </Typography>
-          </Stack>
-        }
-        slotProps={{ inputLabel: { required: false } }}
-        variant="standard"
-        value={value}
-        onChange={event => {
-          setValue(event.target.value)
-          setModel(model => ({ ...model, [name]: event.target.value }))
-        }}
-        required={required ?? false}
-        error={value !== '' && error}
-        helperText={(value === '' || error) && !displayAsDisabled && helperText}
-      />
-    </Grid>
+    <TextField
+      name={name}
+      type={type}
+      icon={icon}
+      label={label}
+      defaultValue={defaultValue}
+      validator={validator}
+      helperText={helperText}
+      required={required}
+      size={size}
+      disabled={disabled}
+      error={value !== '' && error}
+      showHelperText={(value === '' || error) && !initialDisplayAsDisabled}
+      value={value}
+      onChange={onChange}
+    ></TextField>
   )
 }

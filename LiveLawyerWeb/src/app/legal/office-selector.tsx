@@ -6,11 +6,11 @@ import ValidatedAutocompleteDropdown, {
   AutocompleteOptionNotNew,
 } from '@/components/forms/validated-autocomplete-dropdown'
 import Typography from '@mui/material/Typography'
-import { ValidatedForm } from '@/components/forms/validated-form'
 import BusinessIcon from '@mui/icons-material/Business'
 import { notEmpty } from 'livelawyerlibrary/input-validation'
-import { ValidatedFormSubmitButton } from '@/components/forms/validated-form-submit-button'
 import Container from '@mui/material/Container'
+import { ValidatedForm } from 'livelawyerlibrary/forms/validated-form'
+import { ValidatedFormSubmitButton } from 'livelawyerlibrary/forms/validated-form-submit-button'
 
 export interface OfficeOptionExtra {
   id: string
@@ -122,7 +122,7 @@ export default function OfficeSelector({ setCurrentOffice }: OfficeSubFormProps)
               required
             />
 
-            <ValidatedFormSubmitButton color="success">
+            <ValidatedFormSubmitButton>
               {(formModel.selection?.isNew ?? true) ? 'Create' : 'Join'}
             </ValidatedFormSubmitButton>
           </ValidatedForm>

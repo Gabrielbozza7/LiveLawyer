@@ -1,13 +1,10 @@
 'use client'
 import { useAlerter, useSession, useSupabaseClient } from 'livelawyerlibrary/context-manager'
 import { useState } from 'react'
-import { ValidatedForm } from '../forms/validated-form'
-import { ValidatedTextField } from '../forms/validated-text-field'
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline'
 import PhoneIcon from '@mui/icons-material/Phone'
 import BadgeIcon from '@mui/icons-material/Badge'
 import { notEmpty, validatePhoneNumber } from 'livelawyerlibrary/input-validation'
-import { ValidatedFormSubmitButton } from '../forms/validated-form-submit-button'
 import Grid from '@mui/material/Grid'
 import Button from '@mui/material/Button'
 import ValidatedAutocompleteDropdown, {
@@ -18,7 +15,9 @@ import { PageContent } from '../ui/page-content'
 import Container from '@mui/material/Container'
 import Image from 'next/image'
 import logo from '@/assets/images/live-lawyer-logo.jpeg'
-import { ValidatedPhoneNumber } from '../forms/validated-phone-number'
+import { ValidatedForm } from 'livelawyerlibrary/forms/validated-form'
+import { ValidatedTextField } from 'livelawyerlibrary/forms/validated-text-field'
+import { ValidatedFormSubmitButton } from 'livelawyerlibrary/forms/validated-form-submit-button'
 
 interface UserTypeOptionExtra {
   userType: UserType
@@ -132,8 +131,9 @@ export default function CompleteRegistration() {
             required
           />
 
-          <ValidatedPhoneNumber
+          <ValidatedTextField
             name="phoneNumber"
+            type="tel"
             icon={<PhoneIcon />}
             label="Phone Number"
             validator={validatePhoneNumber}
@@ -153,7 +153,7 @@ export default function CompleteRegistration() {
             required
           />
 
-          <ValidatedFormSubmitButton color="success">Confirm</ValidatedFormSubmitButton>
+          <ValidatedFormSubmitButton>Confirm</ValidatedFormSubmitButton>
           <Grid size={12}>
             <Button
               fullWidth

@@ -6,13 +6,13 @@ import EmailIcon from '@mui/icons-material/Email'
 import KeyIcon from '@mui/icons-material/Key'
 import Tabs from '@mui/material/Tabs'
 import Tab from '@mui/material/Tab'
-import { ValidatedForm } from '../forms/validated-form'
-import { ValidatedTextField } from '../forms/validated-text-field'
-import { ValidatedFormSubmitButton } from '../forms/validated-form-submit-button'
 import { PageContent } from '../ui/page-content'
 import Image from 'next/image'
 import logo from '@/assets/images/live-lawyer-logo.jpeg'
 import Container from '@mui/material/Container'
+import { ValidatedForm } from 'livelawyerlibrary/forms/validated-form'
+import { ValidatedTextField } from 'livelawyerlibrary/forms/validated-text-field'
+import { ValidatedFormSubmitButton } from 'livelawyerlibrary/forms/validated-form-submit-button'
 
 const POSSIBLE_TABS = ['Login', 'Register'] as const
 type ActiveSessionlessTab = (typeof POSSIBLE_TABS)[number]
@@ -139,7 +139,7 @@ export default function LoginRegister() {
             />
           )}
 
-          <ValidatedFormSubmitButton color="success">{activeTab}</ValidatedFormSubmitButton>
+          <ValidatedFormSubmitButton>{activeTab}</ValidatedFormSubmitButton>
         </ValidatedForm>
       </PageContent>
     </>
