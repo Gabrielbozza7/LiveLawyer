@@ -10,10 +10,10 @@ const POSSIBLE_TABS = {
   StatesSelector: ['States', 'Licensed States'],
   OfficeMenu: ['Office', 'Office Configuration'],
 } as const
-type ActiveAccountTab = keyof typeof POSSIBLE_TABS
+type ActiveTab = keyof typeof POSSIBLE_TABS
 
 export default function Legal() {
-  const [activeTab, setActiveTab] = useState<ActiveAccountTab>('StatesSelector')
+  const [activeTab, setActiveTab] = useState<ActiveTab>('StatesSelector')
   const currentTabIndex = Object.keys(POSSIBLE_TABS).findIndex(x => x === activeTab)
 
   return (
@@ -23,7 +23,7 @@ export default function Legal() {
         <Tabs
           value={currentTabIndex}
           onChange={(event, index) =>
-            setActiveTab(Object.entries(POSSIBLE_TABS)[index][0] as ActiveAccountTab)
+            setActiveTab(Object.entries(POSSIBLE_TABS)[index][0] as ActiveTab)
           }
         >
           {Array.from(Object.entries(POSSIBLE_TABS)).map(tab => (

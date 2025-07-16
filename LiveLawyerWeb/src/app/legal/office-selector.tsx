@@ -8,7 +8,6 @@ import ValidatedAutocompleteDropdown, {
 import Typography from '@mui/material/Typography'
 import BusinessIcon from '@mui/icons-material/Business'
 import { notEmpty } from 'livelawyerlibrary/input-validation'
-import Container from '@mui/material/Container'
 import { ValidatedForm } from 'livelawyerlibrary/forms/validated-form'
 import { ValidatedFormSubmitButton } from 'livelawyerlibrary/forms/validated-form-submit-button'
 
@@ -103,30 +102,28 @@ export default function OfficeSelector({ setCurrentOffice }: OfficeSubFormProps)
       {placeholder !== null ? (
         <Typography variant="body1">{placeholder}</Typography>
       ) : (
-        <Container style={{ alignItems: 'stretch', flexGrow: 1, padding: 0, margin: 0 }}>
-          <ValidatedForm
-            disabled={loading}
-            model={formModel}
-            setModel={setFormModel}
-            onSubmit={handleSubmit}
-          >
-            <ValidatedAutocompleteDropdown
-              name="selection"
-              icon={<BusinessIcon />}
-              label="Existing or New Office"
-              options={existingOffices}
-              canAddNew={true}
-              addNewPrefix="Add new office"
-              validator={notEmpty}
-              helperText="Select an option."
-              required
-            />
+        <ValidatedForm
+          disabled={loading}
+          model={formModel}
+          setModel={setFormModel}
+          onSubmit={handleSubmit}
+        >
+          <ValidatedAutocompleteDropdown
+            name="selection"
+            icon={<BusinessIcon />}
+            label="Existing or New Office"
+            options={existingOffices}
+            canAddNew={true}
+            addNewPrefix="Add new office"
+            validator={notEmpty}
+            helperText="Select an option."
+            required
+          />
 
-            <ValidatedFormSubmitButton>
-              {(formModel.selection?.isNew ?? true) ? 'Create' : 'Join'}
-            </ValidatedFormSubmitButton>
-          </ValidatedForm>
-        </Container>
+          <ValidatedFormSubmitButton>
+            {(formModel.selection?.isNew ?? true) ? 'Create' : 'Join'}
+          </ValidatedFormSubmitButton>
+        </ValidatedForm>
       )}
     </>
   )

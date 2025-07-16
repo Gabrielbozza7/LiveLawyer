@@ -19,9 +19,7 @@ export function History() {
       ;(async () => {
         try {
           const response = await apiRef.current.fetchCallHistory()
-          if (response.history) {
-            setHistory(response.history)
-          }
+          setHistory(response.history)
         } catch (error) {
           console.log((error as Error).message)
           setHistory(null)
