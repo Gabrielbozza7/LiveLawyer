@@ -42,6 +42,7 @@ const appTheme = {
     },
     surface: 'rgb(247, 243, 249)',
     surfaceDisabled: 'rgb(193, 193, 193)', // Backgrounds for disabled elements (like buttons)
+    secondaryContainer: 'rgba(241, 228, 248, 1)', // Active segmented button
     error: 'rgb(235, 15, 15)', // Error backgrounds
   },
 }

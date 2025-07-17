@@ -1,5 +1,5 @@
 import { Appbar, Surface } from 'react-native-paper'
-import { StyleSheet, View } from 'react-native'
+import { KeyboardAvoidingView, StyleSheet, View } from 'react-native'
 import { ReactNode } from 'react'
 import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -9,6 +9,7 @@ interface StandalonePageProps {
   children?: ReactNode
   verticallyCenter?: boolean
   horizontallyCenter?: boolean
+  disableBackButton?: boolean
 }
 
 export function StandalonePage({
@@ -16,25 +17,28 @@ export function StandalonePage({
   children,
   verticallyCenter,
   horizontallyCenter,
+  disableBackButton,
 }: StandalonePageProps) {
   const router = useRouter()
 
   return (
     <Surface elevation={0} style={styles.outerViews}>
       <Appbar.Header>
-        <Appbar.BackAction onPress={router.back} />
+        {!(disableBackButton ?? false) && <Appbar.BackAction onPress={router.back} />}
         <Appbar.Content title={title} />
       </Appbar.Header>
-      <SafeAreaView
-        style={[
-          styles.outerViews,
-          verticallyCenter && styles.verticallyCentered,
-          horizontallyCenter && styles.horizontallyCentered,
-        ]}
-        edges={['left', 'right', 'bottom']}
-      >
-        <View style={styles.innerView}>{children}</View>
-      </SafeAreaView>
+      <KeyboardAvoidingView behavior="padding" style={styles.outerViews}>
+        <SafeAreaView
+          style={[
+            styles.outerViews,
+            verticallyCenter && styles.verticallyCentered,
+            horizontallyCenter && styles.horizontallyCentered,
+          ]}
+          edges={['left', 'right', 'bottom']}
+        >
+          <View style={styles.innerView}>{children}</View>
+        </SafeAreaView>
+      </KeyboardAvoidingView>
     </Surface>
   )
 }

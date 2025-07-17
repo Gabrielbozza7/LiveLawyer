@@ -15,7 +15,7 @@ import { ValidatedTextField } from 'livelawyerlibrary/forms/validated-text-field
 import { ValidatedFormSubmitButton } from 'livelawyerlibrary/forms/validated-form-submit-button'
 
 const POSSIBLE_TABS = ['Login', 'Register'] as const
-type ActiveSessionlessTab = (typeof POSSIBLE_TABS)[number]
+type ActiveTab = (typeof POSSIBLE_TABS)[number]
 
 interface FormModel {
   email: string
@@ -26,7 +26,7 @@ interface FormModel {
 export default function LoginRegister() {
   const supabaseRef = useSupabaseClient()
   const alerterRef = useAlerter()
-  const [activeTab, setActiveTab] = useState<ActiveSessionlessTab>('Login')
+  const [activeTab, setActiveTab] = useState<ActiveTab>('Login')
   const [loading, setLoading] = useState<boolean>(false)
 
   const [formModel, setFormModel] = useState<FormModel>({

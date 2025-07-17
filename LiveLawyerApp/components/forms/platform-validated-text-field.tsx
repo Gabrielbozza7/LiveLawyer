@@ -28,9 +28,10 @@ export function PlatformValidatedTextField({
         underlineColor="black"
         activeUnderlineColor="black"
         keyboardType={type !== 'tel' ? 'default' : 'phone-pad'}
+        secureTextEntry={type === 'password'}
       ></TextInput>
       <HelperText type={error ? 'error' : 'info'} visible={showHelperText}>
-        {helperText}
+        {showHelperText && helperText}
       </HelperText>
     </View>
   )
