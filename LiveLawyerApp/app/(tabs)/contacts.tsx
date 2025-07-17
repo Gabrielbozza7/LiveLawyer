@@ -92,11 +92,15 @@ export default function Contacts() {
       <FAB
         icon="refresh"
         onPress={() => router.replace('/(tabs)/contacts?refresh=true')}
+        mode="elevated"
+        variant="surface"
         style={newStyles.bottomLeftFab}
       />
       <FAB
         icon="plus"
         onPress={() => router.push('/screens/edit-contact')}
+        mode="elevated"
+        variant="surface"
         style={newStyles.bottomRightFab}
       />
     </TabPage>

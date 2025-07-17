@@ -59,9 +59,10 @@ export default function Index() {
 
 const styles = StyleSheet.create({
   callButtonContainer: {
+    // iOS shadow:
     shadowColor: Colors.gray,
     shadowOffset: { height: 1, width: 0 },
-    shadowOpacity: 1,
+    shadowOpacity: 0.75,
     shadowRadius: 4,
   },
   callButton: {
@@ -69,6 +70,8 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     borderRadius: 50,
     overflow: 'hidden',
+    // Android shadow:
+    elevation: 5,
   },
   callButtonLogo: {
     height: '100%',

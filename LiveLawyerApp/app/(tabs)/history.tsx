@@ -64,7 +64,13 @@ export default function History() {
           keyExtractor={entry => entry.id}
         />
       )}
-      <FAB icon="refresh" onPress={() => setHistory(undefined)} style={newStyles.bottomLeftFab} />
+      <FAB
+        icon="refresh"
+        onPress={() => setHistory(undefined)}
+        mode="elevated"
+        variant="surface"
+        style={newStyles.bottomLeftFab}
+      />
     </TabPage>
   )
 }

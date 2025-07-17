@@ -59,6 +59,8 @@ function LocalLawFirmsFab() {
       label="Local Law Firms"
       uppercase={true}
       onPress={showCoordinatesAlert}
+      mode="elevated"
+      variant="surface"
       style={[newStyles.fab, newStyles.spacedCard]}
     />
   )
@@ -88,6 +90,8 @@ export default function Resources() {
         label="Traffic Laws for All States"
         uppercase={true}
         onPress={handleOpenTrafficLaws}
+        mode="elevated"
+        variant="surface"
         style={[newStyles.fab, newStyles.spacedCard]}
       />
       <FabWithConfirmation
