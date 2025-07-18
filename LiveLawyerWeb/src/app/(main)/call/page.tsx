@@ -1,10 +1,10 @@
-import { Call } from './call'
+import { Queue } from './queue'
 
 export default function Page() {
   return (
     <>
       <title>Call</title>
-      <Call />
+      <Queue />
     </>
   )
 }
