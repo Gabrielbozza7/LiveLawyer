@@ -1,14 +1,15 @@
-import { connect, Room, Participant } from 'twilio-video'
+import { Dispatch, SetStateAction } from 'react'
+import { connect, Room, Participant, LocalParticipant } from 'twilio-video'
 
 export default class TwilioVideoRoom {
   private room: Room | undefined
   private allParticipants: Participant[]
-  private callback: ((updatedParticipants: Participant[]) => void) | undefined
+  private setParticipants: Dispatch<SetStateAction<Participant[]>> | undefined
 
   constructor() {
     this.room = undefined
     this.allParticipants = []
-    this.callback = undefined
+    this.setParticipants = undefined
   }
 
   public async joinRoom(token: string, roomName: string): Promise<boolean> {
@@ -38,11 +39,19 @@ export default class TwilioVideoRoom {
     }
   }
 
-  public setupListeners(callback: (updatedParticipants: Participant[]) => void) {
+  /**
+   * Sets up listeners to modify the participant array. The caller should attach the returned callback
+   * for platform-specific disconnection triggers.
+   * @param setParticipants The participant array updater
+   * @returns The local paticipant and a callback to be used for disconnecting from the call based on other events
+   */
+  public setupListeners(
+    setParticipants: Dispatch<SetStateAction<Participant[]>>,
+  ): [() => Promise<void>, LocalParticipant] {
     if (this.room === undefined) {
       throw new Error("Cannot setup listeners if a room hasn't been joined!")
     }
-    this.callback = callback
+    this.setParticipants = setParticipants
 
     this.allParticipants = [this.room.localParticipant]
     this.room.participants.forEach(participant => {
@@ -50,21 +59,20 @@ export default class TwilioVideoRoom {
     })
     this.room.on('participantConnected', participant => {
       this.allParticipants.push(participant)
-      callback([...this.allParticipants])
+      setParticipants([...this.allParticipants])
     })
-    window.addEventListener('pagehide', () => this.disconnect())
-    window.addEventListener('beforeunload', () => this.disconnect())
-    callback([...this.allParticipants])
+    setParticipants([...this.allParticipants])
+    return [() => this.disconnect(), this.room.localParticipant]
   }
 
   public receiveDisconnection(participant: Participant) {
-    if (this.callback === undefined) {
+    if (this.setParticipants === undefined) {
       throw new Error('Participant-change callback undefined!')
     }
     this.allParticipants.splice(
       this.allParticipants.findIndex(value => value == participant),
       1,
     )
-    this.callback([...this.allParticipants])
+    this.setParticipants([...this.allParticipants])
   }
 }

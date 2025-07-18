@@ -50,9 +50,9 @@ export function Call() {
     try {
       await videoRoomRef.current.joinRoom(token, roomName)
 
-      videoRoomRef.current.setupListeners(updatedParticipants => {
-        setParticipants(updatedParticipants)
-      })
+      const [disconnectTrigger] = videoRoomRef.current.setupListeners(setParticipants)
+      window.addEventListener('pagehide', disconnectTrigger)
+      window.addEventListener('beforeunload', disconnectTrigger)
 
       callback(true)
     } catch (err) {
