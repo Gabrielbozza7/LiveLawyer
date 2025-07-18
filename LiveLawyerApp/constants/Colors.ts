@@ -10,4 +10,5 @@ export const Colors = {
   white: '#FFFFFF',
   red: '#ff0000',
   lightGreen: '#24d12f',
+  transparent: 'transparent',
 }

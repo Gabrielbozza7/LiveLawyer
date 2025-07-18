@@ -218,4 +218,6 @@ export const newStyles = StyleSheet.create({
     bottom: 0,
     zIndex: 100,
   },
+  tabs: { margin: 24 },
+  textInputIcon: { backgroundColor: Colors.transparent },
 })

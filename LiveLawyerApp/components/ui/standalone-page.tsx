@@ -1,4 +1,4 @@
-import { Appbar, Surface } from 'react-native-paper'
+import { Appbar, Portal, Surface } from 'react-native-paper'
 import { KeyboardAvoidingView, StyleSheet, View } from 'react-native'
 import { ReactNode } from 'react'
 import { useRouter } from 'expo-router'
@@ -36,7 +36,9 @@ export function StandalonePage({
           ]}
           edges={['left', 'right', 'bottom']}
         >
-          <View style={styles.innerView}>{children}</View>
+          <Portal.Host>
+            <View style={styles.innerView}>{children}</View>
+          </Portal.Host>
         </SafeAreaView>
       </KeyboardAvoidingView>
     </Surface>

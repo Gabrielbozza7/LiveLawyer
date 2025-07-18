@@ -70,13 +70,16 @@ export default function RootLayout() {
             uninitializedUserComponent={<CompleteRegistration />}
           >
             <AuthRefreshManager>
-              <Stack>
-                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                <Stack.Screen name="screens/edit-contact" options={{ headerShown: false }} />
-                <Stack.Screen name="screens/law-office-info" options={{ headerShown: false }} />
-                <Stack.Screen name="call" options={{ headerShown: false }} />
-                <Stack.Screen name="index" options={{ headerShown: false }} />
-              </Stack>
+              <Portal.Host>
+                <Stack>
+                  <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                  <Stack.Screen name="screens/account" options={{ headerShown: false }} />
+                  <Stack.Screen name="screens/edit-contact" options={{ headerShown: false }} />
+                  <Stack.Screen name="screens/law-office-info" options={{ headerShown: false }} />
+                  <Stack.Screen name="call" options={{ headerShown: false }} />
+                  <Stack.Screen name="index" options={{ headerShown: false }} />
+                </Stack>
+              </Portal.Host>
             </AuthRefreshManager>
           </ContextManager>
         </Portal.Host>

@@ -12,7 +12,7 @@ export default function TabsLayout() {
         header: ({ options }) => (
           <Appbar.Header>
             <Appbar.Content title={options.title} />
-            <Appbar.Action icon="account-cog" onPress={() => router.push('/profile')} />
+            <Appbar.Action icon="account-cog" onPress={() => router.push('/screens/account')} />
           </Appbar.Header>
         ),
       }}

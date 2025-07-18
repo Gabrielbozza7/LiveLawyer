@@ -8,6 +8,7 @@ import { validateEmail, validatePassword } from 'livelawyerlibrary/input-validat
 import { ValidatedFormSubmitButton } from 'livelawyerlibrary/forms/validated-form-submit-button'
 import { Image, ScrollView, StyleSheet, View } from 'react-native'
 import { placeholderLogo } from '@/app/(tabs)/lawyers'
+import { newStyles } from '@/constants/Styles'
 
 type ActiveTab = 'Login' | 'Register'
 
@@ -84,7 +85,7 @@ export default function LoginRegister() {
             },
           ]}
           density="small"
-          style={styles.tabs}
+          style={newStyles.tabs}
         />
         <ValidatedForm
           disabled={loading}
@@ -136,5 +137,4 @@ export default function LoginRegister() {
 const styles = StyleSheet.create({
   logo: { height: '100%', aspectRatio: 1 },
   logoContainer: { width: '70%', aspectRatio: 1, alignSelf: 'center' },
-  tabs: { margin: 24 },
 })
