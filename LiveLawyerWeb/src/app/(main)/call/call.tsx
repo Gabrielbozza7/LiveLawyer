@@ -1,8 +1,8 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { Participant } from 'twilio-video'
-import TwilioParticipant from '../../components/TwilioParticipant'
-import TwilioVideoRoom from '../../classes/TwilioVideoRoom'
+import TwilioParticipant from '../../../components/TwilioParticipant'
+import TwilioVideoRoom from '../../../classes/TwilioVideoRoom'
 import { io, Socket } from 'socket.io-client'
 import {
   ClientToServerEvents,
