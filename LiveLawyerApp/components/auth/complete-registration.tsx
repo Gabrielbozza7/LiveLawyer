@@ -1,7 +1,7 @@
 'use client'
 import { useAlerter, useSession, useSupabaseClient } from 'livelawyerlibrary/context-manager'
 import { useState } from 'react'
-import { View, StyleSheet, Text, ScrollView, Image } from 'react-native'
+import { View, Text, ScrollView, Image } from 'react-native'
 import { StandalonePage } from '../ui/standalone-page'
 import { placeholderLogo } from '@/app/(tabs)/lawyers'
 import { ValidatedForm } from 'livelawyerlibrary/forms/validated-form'
@@ -72,8 +72,8 @@ export default function CompleteRegistration() {
   return (
     <StandalonePage title="Complete New Account Registration" disableBackButton={true}>
       <ScrollView>
-        <View style={styles.logoContainer}>
-          <Image style={styles.logo} source={placeholderLogo} resizeMode="contain" />
+        <View style={newStyles.logoContainer}>
+          <Image style={newStyles.logo} source={placeholderLogo} resizeMode="contain" />
         </View>
         <ValidatedForm
           disabled={loading}
@@ -126,8 +126,3 @@ export default function CompleteRegistration() {
     </StandalonePage>
   )
 }
-
-const styles = StyleSheet.create({
-  logo: { height: '100%', aspectRatio: 1 },
-  logoContainer: { width: '70%', aspectRatio: 1, alignSelf: 'center' },
-})

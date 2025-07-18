@@ -1,142 +1,9 @@
-import { Dimensions, StatusBar, StyleSheet } from 'react-native'
+import { Dimensions, StyleSheet } from 'react-native'
 import { Colors } from './Colors'
 
 const { width: WIDTH, height: HEIGHT } = Dimensions.get('window')
-const { width: screenWidth } = Dimensions.get('window')
-const imageHeight = (screenWidth * 14) / 16
 
 export const Styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    marginTop: StatusBar.currentHeight || 0,
-    backgroundColor: Colors.containerBackground,
-  },
-  item: {
-    backgroundColor: Colors.itemBackground,
-    padding: 20,
-    marginVertical: 8,
-    marginHorizontal: 16,
-  },
-  itemInfoBox: {
-    backgroundColor: Colors.itemLawyerBackground,
-    padding: 30,
-    marginVertical: 10,
-    marginHorizontal: 15,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    minWidth: '90%',
-  },
-  // eslint-disable-next-line react-native/no-color-literals
-  mainLogoButton: {
-    width: screenWidth,
-    height: imageHeight,
-    borderRadius: 50,
-    shadowColor: 'black',
-    shadowOffset: { height: -5, width: -1 },
-    shadowOpacity: 1,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  name: {
-    fontSize: 32,
-    color: Colors.name,
-  },
-  phone: {
-    fontSize: 16,
-    color: Colors.phone,
-    textDecorationLine: 'underline',
-  },
-  pageTitle: {
-    fontSize: 40,
-    textAlign: 'center',
-    color: Colors.phone,
-  },
-  title: {
-    fontSize: 25,
-  },
-  centeredText: { fontSize: 20, textAlign: 'center' },
-  LawyerInfoContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: Colors.containerBackground,
-  },
-  lawyerlogo: {
-    width: 150,
-    height: 150,
-    marginBottom: 20,
-  },
-  lawyerInfoBox: {
-    backgroundColor: Colors.containerBackground,
-    padding: 30,
-    marginVertical: 10,
-    marginHorizontal: 15,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    minWidth: '90%',
-  },
-  LawofficeName: {
-    color: Colors.blue,
-    fontSize: 30,
-    marginBottom: 20,
-  },
-  nameText: {
-    color: Colors.blue,
-    fontSize: 24,
-    marginBottom: 20,
-  },
-  phoneText: {
-    fontSize: 18,
-    color: Colors.blue,
-    textDecorationLine: 'underline',
-  },
-  // PROFILE PAGE STYLES
-  profPageContainer: {
-    flex: 1,
-    padding: 20,
-    backgroundColor: Colors.containerBackground,
-  },
-  profPageTitle: {
-    fontSize: 40,
-    fontWeight: 'bold',
-    color: Colors.black,
-    marginBottom: 24,
-    textAlign: 'center',
-  },
-  profItemText: {
-    fontSize: 30,
-    marginBottom: 12,
-    paddingHorizontal: 10,
-    color: Colors.black,
-    textDecorationLine: 'underline',
-  },
-  profDisplay: {
-    fontSize: 40,
-    marginBottom: 12,
-    paddingHorizontal: 10,
-    color: Colors.black,
-  },
-  profInput: {
-    height: 48,
-    borderColor: Colors.gray,
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    backgroundColor: Colors.white,
-    marginBottom: 16,
-    fontSize: 16,
-  },
-  profButtonGroup: {
-    marginTop: 20,
-    gap: 12,
-  },
-  profEditButton: {
-    marginTop: 20,
-    width: '50%',
-    alignSelf: 'center',
-  },
   videoContainer: {
     flex: 1,
     backgroundColor: Colors.black,
@@ -182,18 +49,6 @@ export const Styles = StyleSheet.create({
     color: Colors.white,
     fontWeight: 'bold',
   },
-  localLawyerButton: {
-    marginHorizontal: 30,
-    marginTop: 70,
-    backgroundColor: Colors.lightGreen,
-    padding: 25,
-    marginBottom: 0,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  localText: {
-    fontSize: 30,
-  },
 })
 
 export const newStyles = StyleSheet.create({
@@ -218,6 +73,8 @@ export const newStyles = StyleSheet.create({
     bottom: 0,
     zIndex: 100,
   },
-  tabs: { margin: 24 },
+  tabs: { marginVertical: 12, marginHorizontal: 24 },
   textInputIcon: { backgroundColor: Colors.transparent },
+  logo: { height: '100%', aspectRatio: 1 },
+  logoContainer: { width: '70%', aspectRatio: 1, alignSelf: 'center', marginTop: 12 },
 })

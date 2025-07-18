@@ -6,7 +6,7 @@ import { ValidatedTextField } from 'livelawyerlibrary/forms/validated-text-field
 import { SegmentedButtons, Text, TextInput } from 'react-native-paper'
 import { validateEmail, validatePassword } from 'livelawyerlibrary/input-validation'
 import { ValidatedFormSubmitButton } from 'livelawyerlibrary/forms/validated-form-submit-button'
-import { Image, ScrollView, StyleSheet, View } from 'react-native'
+import { Image, ScrollView, View } from 'react-native'
 import { placeholderLogo } from '@/app/(tabs)/lawyers'
 import { newStyles } from '@/constants/Styles'
 
@@ -68,8 +68,8 @@ export default function LoginRegister() {
   return (
     <StandalonePage title={activeTab} disableBackButton={true}>
       <ScrollView>
-        <View style={styles.logoContainer}>
-          <Image style={styles.logo} source={placeholderLogo} resizeMode="contain" />
+        <View style={newStyles.logoContainer}>
+          <Image style={newStyles.logo} source={placeholderLogo} resizeMode="contain" />
         </View>
         <SegmentedButtons
           value={activeTab}
@@ -133,8 +133,3 @@ export default function LoginRegister() {
     </StandalonePage>
   )
 }
-
-const styles = StyleSheet.create({
-  logo: { height: '100%', aspectRatio: 1 },
-  logoContainer: { width: '70%', aspectRatio: 1, alignSelf: 'center' },
-})

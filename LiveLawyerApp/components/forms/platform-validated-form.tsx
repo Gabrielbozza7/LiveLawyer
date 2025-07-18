@@ -10,5 +10,5 @@ export function PlatformValidatedForm<T extends object>({
 }
 
 const styles = StyleSheet.create({
-  grid: { display: 'flex', flexDirection: 'column', margin: 24 },
+  grid: { display: 'flex', flexDirection: 'column', marginHorizontal: 24, marginVertical: 12 },
 })

@@ -10,9 +10,13 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         header: ({ options }) => (
-          <Appbar.Header>
+          <Appbar.Header elevated>
             <Appbar.Content title={options.title} />
-            <Appbar.Action icon="account-cog" onPress={() => router.push('/screens/account')} />
+            <Appbar.Action
+              icon="account-cog"
+              onPress={() => router.push('/screens/account')}
+              style={newStyles.textInputIcon}
+            />
           </Appbar.Header>
         ),
       }}

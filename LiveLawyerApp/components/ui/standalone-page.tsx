@@ -3,6 +3,7 @@ import { KeyboardAvoidingView, StyleSheet, View } from 'react-native'
 import { ReactNode } from 'react'
 import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { newStyles } from '@/constants/Styles'
 
 interface StandalonePageProps {
   title: string
@@ -23,8 +24,10 @@ export function StandalonePage({
 
   return (
     <Surface elevation={0} style={styles.outerViews}>
-      <Appbar.Header>
-        {!(disableBackButton ?? false) && <Appbar.BackAction onPress={router.back} />}
+      <Appbar.Header elevated>
+        {!(disableBackButton ?? false) && (
+          <Appbar.BackAction onPress={router.back} style={newStyles.textInputIcon} />
+        )}
         <Appbar.Content title={title} />
       </Appbar.Header>
       <KeyboardAvoidingView behavior="padding" style={styles.outerViews}>
