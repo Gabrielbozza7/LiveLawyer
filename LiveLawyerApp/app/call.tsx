@@ -1,9 +1,8 @@
-import VideoCall from '@/components/VideoCall'
 import { Styles } from '@/constants/Styles'
 import { useRouter } from 'expo-router'
 import { useEffect, useRef, useState } from 'react'
 import { Button, View, Text } from 'react-native'
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { getCoordinates } from '@/components/locationStore'
 import { io, Socket } from 'socket.io-client'
 import {
@@ -12,6 +11,13 @@ import {
 } from 'livelawyerlibrary/socket-event-definitions'
 import { BACKEND_URL } from '@/constants/BackendVariables'
 import { useAlerter, useSession } from 'livelawyerlibrary/context-manager'
+import MobileCall from '@/components/mobile-call'
+
+export interface RoomJoinData {
+  token: string
+  roomName: string
+  callback: (acknowledged: boolean) => void
+}
 
 export default function Call() {
   const alerterRef = useAlerter()
@@ -22,23 +28,14 @@ export default function Call() {
     io(BACKEND_URL, { autoConnect: false }),
   )
   const socketTokenRef = useRef<string>('')
-  const [inCall, setInCall] = useState<boolean | null>(null)
-  const [token, setToken] = useState<string>('')
-  const [roomName, setRoomName] = useState<string>('')
-  const [disconnectSignal, setDisconnectSignal] = useState<boolean>(false)
+  const [inCall, setInCall] = useState<RoomJoinData | false | null>(null)
 
   const onSendToRoom = async (
     { token, roomName }: { token: string; roomName: string },
     callback: (acknowledged: boolean) => void,
   ) => {
-    setToken(token)
-    setRoomName(roomName)
-    setInCall(true)
+    setInCall({ token, roomName, callback })
     callback(true)
-  }
-
-  const onEndCall = () => {
-    setDisconnectSignal(true)
   }
 
   useEffect(() => {
@@ -53,7 +50,6 @@ export default function Call() {
           router.back()
         } else {
           socketRef.current.on('sendToRoom', onSendToRoom)
-          socketRef.current.on('endCall', onEndCall)
           socketRef.current.on('disconnect', () => {
             // This can be eventually changed to account for reconnection attempts.
             socketRef.current?.removeAllListeners()
@@ -101,43 +97,29 @@ export default function Call() {
     }
   }, [])
 
-  const onEndCallClick = async () => {
-    if (!socketRef.current.connected) {
-      alerterRef.current.error('Your connection is broken!')
-      return
-    }
-    const hangUpResult = await socketRef.current.emitWithAck('hangUp', {
-      socketToken: socketTokenRef.current,
-    })
-    if (hangUpResult === 'INVALID_AUTH') {
-      alerterRef.current.error('Your login is invalid!')
-    } else if (hangUpResult === 'NOT_IN_ROOM') {
-      alerterRef.current.error('You are not in a room!')
-    } else if (hangUpResult === 'CALL_ALREADY_ENDED') {
-      alerterRef.current.error('The call already ended!')
-    }
-  }
-
   return (
     <View style={Styles.videoContainer}>
       {inCall ? (
-        <VideoCall
-          token={token}
-          roomName={roomName}
-          disconnectSignal={disconnectSignal}
-          hangUpCallback={onEndCallClick}
-          disconnectCallback={() => {
-            setInCall(false)
-            router.back()
-          }}
-        />
+        // <VideoCall
+        //   token={token}
+        //   roomName={roomName}
+        //   disconnectSignal={disconnectSignal}
+        //   hangUpCallback={onEndCallClick}
+        //   disconnectCallback={() => {
+        //     setInCall(false)
+        //     router.back()
+        //   }}
+        // />
+        <MobileCall
+          socketRef={socketRef}
+          socketTokenRef={socketTokenRef}
+          roomInfo={inCall}
+        ></MobileCall>
       ) : (
-        <SafeAreaProvider>
-          <SafeAreaView>
-            <Text>Loading...</Text>
-            <Button title="Go Back" onPress={router.back} />
-          </SafeAreaView>
-        </SafeAreaProvider>
+        <SafeAreaView>
+          <Text>Loading...</Text>
+          <Button title="Go Back" onPress={router.back} />
+        </SafeAreaView>
       )}
     </View>
   )
