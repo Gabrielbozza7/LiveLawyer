@@ -30,6 +30,7 @@ export function MobileWebViewCall({ payload }: MobileWebViewCallProps) {
   const [observerParticipant, setObserverParticipant] = useState<Participant | null>(null)
   const [lawyerParticipant, setLawyerParticipant] = useState<Participant | null>(null)
 
+  // Connecting to call when component mounts:
   useEffect(() => {
     if (roomInfo !== undefined && !joinInProgressRef.current) {
       joinInProgressRef.current = true

@@ -11,7 +11,7 @@ import {
 } from 'livelawyerlibrary/socket-event-definitions'
 import { BACKEND_URL } from '@/constants/BackendVariables'
 import { useAlerter, useSession } from 'livelawyerlibrary/context-manager'
-import MobileCall from '@/components/mobile-call'
+import VideoCall from '@/components/video-call/video-call'
 
 export interface RoomJoinData {
   token: string
@@ -100,21 +100,7 @@ export default function Call() {
   return (
     <View style={Styles.videoContainer}>
       {inCall ? (
-        // <VideoCall
-        //   token={token}
-        //   roomName={roomName}
-        //   disconnectSignal={disconnectSignal}
-        //   hangUpCallback={onEndCallClick}
-        //   disconnectCallback={() => {
-        //     setInCall(false)
-        //     router.back()
-        //   }}
-        // />
-        <MobileCall
-          socketRef={socketRef}
-          socketTokenRef={socketTokenRef}
-          roomInfo={inCall}
-        ></MobileCall>
+        <VideoCall roomInfo={inCall} socketRef={socketRef} socketTokenRef={socketTokenRef} />
       ) : (
         <SafeAreaView>
           <Text>Loading...</Text>

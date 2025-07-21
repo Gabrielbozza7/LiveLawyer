@@ -40,7 +40,7 @@ export default function Index() {
   }, [])
 
   const attemptCall = async () => {
-    router.navigate(`/call`)
+    router.navigate(`/screens/call`)
   }
 
   return (

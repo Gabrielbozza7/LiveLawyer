@@ -71,13 +71,13 @@ export default function RootLayout() {
           >
             <AuthRefreshManager>
               <Portal.Host>
-                <Stack>
-                  <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                  <Stack.Screen name="screens/account" options={{ headerShown: false }} />
-                  <Stack.Screen name="screens/edit-contact" options={{ headerShown: false }} />
-                  <Stack.Screen name="screens/law-office-info" options={{ headerShown: false }} />
-                  <Stack.Screen name="call" options={{ headerShown: false }} />
-                  <Stack.Screen name="index" options={{ headerShown: false }} />
+                <Stack screenOptions={{ headerShown: false }}>
+                  <Stack.Screen name="(tabs)" />
+                  <Stack.Screen name="screens/account" />
+                  <Stack.Screen name="screens/call" />
+                  <Stack.Screen name="screens/edit-contact" />
+                  <Stack.Screen name="screens/law-office-info" />
+                  <Stack.Screen name="index" />
                 </Stack>
               </Portal.Host>
             </AuthRefreshManager>

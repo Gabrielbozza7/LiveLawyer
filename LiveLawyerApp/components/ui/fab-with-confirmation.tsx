@@ -5,6 +5,7 @@ import { AnimatedFAB } from 'react-native-paper'
 interface FabWithConfirmationProps {
   icon: string
   prompt: string
+  disabled?: boolean
   onConfirm: () => unknown
   visible?: boolean
   uppercase?: boolean
@@ -16,6 +17,7 @@ interface FabWithConfirmationProps {
 export function FabWithConfirmation({
   icon,
   prompt,
+  disabled,
   onConfirm,
   visible,
   uppercase,
@@ -39,6 +41,7 @@ export function FabWithConfirmation({
     <AnimatedFAB
       icon={icon}
       label={prompt}
+      disabled={disabled}
       extended={confirming}
       onPress={confirming ? onConfirm : () => setConfirming(true)}
       visible={visible}

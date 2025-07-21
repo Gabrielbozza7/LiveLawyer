@@ -48,7 +48,7 @@ export default function Sensitive() {
         </Alert>
       ) : (
         <Container sx={{ justifyContent: 'center' }}>
-          <Container maxWidth="sm" sx={{ alignItems: 'stretch', flexGrow: 1, padding: 0 }}>
+          <Container maxWidth="xl" sx={{ alignItems: 'stretch', flexGrow: 1, padding: 0 }}>
             <Grid container columnSpacing={3}>
               <Grid size={6} display="flex" justifyContent="flex-start" alignItems="center">
                 <div>

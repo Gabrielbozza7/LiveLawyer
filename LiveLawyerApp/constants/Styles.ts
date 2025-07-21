@@ -77,4 +77,6 @@ export const newStyles = StyleSheet.create({
   textInputIcon: { backgroundColor: Colors.transparent },
   logo: { height: '100%', aspectRatio: 1 },
   logoContainer: { width: '70%', aspectRatio: 1, alignSelf: 'center', marginTop: 12 },
+  staticPositioning: { position: 'static' },
+  rowContainer: { flexDirection: 'row' },
 })
