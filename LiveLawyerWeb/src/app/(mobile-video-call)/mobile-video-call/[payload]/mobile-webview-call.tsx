@@ -18,7 +18,7 @@ interface MobileWebViewCallProps {
 }
 
 export function MobileWebViewCall({ payload }: MobileWebViewCallProps) {
-  const roomInfo = JSON.parse(Buffer.from(payload, 'base64').toString('utf-8')) as {
+  const roomInfo = JSON.parse(atob(decodeURIComponent(payload))) as {
     token: string
     roomName: string
   }

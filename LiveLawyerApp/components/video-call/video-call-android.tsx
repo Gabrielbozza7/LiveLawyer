@@ -20,10 +20,6 @@ export default function VideoCallAndroid({
     }
 
     const socket = socketRef.current!
-    console.log('got here')
-    console.log(
-      `/mobile-video-call/${btoa(JSON.stringify({ token: roomInfo.token, roomName: roomInfo.roomName }))}${hash !== '' ? `#${hash}` : ''}`,
-    )
     socket.on('endCall', onEndCall)
     return () => {
       socket.off('endCall', onEndCall)
@@ -34,7 +30,7 @@ export default function VideoCallAndroid({
     <WebView
       source={{
         // TODO: Add actual website link
-        uri: `/mobile-video-call/${btoa(JSON.stringify({ token: roomInfo.token, roomName: roomInfo.roomName }))}${hash !== '' ? `#${hash}` : ''}`,
+        uri: `http://localhost:3000/mobile-video-call/${encodeURIComponent(btoa(JSON.stringify({ token: roomInfo.token, roomName: roomInfo.roomName })))}${hash !== '' ? `#${hash}` : ''}`,
       }}
       onMessage={event => {
         switch (event.nativeEvent.data) {
