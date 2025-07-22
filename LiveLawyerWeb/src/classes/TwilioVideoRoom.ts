@@ -12,16 +12,10 @@ export default class TwilioVideoRoom {
     this.setParticipants = undefined
   }
 
-  public async joinRoom(token: string, roomName: string): Promise<boolean> {
-    try {
-      this.room = await connect(token, {
-        name: roomName,
-      })
-    } catch (error: unknown) {
-      console.log(`Able to get token, but could not join room: ${(error as Error).message}`)
-      return false
-    }
-    return true
+  public async joinRoom(token: string, roomName: string): Promise<void> {
+    this.room = await connect(token, {
+      name: roomName,
+    })
   }
 
   public get inARoom(): boolean {

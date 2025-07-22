@@ -1,11 +1,36 @@
 'use client'
 import TwilioVideoRoom from '@/classes/TwilioVideoRoom'
-import TwilioParticipant from '@/components/TwilioParticipant'
 import Grid from '@mui/material/Grid'
-import Typography from '@mui/material/Typography'
-import { twilioIdentityToInfo, UserType } from 'livelawyerlibrary'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Participant } from 'twilio-video'
+import WvParticipant from './wv-participant'
+
+type Listener = (message: string) => unknown
+type InjectableWindow = { NATIVE_MESSAGE_RECEIVER: NativeMessageReceiver }
+
+class NativeMessageReceiver {
+  private readonly _listeners: Set<Listener>
+
+  constructor() {
+    this._listeners = new Set()
+  }
+
+  public on(listener: Listener) {
+    this._listeners.add(listener)
+  }
+
+  public off(listener: Listener) {
+    this._listeners.delete(listener)
+  }
+
+  public fire(message: string) {
+    this._listeners.forEach(listener => listener(message))
+  }
+}
+
+;(window as unknown as InjectableWindow).NATIVE_MESSAGE_RECEIVER = new NativeMessageReceiver()
+
+setTimeout(() => (window as unknown as InjectableWindow).NATIVE_MESSAGE_RECEIVER.fire('test'), 5000)
 
 export interface RoomJoinData {
   token: string
@@ -18,17 +43,28 @@ interface MobileWebViewCallProps {
 }
 
 export function MobileWebViewCall({ payload }: MobileWebViewCallProps) {
-  const roomInfo = JSON.parse(atob(decodeURIComponent(payload))) as {
-    token: string
-    roomName: string
-  }
+  const roomInfo = useMemo(
+    () =>
+      JSON.parse(atob(decodeURIComponent(payload))) as {
+        token: string
+        roomName: string
+      },
+    [payload],
+  )
+  const [debugLog, setDebugLog] = useState<string>(JSON.stringify(roomInfo) + '\n')
+  const log = (msg: string) => setDebugLog(l => l + msg + '\n')
 
   const videoRoomRef = useRef<TwilioVideoRoom>(new TwilioVideoRoom())
   const joinInProgressRef = useRef<boolean>(false)
   const [participants, setParticipants] = useState<Participant[]>([])
-  const [clientParticipant, setClientParticipant] = useState<Participant | null>(null)
-  const [observerParticipant, setObserverParticipant] = useState<Participant | null>(null)
-  const [lawyerParticipant, setLawyerParticipant] = useState<Participant | null>(null)
+
+  useEffect(() => {
+    log('new participants size: ' + participants.length)
+  }, [participants])
+
+  const postMessage = (message: string) => {
+    eval(`window.ReactNativeWebView.postMessage("${message.replaceAll('"', '\\"')}")`)
+  }
 
   // Connecting to call when component mounts:
   useEffect(() => {
@@ -37,80 +73,46 @@ export function MobileWebViewCall({ payload }: MobileWebViewCallProps) {
       videoRoomRef.current
         .joinRoom(roomInfo.token, roomInfo.roomName)
         .then(() => {
+          log('initial join THEN')
           const [disconnectTrigger] = videoRoomRef.current.setupListeners(setParticipants)
           window.addEventListener('pagehide', disconnectTrigger)
           window.addEventListener('beforeunload', disconnectTrigger)
-          eval(`window.ReactNativeWebView.postMessage('callback true')`)
+          postMessage('callback true')
         })
         .catch(error => {
-          console.log('Error joining room:')
-          console.error(error)
-          eval(`window.ReactNativeWebView.postMessage('callback false')`)
+          log('initial join CATCH')
+          log(`The initial join error:\n${(error as Error).message}`)
+          postMessage('callback false')
         })
         .finally(() => (joinInProgressRef.current = false))
     }
   }, [roomInfo])
 
   useEffect(() => {
-    const onHashChange = () => {
-      const newHash = window.location.hash
-      switch (newHash) {
+    const onMessage = (message: string) => {
+      switch (message) {
         case 'onEndCall':
           videoRoomRef.current.disconnect()
           setParticipants([])
+          postMessage('dismount')
           break
       }
     }
 
-    window.addEventListener('hashchange', onHashChange)
-    return () => window.removeEventListener('hashchange', onHashChange)
+    ;(window as unknown as InjectableWindow).NATIVE_MESSAGE_RECEIVER.on(onMessage)
+    return () => (window as unknown as InjectableWindow).NATIVE_MESSAGE_RECEIVER.off(onMessage)
   }, [])
-
-  // Updating the corresponding participant slots when the participant(s) change(s):
-  useEffect(() => {
-    const foundUserTypes: Set<UserType> = new Set()
-    participants.forEach(participant => {
-      const userInfo = twilioIdentityToInfo(participant.identity)
-      foundUserTypes.add(userInfo.userType)
-      if (clientParticipant === null && userInfo.userType === 'Client') {
-        setClientParticipant(participant)
-      } else if (observerParticipant === null && userInfo.userType === 'Observer') {
-        setObserverParticipant(participant)
-      } else if (lawyerParticipant === null && userInfo.userType === 'Lawyer') {
-        setLawyerParticipant(participant)
-      }
-    })
-    if (!foundUserTypes.has('Client')) {
-      setClientParticipant(null)
-    }
-    if (!foundUserTypes.has('Observer')) {
-      setObserverParticipant(null)
-    }
-    if (!foundUserTypes.has('Lawyer')) {
-      setLawyerParticipant(null)
-    }
-  }, [clientParticipant, lawyerParticipant, observerParticipant, participants])
 
   return (
     <Grid container>
       <Grid size={12}>
-        <Typography>{JSON.stringify(roomInfo)}</Typography>
+        <pre>{debugLog}</pre>
       </Grid>
-      <Grid size={6} justifyItems="center" alignItems="center">
-        {clientParticipant && (
-          <TwilioParticipant room={videoRoomRef.current} participant={clientParticipant} />
-        )}
-      </Grid>
-      <Grid size={6} justifyItems="center" alignItems="center">
-        {observerParticipant && (
-          <TwilioParticipant room={videoRoomRef.current} participant={observerParticipant} />
-        )}
-      </Grid>
-      <Grid size={6} justifyItems="center" alignItems="center">
-        {lawyerParticipant && (
-          <TwilioParticipant room={videoRoomRef.current} participant={lawyerParticipant} />
-        )}
-      </Grid>
+      {participants.map(participant => (
+        <Grid key={participant.identity} size={6}>
+          <WvParticipant room={videoRoomRef.current} participant={participant} log={log} />
+        </Grid>
+      ))}
     </Grid>
   )
 }
