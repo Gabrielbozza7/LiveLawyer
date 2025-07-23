@@ -32,10 +32,6 @@ export default function VideoCallAndroid({
         postMessage('onEndCall')
       }
 
-      console.log(
-        `${env.websiteUrl}mobile-video-call/${encodeURIComponent(btoa(JSON.stringify({ token: roomInfo.token, roomName: roomInfo.roomName })))}`,
-      )
-
       socket.on('endCall', onEndCall)
       return () => {
         socket.off('endCall', onEndCall)
@@ -44,32 +40,35 @@ export default function VideoCallAndroid({
   }, [socketRef])
 
   return (
-    <>
-      <WebView
-        ref={webViewRef}
-        source={{
-          uri: `${env.websiteUrl}mobile-video-call/${encodeURIComponent(btoa(JSON.stringify({ token: roomInfo.token, roomName: roomInfo.roomName })))}`,
-        }}
-        onMessage={event => {
-          switch (event.nativeEvent.data) {
-            case 'callback false':
-              setLoading(false)
-              roomInfo.callback(false)
-              break
-            case 'callback true':
-              setLoading(false)
-              roomInfo.callback(true)
-              break
-            case 'dismount':
-              router.back()
-              break
-          }
-        }}
-        allowsInlineMediaPlayback
-        mediaPlaybackRequiresUserAction={false}
-        style={styles.flexContainer}
-      />
-    </>
+    <WebView
+      ref={webViewRef}
+      source={{
+        uri: `${env.websiteUrl}mobile-video-call/${encodeURIComponent(btoa(JSON.stringify({ token: roomInfo.token, roomName: roomInfo.roomName })))}`,
+      }}
+      onMessage={event => {
+        switch (event.nativeEvent.data) {
+          case 'callback false':
+            setLoading(false)
+            roomInfo.callback(false)
+            break
+          case 'callback true':
+            setLoading(false)
+            roomInfo.callback(true)
+            break
+          case 'dismount':
+            router.back()
+            break
+          default:
+            if (event.nativeEvent.data.startsWith('%')) {
+              console.log(`WvLog: ${event.nativeEvent.data.substring(1)}`)
+            }
+            break
+        }
+      }}
+      allowsInlineMediaPlayback
+      mediaPlaybackRequiresUserAction={false}
+      style={styles.flexContainer}
+    />
   )
 }
 

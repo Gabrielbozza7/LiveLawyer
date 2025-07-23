@@ -1,7 +1,6 @@
 'use client'
 import TwilioVideoRoom from '@/classes/TwilioVideoRoom'
-import Grid from '@mui/material/Grid'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Participant } from 'twilio-video'
 import WvParticipant from './wv-participant'
 
@@ -51,8 +50,7 @@ export function MobileWebViewCall({ payload }: MobileWebViewCallProps) {
       },
     [payload],
   )
-  const [debugLog, setDebugLog] = useState<string>(JSON.stringify(roomInfo) + '\n')
-  const log = (msg: string) => setDebugLog(l => l + msg + '\n')
+  const log = useCallback((msg: string) => postMessage('%' + msg), [])
 
   const videoRoomRef = useRef<TwilioVideoRoom>(new TwilioVideoRoom())
   const joinInProgressRef = useRef<boolean>(false)
@@ -60,7 +58,7 @@ export function MobileWebViewCall({ payload }: MobileWebViewCallProps) {
 
   useEffect(() => {
     log('new participants size: ' + participants.length)
-  }, [participants])
+  }, [log, participants])
 
   const postMessage = (message: string) => {
     eval(`window.ReactNativeWebView.postMessage("${message.replaceAll('"', '\\"')}")`)
@@ -86,7 +84,7 @@ export function MobileWebViewCall({ payload }: MobileWebViewCallProps) {
         })
         .finally(() => (joinInProgressRef.current = false))
     }
-  }, [roomInfo])
+  }, [log, roomInfo])
 
   useEffect(() => {
     const onMessage = (message: string) => {
@@ -104,15 +102,49 @@ export function MobileWebViewCall({ payload }: MobileWebViewCallProps) {
   }, [])
 
   return (
-    <Grid container>
-      <Grid size={12}>
-        <pre>{debugLog}</pre>
-      </Grid>
-      {participants.map(participant => (
-        <Grid key={participant.identity} size={6}>
-          <WvParticipant room={videoRoomRef.current} participant={participant} />
-        </Grid>
-      ))}
-    </Grid>
+    <div style={styles.videoContainer}>
+      {participants
+        .filter(x => x !== videoRoomRef.current.room?.localParticipant)
+        .map(participant => (
+          <WvParticipant
+            key={participant.identity}
+            room={videoRoomRef.current}
+            participant={participant}
+            style={styles.videoRemote}
+          />
+        ))}
+      {videoRoomRef.current.room?.localParticipant && (
+        <WvParticipant
+          room={videoRoomRef.current}
+          participant={videoRoomRef.current.room.localParticipant}
+          style={{
+            position: 'absolute',
+            width: '35%',
+            height: '30%',
+            bottom: 45,
+            right: 15,
+            backgroundColor: 'gray',
+            justifyContent: 'center',
+            alignItems: 'center',
+            borderRadius: 10,
+            overflow: 'hidden',
+          }}
+        />
+      )}
+    </div>
   )
+}
+
+const styles = {
+  videoContainer: {
+    flex: 1,
+    backgroundColor: 'black',
+    overflow: 'hidden',
+  },
+  videoRemote: {
+    flex: 1,
+    backgroundColor: 'gray',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 }

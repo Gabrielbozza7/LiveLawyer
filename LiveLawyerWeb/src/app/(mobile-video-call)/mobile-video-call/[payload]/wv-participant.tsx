@@ -1,20 +1,17 @@
-import { useEffect, useRef, useState } from 'react'
+import { CSSProperties, useEffect, useRef, useState } from 'react'
 import { Participant, Track } from 'twilio-video'
-import { twilioIdentityToInfo } from 'livelawyerlibrary'
 import { MediaTrack } from 'twilio-video/tsdef/MediaTrack'
-import Paper from '@mui/material/Paper'
-import Typography from '@mui/material/Typography'
-import Stack from '@mui/material/Stack'
 import TwilioVideoRoom from '@/classes/TwilioVideoRoom'
 import WvTrack from './wv-track'
 
 interface WvParticipantProps {
   participant: Participant
   room: TwilioVideoRoom
+  style?: CSSProperties
 }
 
 // This component should be mounted when the participant joins and dismounted when the participant leaves.
-export default function WvParticipant({ participant, room }: WvParticipantProps) {
+export default function WvParticipant({ participant, room, style }: WvParticipantProps) {
   const initializedRef = useRef<boolean>(false)
   const [tracks, setTracks] = useState<MediaTrack[]>([])
 
@@ -71,16 +68,10 @@ export default function WvParticipant({ participant, room }: WvParticipantProps)
   }, [participant, room, tracks])
 
   return (
-    <Paper sx={{ width: '80%', height: '80%' }}>
-      <Stack spacing={2} alignItems="center" direction="column">
-        <Typography style={{ fontWeight: 'bold', marginBottom: 5 }}>
-          {twilioIdentityToInfo(participant.identity).userType}
-        </Typography>
-
-        {tracks.map((track, index) => (
-          <WvTrack key={index} track={track} />
-        ))}
-      </Stack>
-    </Paper>
+    <>
+      {tracks.map((track, index) => (
+        <WvTrack key={index} track={track} style={style} />
+      ))}
+    </>
   )
 }
