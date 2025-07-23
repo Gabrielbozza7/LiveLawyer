@@ -3,12 +3,14 @@ import { useEffect, useRef } from 'react'
 import { WebView } from 'react-native-webview'
 import { PlatformVideoCallProps, VideoCallProps } from './video-call'
 import { StyleSheet } from 'react-native'
+import { usePublicEnv } from 'livelawyerlibrary/context-manager'
 
 export default function VideoCallAndroid({
   roomInfo,
   socketRef,
   loadingState: [, setLoading],
 }: VideoCallProps & PlatformVideoCallProps) {
+  const env = usePublicEnv()
   const router = useRouter()
   const webViewRef = useRef<WebView>(null)
 
@@ -31,7 +33,7 @@ export default function VideoCallAndroid({
       }
 
       console.log(
-        `http://10.0.0.186:3000/mobile-video-call/${encodeURIComponent(btoa(JSON.stringify({ token: roomInfo.token, roomName: roomInfo.roomName })))}`,
+        `${env.websiteUrl}mobile-video-call/${encodeURIComponent(btoa(JSON.stringify({ token: roomInfo.token, roomName: roomInfo.roomName })))}`,
       )
 
       socket.on('endCall', onEndCall)
@@ -46,8 +48,7 @@ export default function VideoCallAndroid({
       <WebView
         ref={webViewRef}
         source={{
-          // TODO: Add actual website link
-          uri: `http://10.0.0.186:3000/mobile-video-call/${encodeURIComponent(btoa(JSON.stringify({ token: roomInfo.token, roomName: roomInfo.roomName })))}`,
+          uri: `${env.websiteUrl}mobile-video-call/${encodeURIComponent(btoa(JSON.stringify({ token: roomInfo.token, roomName: roomInfo.roomName })))}`,
         }}
         onMessage={event => {
           switch (event.nativeEvent.data) {
@@ -64,6 +65,8 @@ export default function VideoCallAndroid({
               break
           }
         }}
+        allowsInlineMediaPlayback
+        mediaPlaybackRequiresUserAction={false}
         style={styles.flexContainer}
       />
     </>

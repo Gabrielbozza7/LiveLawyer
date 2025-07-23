@@ -1,4 +1,3 @@
-import { setCoordinates } from '@/components/locationStore'
 import { FabWithConfirmation } from '@/components/ui/fab-with-confirmation'
 import { TabPage } from '@/components/ui/tab-page'
 import { newStyles } from '@/constants/Styles'
@@ -19,7 +18,6 @@ function LocalLawFirmsFab() {
       if (status === 'granted') {
         const loc = await getCurrentPositionAsync({})
         setCoords({ lat: loc.coords.latitude, lon: loc.coords.longitude })
-        setCoordinates({ lat: loc.coords.latitude, lon: loc.coords.longitude })
       } else {
         console.log('Permission not granted')
       }

@@ -5,7 +5,7 @@ import '@fontsource/roboto/700.css'
 
 import { ContextManager } from 'livelawyerlibrary/context-manager'
 import LoginRegister from '@/components/auth/login-register'
-import { BACKEND_URL, SUPABASE_ANON_KEY, SUPABASE_URL } from 'livelawyerlibrary/env'
+import { BACKEND_URL, SUPABASE_ANON_KEY, SUPABASE_URL, WEBSITE_URL } from 'livelawyerlibrary/env'
 import type { Metadata } from 'next'
 import CompleteRegistration from '@/components/auth/complete-registration'
 import LiveLawyerNav from '@/components/LiveLawyerNav'
@@ -31,6 +31,7 @@ export default function RootLayout({
         <body style={{ backgroundColor: '#DDEEFF' }}>
           <ContextManager
             env={{
+              websiteUrl: WEBSITE_URL,
               supabaseUrl: SUPABASE_URL,
               supabaseAnonKey: SUPABASE_ANON_KEY,
               backendUrl: BACKEND_URL,

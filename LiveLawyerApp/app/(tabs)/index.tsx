@@ -1,58 +1,111 @@
 import { newStyles } from '@/constants/Styles'
 import { useRouter } from 'expo-router'
 import React, { useEffect, useState } from 'react'
-import { StyleSheet, Image, View, TouchableOpacity } from 'react-native'
+import {
+  StyleSheet,
+  Image,
+  View,
+  TouchableOpacity,
+  PermissionsAndroid,
+  Platform,
+} from 'react-native'
 import * as Location from 'expo-location'
-import { setCoordinates } from '@/components/locationStore'
 import { useAlerter } from 'livelawyerlibrary/context-manager'
-import { Coordinates } from 'livelawyerlibrary/socket-event-definitions'
-import { Text } from 'react-native-paper'
+import { ActivityIndicator, FAB, Text } from 'react-native-paper'
 import { TabPage } from '@/components/ui/tab-page'
 import { Colors } from '@/constants/Colors'
 import { placeholderLogo } from './lawyers'
+import { ErrorBanner } from '@/components/ui/error-banner'
 
 export default function Index() {
   const alerterRef = useAlerter()
   const router = useRouter()
-  const [, setCoords] = useState<Coordinates | null>(null)
-
-  // Getting coordinates
-  const getLocationPermission = async () => {
-    try {
-      const { status } = await Location.requestForegroundPermissionsAsync()
-      if (status !== 'granted') {
-        alerterRef.current.error('Location Denied')
-        return
-      } else {
-        const loc = await Location.getCurrentPositionAsync({})
-        console.log(`lat: ${loc.coords.latitude}, lon: ${loc.coords.longitude}`)
-        setCoords({ lat: loc.coords.latitude, lon: loc.coords.longitude })
-        setCoordinates({ lat: loc.coords.latitude, lon: loc.coords.longitude })
-      }
-    } catch (err) {
-      alerterRef.current.error('Failed to fetch location!')
-      console.log(err)
-    }
-  }
+  const [missingPermissions, setMissingPermissions] = useState<Set<string> | undefined>(undefined)
 
   useEffect(() => {
-    getLocationPermission()
-  }, [])
+    if (missingPermissions === undefined) {
+      ;(async () => {
+        const missing = new Set(['Precise Location Access'])
+        Platform.select({
+          android: (() => {
+            missing.add('Camera Access')
+            missing.add('Microphone Access')
+          })(),
+          ios: (() => {})(), // TODO
+        })
+        try {
+          // Precise Location Access:
+          const { status } = await Location.requestForegroundPermissionsAsync()
+          if (status === 'granted') {
+            missing.delete('Precise Location Access')
+          }
+          // Camera and Microphone Access
+          const platformRequester = Platform.select({
+            android: async () => {
+              const status = await PermissionsAndroid.requestMultiple([
+                PermissionsAndroid.PERMISSIONS.CAMERA,
+                PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
+              ])
+              if (status['android.permission.CAMERA'] === PermissionsAndroid.RESULTS.GRANTED) {
+                missing.delete('Camera Access')
+              }
+              if (
+                status['android.permission.RECORD_AUDIO'] === PermissionsAndroid.RESULTS.GRANTED
+              ) {
+                missing.delete('Microphone Access')
+              }
+            },
+            ios: async () => {}, // TODO
+          })
+          if (platformRequester !== undefined) {
+            await platformRequester()
+          }
+        } catch (error) {
+          alerterRef.current.error('An error occurred when trying to request device permissions!')
+          console.error(error)
+        }
+        setMissingPermissions(missing)
+      })()
+    }
+  }, [missingPermissions])
+
+  const missingPermissionsMessage = () => {
+    let message = 'The following permissions are required to make calls but are missing:'
+    missingPermissions?.forEach(permission => (message += `\n\u2022 ${permission}`))
+    return message
+  }
 
   const attemptCall = async () => {
     router.navigate(`/screens/call`)
   }
 
   return (
-    <TabPage verticallyCenter={true} horizontallyCenter={true}>
-      <View style={styles.callButtonContainer}>
-        <TouchableOpacity onPress={attemptCall} style={styles.callButton}>
-          <Image style={styles.callButtonLogo} source={placeholderLogo} resizeMode="cover" />
-        </TouchableOpacity>
-      </View>
-      <Text variant="headlineSmall" style={newStyles.centeredText}>
-        {'\n'}Press the logo to make a call!
-      </Text>
+    <TabPage>
+      {missingPermissions === undefined ? (
+        <ActivityIndicator />
+      ) : missingPermissions.size > 0 ? (
+        <>
+          <ErrorBanner text={missingPermissionsMessage()} />
+          <FAB
+            icon="refresh"
+            onPress={() => setMissingPermissions(undefined)}
+            mode="elevated"
+            variant="surface"
+            style={newStyles.bottomLeftFab}
+          />
+        </>
+      ) : (
+        <TabPage verticallyCenter={true} horizontallyCenter={true}>
+          <View style={styles.callButtonContainer}>
+            <TouchableOpacity onPress={attemptCall} style={styles.callButton}>
+              <Image style={styles.callButtonLogo} source={placeholderLogo} resizeMode="cover" />
+            </TouchableOpacity>
+          </View>
+          <Text variant="headlineSmall" style={newStyles.centeredText}>
+            {'\n'}Press the logo to make a call!
+          </Text>
+        </TabPage>
+      )}
     </TabPage>
   )
 }

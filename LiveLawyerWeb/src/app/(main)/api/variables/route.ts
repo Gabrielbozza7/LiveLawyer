@@ -1,4 +1,4 @@
-import { BACKEND_IP, BACKEND_PORT, BACKEND_URL } from 'livelawyerlibrary/env'
+import { WEBSITE_URL, BACKEND_URL } from 'livelawyerlibrary/env'
 
 // This file isn't really useful anymore (as it was originally intended to solve a problem that I found a better way to solve),
 // but it can still be used to check if the environment variables are loading properly. If you are running this on your local
@@ -6,8 +6,7 @@ import { BACKEND_IP, BACKEND_PORT, BACKEND_URL } from 'livelawyerlibrary/env'
 
 export async function GET() {
   const json = {
-    BACKEND_IP: BACKEND_IP,
-    BACKEND_PORT: BACKEND_PORT,
+    WEBSITE_URL: WEBSITE_URL,
     BACKEND_URL: BACKEND_URL,
   }
   return new Response(JSON.stringify(json), {

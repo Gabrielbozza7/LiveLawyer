@@ -11,11 +11,10 @@ import WvTrack from './wv-track'
 interface WvParticipantProps {
   participant: Participant
   room: TwilioVideoRoom
-  log: (msg: string) => void
 }
 
 // This component should be mounted when the participant joins and dismounted when the participant leaves.
-export default function WvParticipant({ participant, room, log }: WvParticipantProps) {
+export default function WvParticipant({ participant, room }: WvParticipantProps) {
   const initializedRef = useRef<boolean>(false)
   const [tracks, setTracks] = useState<MediaTrack[]>([])
 
@@ -36,7 +35,7 @@ export default function WvParticipant({ participant, room, log }: WvParticipantP
                 )
               }
             } else {
-              log(`Unsupported track type: ${track.kind}`)
+              console.log(`Unsupported track type: ${track.kind}`)
             }
           }
         }
@@ -69,7 +68,7 @@ export default function WvParticipant({ participant, room, log }: WvParticipantP
         participant.removeAllListeners()
       }
     }
-  }, [log, participant, room, tracks])
+  }, [participant, room, tracks])
 
   return (
     <Paper sx={{ width: '80%', height: '80%' }}>
@@ -79,7 +78,7 @@ export default function WvParticipant({ participant, room, log }: WvParticipantP
         </Typography>
 
         {tracks.map((track, index) => (
-          <WvTrack key={index} track={track} log={log} />
+          <WvTrack key={index} track={track} />
         ))}
       </Stack>
     </Paper>

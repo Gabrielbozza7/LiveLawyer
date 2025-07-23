@@ -27,7 +27,11 @@ export function Queue() {
   const sessionRef = useSession()
   const userType = useUserType()
   const socketRef = useRef<Socket<ServerToClientEvents, ClientToServerEvents>>(
-    io(env.backendUrl, { autoConnect: false }),
+    io(env.websiteUrl, {
+      path: '/api/backend/socket',
+      addTrailingSlash: false,
+      autoConnect: false,
+    }),
   )
   const socketTokenRef = useRef<string>('')
   const [loading, setLoading] = useState<boolean>(false)

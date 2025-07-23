@@ -24,6 +24,7 @@ import {
 } from './forms/validated-form-submit-button'
 
 export interface PublicEnv {
+  websiteUrl: string
   supabaseUrl: string
   supabaseAnonKey: string
   backendUrl: string

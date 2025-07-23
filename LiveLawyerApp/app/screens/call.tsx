@@ -3,15 +3,14 @@ import { useRouter } from 'expo-router'
 import { useEffect, useRef, useState } from 'react'
 import { Button, View, Text } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { getCoordinates } from '@/components/locationStore'
 import { io, Socket } from 'socket.io-client'
 import {
   ClientToServerEvents,
   ServerToClientEvents,
 } from 'livelawyerlibrary/socket-event-definitions'
-import { BACKEND_URL } from '@/constants/BackendVariables'
-import { useAlerter, useSession } from 'livelawyerlibrary/context-manager'
+import { useAlerter, usePublicEnv, useSession } from 'livelawyerlibrary/context-manager'
 import VideoCall from '@/components/video-call/video-call'
+import { getCurrentPositionAsync } from 'expo-location'
 
 export interface RoomJoinData {
   token: string
@@ -20,12 +19,16 @@ export interface RoomJoinData {
 }
 
 export default function Call() {
+  const env = usePublicEnv()
   const alerterRef = useAlerter()
   const sessionRef = useSession()
-  const coordinates = getCoordinates()
   const router = useRouter()
   const socketRef = useRef<Socket<ServerToClientEvents, ClientToServerEvents>>(
-    io(BACKEND_URL, { autoConnect: false }),
+    io(env.websiteUrl, {
+      path: '/api/backend/socket',
+      addTrailingSlash: false,
+      autoConnect: false,
+    }),
   )
   const socketTokenRef = useRef<string>('')
   const [inCall, setInCall] = useState<RoomJoinData | false | null>(null)
@@ -43,6 +46,7 @@ export default function Call() {
       // Only runs for initialization even with strict mode
       setInCall(false)
       ;(async (): Promise<void> => {
+        const coordinates = await getCurrentPositionAsync({})
         if (coordinates === null) {
           alerterRef.current.error(
             "Your location could not be read! Try restarting the app or changing the app's permissions",
@@ -64,7 +68,7 @@ export default function Call() {
           socketRef.current.off('connect', connectPromiseResolver)
           const authResult = await socketRef.current.emitWithAck('authenticate', {
             accessToken: sessionRef.current.access_token,
-            coordinates,
+            coordinates: { lat: coordinates.coords.latitude, lon: coordinates.coords.longitude },
           })
           if (authResult.result === 'INVALID_AUTH') {
             alerterRef.current.error('Your session is invalid! Try logging in again.')

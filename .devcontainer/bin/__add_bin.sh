@@ -16,6 +16,7 @@ add_bin __add_bin
 add_bin __bashrc_every_open
 add_bin __bashrc_first_open
 add_bin __git_ps1
+add_bin create-certificates
 add_bin run
 add_bin setup
 

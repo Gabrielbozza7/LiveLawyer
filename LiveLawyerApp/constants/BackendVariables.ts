@@ -1,27 +1,41 @@
 import { defaultEnvironmentVariableWithWarning } from 'livelawyerlibrary'
 
-// I would like to be able to use { BACKEND_URL } from 'livelawyerlibrary/env', but importing it breaks the bundler due to the use
+// I would like to be able to use the exports from 'livelawyerlibrary/env', but importing them breaks the bundler due to the use
 // of the 'path' module in the library's dependency 'dotenv', which doesn't exist in React Native. So, unless a solution for that
 // is found, we will have to continue having the backend IP duplicated.
 
-export function getBackendVariables(): [ip: string, port: string] {
+export function getBackendVariables(): [
+  websiteUrl: string,
+  supabaseUrl: string,
+  supabaseAnonKey: string,
+] {
   const path = 'LiveLawyerApp/.env'
-  const ip = defaultEnvironmentVariableWithWarning(
-    process.env.EXPO_PUBLIC_BACKEND_IP,
-    'EXPO_PUBLIC_BACKEND_IP',
+  let websiteUrl = defaultEnvironmentVariableWithWarning(
+    process.env.EXPO_PUBLIC_WEBSITE_URL,
+    'EXPO_PUBLIC_WEBSITE_URL',
     path,
-    'localhost',
-    false,
+    'https://localhost:3000/',
+    true,
   )
-  const port = defaultEnvironmentVariableWithWarning(
-    process.env.EXPO_PUBLIC_BACKEND_PORT,
-    'EXPO_PUBLIC_BACKEND_PORT',
+  if (!websiteUrl.endsWith('/')) {
+    websiteUrl += '/'
+  }
+  const supabaseUrl = defaultEnvironmentVariableWithWarning(
+    process.env.EXPO_PUBLIC_SUPABASE_URL,
+    'EXPO_PUBLIC_SUPABASE_URL',
     path,
-    '4000',
-    false,
+    '',
+    true,
   )
-  return [ip, port]
+  const supabaseAnonKey = defaultEnvironmentVariableWithWarning(
+    process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
+    'EXPO_PUBLIC_SUPABASE_ANON_KEY',
+    path,
+    '',
+    true,
+  )
+  return [websiteUrl, supabaseUrl, supabaseAnonKey]
 }
 
-export const [BACKEND_IP, BACKEND_PORT] = getBackendVariables()
-export const BACKEND_URL = `http://${BACKEND_IP}:${BACKEND_PORT}`
+export const [WEBSITE_URL, SUPABASE_URL, SUPABASE_ANON_KEY] = getBackendVariables()
+export const BACKEND_URL = WEBSITE_URL + `api/backend/`

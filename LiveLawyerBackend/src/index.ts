@@ -1,7 +1,7 @@
 import fs from 'fs'
 import express from 'express'
 import cors from 'cors'
-import { createServer } from 'node:http'
+import { createServer } from 'node:https'
 import { Server } from 'socket.io'
 import TwilioManager from './TwilioManager'
 import callHistoryRoutes from './routes/call-history'
@@ -11,7 +11,7 @@ import {
   ClientToServerEvents,
   ServerToClientEvents,
 } from 'livelawyerlibrary/socket-event-definitions'
-import { BACKEND_IP, BACKEND_PORT, BACKEND_URL } from 'livelawyerlibrary/env'
+import { BACKEND_URL, WEBSITE_URL } from 'livelawyerlibrary/env'
 import { RECORDING_DIR_NAME } from './RecordingProcessor'
 import IdentityMap from './IdentityMap'
 import { getSupabaseClient } from './database/supabase'
@@ -23,11 +23,19 @@ async function main() {
   await loadGeolocationFunction()
 
   const app = express()
-  const httpServer = createServer(app)
-  const io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
+  const httpsServer = createServer(
+    {
+      key: fs.readFileSync('../certificates/cert.key'),
+      cert: fs.readFileSync('../certificates/cert.crt'),
+    },
+    app,
+  )
+  const io = new Server<ClientToServerEvents, ServerToClientEvents>(httpsServer, {
     connectionStateRecovery: {},
+    addTrailingSlash: false,
+    path: '/socket',
     cors: {
-      origin: ['http://localhost:3000', `http://${BACKEND_IP}:3000`, 'http://localhost:8081'],
+      origin: ['http://localhost:8081', 'https://localhost:8081', WEBSITE_URL],
       methods: ['GET', 'POST'],
     },
   })
@@ -176,11 +184,9 @@ async function main() {
     res.status(200).json(data)
   })
 
-  httpServer.listen(Number(BACKEND_PORT), '0.0.0.0', () => {
+  httpsServer.listen(4000, '0.0.0.0', () => {
     console.log('Hi.')
-    console.log(
-      `Server is running on http://0.0.0.0:${BACKEND_PORT}, which should be accessible via ${BACKEND_URL}`,
-    )
+    console.log(`Server is running on 0.0.0.0:4000, which should be accessible via ${BACKEND_URL}`)
   })
 }
 

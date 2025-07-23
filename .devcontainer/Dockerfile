@@ -8,6 +8,8 @@ FROM node:lts-alpine
 COPY __bashrc /etc/bash/__bashrc
 RUN addgroup -S dev && adduser -S dev -G dev && apk update && apk add bash shadow openssh git && \
     chsh -s /bin/bash dev && cat /etc/bash/__bashrc >> /etc/bash/bashrc && rm /etc/bash/__bashrc && \
-    npm install -g expo eas-cli
+    npm install -g expo eas-cli mkcert
+RUN mkdir /ngrok-save && wget -O /ngrok-save/ngrok.tar.gz https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz && \
+    sudo tar -xvzf /ngrok-save/ngrok.tar.gz -C /usr/local/bin
 EXPOSE 8081 3000 4000
 USER dev

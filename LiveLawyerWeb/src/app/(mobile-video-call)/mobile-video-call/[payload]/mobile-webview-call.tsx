@@ -110,7 +110,7 @@ export function MobileWebViewCall({ payload }: MobileWebViewCallProps) {
       </Grid>
       {participants.map(participant => (
         <Grid key={participant.identity} size={6}>
-          <WvParticipant room={videoRoomRef.current} participant={participant} log={log} />
+          <WvParticipant room={videoRoomRef.current} participant={participant} />
         </Grid>
       ))}
     </Grid>

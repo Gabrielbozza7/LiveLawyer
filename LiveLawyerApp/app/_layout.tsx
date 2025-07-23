@@ -4,7 +4,12 @@ import Login from '../components/auth/login-register'
 import * as SecureStore from 'expo-secure-store'
 import { ContextManager } from 'livelawyerlibrary/context-manager'
 import { Text } from 'react-native'
-import { BACKEND_URL } from '@/constants/BackendVariables'
+import {
+  BACKEND_URL,
+  SUPABASE_ANON_KEY,
+  SUPABASE_URL,
+  WEBSITE_URL,
+} from '@/constants/BackendVariables'
 import { AuthRefreshManager } from '../components/auth/auth-refresh-manager'
 import CompleteRegistration from '@/components/auth/complete-registration'
 import { DefaultTheme, Provider as PaperProvider, Portal } from 'react-native-paper'
@@ -13,9 +18,6 @@ import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { PlatformValidatedForm } from '@/components/forms/platform-validated-form'
 import { PlatformValidatedTextField } from '@/components/forms/platform-validated-text-field'
 import { PlatformValidatedFormSubmitButton } from '@/components/forms/platform-validated-form-submit-button'
-
-const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL
-const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY
 
 const ExpoSecureStoreAdapter = {
   getItem: (key: string) => {
@@ -54,9 +56,10 @@ export default function RootLayout() {
         <Portal.Host>
           <ContextManager
             env={{
+              websiteUrl: WEBSITE_URL,
+              supabaseUrl: SUPABASE_URL,
+              supabaseAnonKey: SUPABASE_ANON_KEY,
               backendUrl: BACKEND_URL,
-              supabaseUrl: supabaseUrl!,
-              supabaseAnonKey: supabaseAnonKey!,
             }}
             storage={ExpoSecureStoreAdapter}
             sessionlessComponent={<Login />}
