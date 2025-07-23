@@ -1,4 +1,4 @@
-import { newStyles, Styles } from '@/constants/Styles'
+import { newStyles } from '@/constants/Styles'
 import React, { useState, useEffect } from 'react'
 import { FlatList } from 'react-native'
 import { router } from 'expo-router'
@@ -60,7 +60,7 @@ export default function LawyerView() {
           keyExtractor={item => item.id}
         />
       ) : (
-        <Text style={Styles.localText}>{placeholder}</Text>
+        <Text variant="bodyMedium">{placeholder}</Text>
       )}
     </TabPage>
   )

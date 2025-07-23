@@ -1,6 +1,5 @@
-import { Styles } from '@/constants/Styles'
 import { useEffect, useRef, useState } from 'react'
-import { View } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 import {
   TwilioVideo,
   TwilioVideoLocalView,
@@ -9,6 +8,7 @@ import {
 import { PlatformVideoCallProps, VideoCallProps } from './video-call'
 import { useAlerter } from 'livelawyerlibrary/context-manager'
 import { useRouter } from 'expo-router'
+import { Colors } from '@/constants/Colors'
 
 interface VideoTrackInfo {
   participantSid: string
@@ -64,7 +64,7 @@ export default function VideoCallIos({
   }, [])
 
   return (
-    <View style={Styles.videoContainer}>
+    <View style={styles.videoContainer}>
       <TwilioVideo
         ref={twilioVideo}
         onRoomDidConnect={() => setLoading(false)}
@@ -93,20 +93,43 @@ export default function VideoCallIos({
           })
         }}
       />
-      <View style={Styles.videoContainer}>
+      <View style={styles.videoContainer}>
         {Array.from(videoTracks, ([trackSid, trackIdentifier]) => {
           return (
             <TwilioVideoParticipantView
               key={trackSid}
               trackIdentifier={trackIdentifier}
-              style={Styles.videoRemote}
+              style={styles.videoRemote}
             />
           )
         })}
-        <View style={Styles.videoBottomContainer}>
-          <TwilioVideoLocalView enabled={true} style={Styles.videoLocal} />
-        </View>
+        <TwilioVideoLocalView enabled={true} style={styles.videoLocal} />
       </View>
     </View>
   )
 }
+
+const styles = StyleSheet.create({
+  videoContainer: {
+    flex: 1,
+    backgroundColor: Colors.black,
+  },
+  videoRemote: {
+    flex: 1,
+    backgroundColor: Colors.gray,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  videoLocal: {
+    position: 'absolute',
+    width: '35%',
+    height: '30%',
+    bottom: 45,
+    right: 15,
+    backgroundColor: Colors.gray,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 10,
+    overflow: 'hidden',
+  },
+})

@@ -1,7 +1,5 @@
-import { Styles } from '@/constants/Styles'
 import { useRouter } from 'expo-router'
 import { useEffect, useRef, useState } from 'react'
-import { Button, View, Text } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { io, Socket } from 'socket.io-client'
 import {
@@ -11,6 +9,8 @@ import {
 import { useAlerter, usePublicEnv, useSession } from 'livelawyerlibrary/context-manager'
 import VideoCall from '@/components/video-call/video-call'
 import { getCurrentPositionAsync } from 'expo-location'
+import { ActivityIndicator, FAB } from 'react-native-paper'
+import { newStyles } from '@/constants/Styles'
 
 export interface RoomJoinData {
   token: string
@@ -102,15 +102,23 @@ export default function Call() {
   }, [])
 
   return (
-    <View style={Styles.videoContainer}>
+    <>
       {inCall ? (
         <VideoCall roomInfo={inCall} socketRef={socketRef} socketTokenRef={socketTokenRef} />
       ) : (
         <SafeAreaView>
-          <Text>Loading...</Text>
-          <Button title="Go Back" onPress={router.back} />
+          <ActivityIndicator />
+          <FAB
+            icon="cancel"
+            label="Go Back"
+            uppercase={true}
+            onPress={router.back}
+            mode="elevated"
+            variant="surface"
+            style={[newStyles.fab, newStyles.spacedCard]}
+          />
         </SafeAreaView>
       )}
-    </View>
+    </>
   )
 }

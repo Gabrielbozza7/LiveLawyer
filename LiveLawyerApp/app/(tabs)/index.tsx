@@ -26,13 +26,12 @@ export default function Index() {
     if (missingPermissions === undefined) {
       ;(async () => {
         const missing = new Set(['Precise Location Access'])
-        Platform.select({
-          android: (() => {
-            missing.add('Camera Access')
-            missing.add('Microphone Access')
-          })(),
-          ios: (() => {})(), // TODO
-        })
+        ;(
+          Platform.select({
+            android: ['Camera Access', 'Microphone Access'],
+            ios: [], // TODO
+          }) ?? []
+        ).forEach(permission => missing.add(permission))
         try {
           // Precise Location Access:
           const { status } = await Location.requestForegroundPermissionsAsync()
