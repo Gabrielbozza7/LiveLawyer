@@ -21,6 +21,7 @@ export default class IdentityMap {
     socket: UserSocket,
     accessToken: string,
     location: Coordinates | null,
+    aspectRatio: number | null,
   ): Promise<string | false> {
     let id: string
     try {
@@ -49,7 +50,7 @@ export default class IdentityMap {
     if (type === 'Observer') {
       this._map.set(socket.id, { socket, socketToken, id, type, room: null, queueNode: null })
     } else if (type === 'Client') {
-      if (location === null) {
+      if (location === null || aspectRatio === null) {
         return false
       }
       const state = stateFromCoordinates(location.lat, location.lon)
@@ -63,6 +64,7 @@ export default class IdentityMap {
         type,
         room: null,
         location,
+        aspectRatio,
         state,
       })
     } else if (type === 'Lawyer') {
@@ -127,6 +129,7 @@ interface ConnectedAnyIdentity {
 export type ConnectedClientIdentity = ConnectedAnyIdentity & {
   type: 'Client'
   location: Coordinates
+  aspectRatio: number
   state: Database['public']['Enums']['UsState']
 }
 

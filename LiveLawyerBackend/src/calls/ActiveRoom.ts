@@ -124,9 +124,11 @@ export default class ActiveRoom {
     let successfulSend: boolean = false
     for (let i = 1; i <= 3; i++) {
       try {
-        await participant.socket
-          .timeout(timeout)
-          .emitWithAck('sendToRoom', { token, roomName: this._roomName })
+        await participant.socket.timeout(timeout).emitWithAck('sendToRoom', {
+          token,
+          roomName: this._roomName,
+          aspectRatio: this._client.aspectRatio,
+        })
         successfulSend = true
         break
       } catch (error) {

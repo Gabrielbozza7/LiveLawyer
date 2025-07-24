@@ -11,6 +11,7 @@ import VideoCall from '@/components/video-call/video-call'
 import { getCurrentPositionAsync } from 'expo-location'
 import { ActivityIndicator, FAB } from 'react-native-paper'
 import { newStyles } from '@/constants/Styles'
+import { useWindowDimensions } from 'react-native'
 
 export interface RoomJoinData {
   token: string
@@ -32,6 +33,8 @@ export default function Call() {
   )
   const socketTokenRef = useRef<string>('')
   const [inCall, setInCall] = useState<RoomJoinData | false | null>(null)
+  const { width, height } = useWindowDimensions()
+  const aspectRatio = width / height
 
   const onSendToRoom = async (
     { token, roomName }: { token: string; roomName: string },
@@ -69,6 +72,7 @@ export default function Call() {
           const authResult = await socketRef.current.emitWithAck('authenticate', {
             accessToken: sessionRef.current.access_token,
             coordinates: { lat: coordinates.coords.latitude, lon: coordinates.coords.longitude },
+            aspectRatio,
           })
           if (authResult.result === 'INVALID_AUTH') {
             alerterRef.current.error('Your session is invalid! Try logging in again.')

@@ -37,10 +37,10 @@ export function Queue() {
   const [roomJoinData, setRoomJoinData] = useState<RoomJoinData | undefined>(undefined)
 
   const onSendToRoom = async (
-    { token, roomName }: { token: string; roomName: string },
+    { token, roomName, aspectRatio }: { token: string; roomName: string; aspectRatio: number },
     callback: (acknowledged: boolean) => void,
   ) => {
-    setRoomJoinData({ token, roomName, callback })
+    setRoomJoinData({ token, roomName, aspectRatio, callback })
   }
 
   const onJoinQueueClick = async () => {
@@ -87,6 +87,7 @@ export function Queue() {
     const authResult = await socketRef.current.emitWithAck('authenticate', {
       accessToken,
       coordinates: null,
+      aspectRatio: null,
     })
     if (authResult.result === 'INVALID_AUTH') {
       alerterRef.current.error('Your session is invalid! Try logging in again.')

@@ -62,6 +62,7 @@ async function main() {
         socket,
         payload.accessToken,
         payload.coordinates,
+        payload.aspectRatio,
       )
       if (authenticationResult === false) {
         callback({ result: 'INVALID_AUTH' })
@@ -141,9 +142,11 @@ async function main() {
       }
       const token = await twilioManager.getAccessToken(user.room, user.type, user.id)
       try {
-        await socket
-          .timeout(5000)
-          .emitWithAck('sendToRoom', { token, roomName: user.room.roomName })
+        await socket.timeout(5000).emitWithAck('sendToRoom', {
+          token,
+          roomName: user.room.roomName,
+          aspectRatio: user.room.client.aspectRatio,
+        })
         await user.room.connectParticipant(user, token, 5000)
         callback(true)
         console.log(`User ${user.id} successfully rejoined room ${user.room.roomName}`)

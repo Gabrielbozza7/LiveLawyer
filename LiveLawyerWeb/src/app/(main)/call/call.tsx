@@ -13,11 +13,15 @@ import { Socket } from 'socket.io-client'
 import { Participant } from 'twilio-video'
 import CallEndIcon from '@mui/icons-material/CallEnd'
 import GavelIcon from '@mui/icons-material/Gavel'
+import ZoomInMapIcon from '@mui/icons-material/ZoomInMap'
+import ZoomOutMapIcon from '@mui/icons-material/ZoomOutMap'
 import Fab from '@mui/material/Fab'
+import Slider from '@mui/material/Slider'
 
 export interface RoomJoinData {
   token: string
   roomName: string
+  aspectRatio: number
   callback: (acknowledged: boolean) => void
 }
 
@@ -25,7 +29,7 @@ interface CallProps {
   loadingState: [boolean, Dispatch<SetStateAction<boolean>>]
   socketRef: RefObject<Socket<ServerToClientEvents, ClientToServerEvents>>
   socketTokenRef: RefObject<string>
-  roomJoinDataState: [RoomJoinData | undefined, Dispatch<SetStateAction<RoomJoinData | undefined>>]
+  roomJoinDataState: [RoomJoinData, Dispatch<SetStateAction<RoomJoinData | undefined>>]
 }
 
 export function Call({
@@ -43,9 +47,10 @@ export function Call({
   const [observerParticipant, setObserverParticipant] = useState<Participant | null>(null)
   const [lawyerParticipant, setLawyerParticipant] = useState<Participant | null>(null)
   const [hasLawyerInCall, setHasLawyerInCall] = useState<boolean>(false)
+  const [paperWidth, setPaperWidth] = useState<number>(75)
 
   useEffect(() => {
-    if (roomJoinData !== undefined && !joinInProgressRef.current) {
+    if (!joinInProgressRef.current) {
       joinInProgressRef.current = true
       videoRoomRef.current
         .joinRoom(roomJoinData.token, roomJoinData.roomName)
@@ -149,23 +154,47 @@ export function Call({
     <>
       <Grid container alignItems="center" justifyContent="center" display="flex">
         {[clientParticipant, observerParticipant, lawyerParticipant].map((participant, index) => (
-          <Grid key={index} size={4} justifyItems="stretch" alignItems="stretch" padding={3}>
+          <Grid key={index} size={4} justifyItems="center" alignItems="center" padding={3}>
             {participant && (
-              <TwilioParticipant room={videoRoomRef.current} participant={participant} />
+              <TwilioParticipant
+                participant={participant}
+                room={videoRoomRef.current}
+                paperWidth={paperWidth}
+                participantCount={participants.length}
+                aspectRatio={roomJoinData.aspectRatio}
+                isSelf={participant === videoRoomRef.current.room?.localParticipant}
+                isClient={participant === clientParticipant}
+              />
             )}
           </Grid>
         ))}
       </Grid>
       <Stack
         width="100%"
-        position="absolute"
+        position="fixed"
         bottom={0}
         justifyContent="center"
         spacing={12}
         direction="row"
         padding={3}
+        sx={{ pointerEvents: 'none' }}
       >
-        <Fab disabled={loading} variant="extended" color="warning" onClick={onEndCallClick}>
+        <Stack spacing={3} display="flex" width="25%" direction="row" alignItems="center">
+          <ZoomInMapIcon sx={{ pointerEvents: 'auto' }} />
+          <Slider
+            value={paperWidth}
+            onChange={(event, newValue) => setPaperWidth(newValue)}
+            sx={{ flex: 1, pointerEvents: 'auto' }}
+          />
+          <ZoomOutMapIcon sx={{ pointerEvents: 'auto' }} />
+        </Stack>
+        <Fab
+          disabled={loading}
+          variant="extended"
+          color="warning"
+          onClick={onEndCallClick}
+          sx={{ pointerEvents: 'auto' }}
+        >
           <CallEndIcon sx={{ marginRight: 1 }} />
           End Call
         </Fab>
@@ -175,6 +204,7 @@ export function Call({
             variant="extended"
             color="success"
             onClick={onSummonLawyerClick}
+            sx={{ pointerEvents: 'auto' }}
           >
             <GavelIcon sx={{ marginRight: 1 }} />
             Summon Lawyer

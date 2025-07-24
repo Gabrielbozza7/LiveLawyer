@@ -8,9 +8,19 @@ import Box from '@mui/material/Box'
 
 interface TwilioTrackProps {
   track: Track
+  participantCount: number
+  aspectRatio: number
+  isSelf: boolean
+  isClient: boolean
 }
 
-export default function TwilioTrack({ track }: TwilioTrackProps) {
+export default function TwilioTrack({
+  track,
+  participantCount,
+  aspectRatio,
+  isSelf,
+  isClient,
+}: TwilioTrackProps) {
   const [trackType, setTrackType] = useState<'video' | 'audio' | undefined>(undefined)
   const [volume, setVolume] = useState<number>(50)
 
@@ -50,7 +60,7 @@ export default function TwilioTrack({ track }: TwilioTrackProps) {
         sx={{
           display: trackType === 'video' ? 'flex' : 'none',
           width: '100%',
-          aspectRatio: 1,
+          aspectRatio: isClient ? aspectRatio : aspectRatio * Math.max(1, participantCount - 1),
           overflow: 'hidden',
           borderRadius: 10,
         }}
@@ -67,10 +77,22 @@ export default function TwilioTrack({ track }: TwilioTrackProps) {
       </Box>
       <Box sx={{ display: trackType === 'audio' ? 'flex' : 'none' }}>
         <audio ref={audioRef} />
-        <Stack spacing={3} display="flex" flex={1} direction="row" alignItems={'center'}>
-          <VolumeDown />
-          <Slider value={volume} onChange={handleChangeVolume} sx={{ flex: 1 }} />
+        <Stack
+          spacing={3}
+          display="flex"
+          flex={1}
+          direction="column"
+          alignItems={'center'}
+          visibility={isSelf ? 'hidden' : 'visible'}
+        >
           <VolumeUp />
+          <Slider
+            value={volume}
+            onChange={handleChangeVolume}
+            orientation="vertical"
+            sx={{ flex: 1 }}
+          />
+          <VolumeDown />
         </Stack>
       </Box>
     </>

@@ -11,10 +11,23 @@ import Stack from '@mui/material/Stack'
 interface TwilioVideoParticipantProps {
   participant: Participant
   room: TwilioVideoRoom
+  paperWidth: number
+  participantCount: number
+  aspectRatio: number
+  isSelf: boolean
+  isClient: boolean
 }
 
 // This component should be mounted when the participant joins and dismounted when the participant leaves.
-export default function TwilioParticipant({ participant, room }: TwilioVideoParticipantProps) {
+export default function TwilioParticipant({
+  participant,
+  room,
+  paperWidth,
+  participantCount,
+  aspectRatio,
+  isSelf,
+  isClient,
+}: TwilioVideoParticipantProps) {
   const initializedRef = useRef<boolean>(false)
   const [tracks, setTracks] = useState<MediaTrack[]>([])
 
@@ -71,14 +84,20 @@ export default function TwilioParticipant({ participant, room }: TwilioVideoPart
   }, [participant, room, tracks])
 
   return (
-    <Paper variant="elevation" elevation={3} sx={{ flex: 1, padding: 3 }}>
-      <Stack spacing={3} display="flex" flex={1} direction="column">
-        <Typography variant="overline">
-          {twilioIdentityToInfo(participant.identity).userType}
-        </Typography>
-
+    <Paper variant="elevation" elevation={3} sx={{ padding: 2, width: `${paperWidth}%` }}>
+      <Typography variant="button" display="block" align="center">
+        {twilioIdentityToInfo(participant.identity).userType}
+      </Typography>
+      <Stack marginTop={1} spacing={2} display="flex" flex={1} direction="row">
         {tracks.map((track, index) => (
-          <TwilioTrack key={index} track={track} />
+          <TwilioTrack
+            key={index}
+            track={track}
+            participantCount={participantCount}
+            aspectRatio={aspectRatio}
+            isSelf={isSelf}
+            isClient={isClient}
+          />
         ))}
       </Stack>
     </Paper>

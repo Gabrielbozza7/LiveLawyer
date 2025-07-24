@@ -16,7 +16,7 @@ export interface ClientToServerEvents {
    * Fired when a socket first connects to the backend server for authentication.
    */
   authenticate: (
-    payload: WithAccessToken<{ coordinates: Coordinates | null }>,
+    payload: WithAccessToken<{ coordinates: Coordinates | null; aspectRatio: number | null }>,
     callback: (
       response: { result: SocketResult } & (
         | ({ result: 'OK' } & SocketTokenAuth)
@@ -70,7 +70,7 @@ export interface ServerToClientEvents {
    * Fired when a user is sent to a video call room
    */
   sendToRoom: (
-    payload: { token: string; roomName: string },
+    payload: { token: string; roomName: string; aspectRatio: number },
     callback: (acknowledged: boolean) => void,
   ) => void
   /**
