@@ -1,0 +1,4 @@
+/* This is specifically for hiding the overlay in the WebView on Android in development mode. */
+.hide-nextjs-error-overlay nextjs-portal {
+  display: none !important;
+}

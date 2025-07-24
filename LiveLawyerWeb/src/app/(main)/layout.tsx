@@ -1,56 +1,37 @@
-import '@fontsource/roboto/300.css'
-import '@fontsource/roboto/400.css'
-import '@fontsource/roboto/500.css'
-import '@fontsource/roboto/700.css'
-
 import { ContextManager } from 'livelawyerlibrary/context-manager'
 import LoginRegister from '@/components/auth/login-register'
 import { BACKEND_URL, SUPABASE_ANON_KEY, SUPABASE_URL, WEBSITE_URL } from 'livelawyerlibrary/env'
-import type { Metadata } from 'next'
 import CompleteRegistration from '@/components/auth/complete-registration'
 import LiveLawyerNav from '@/components/LiveLawyerNav'
-import CssBaseline from '@mui/material/CssBaseline'
 import AlertDelivery from '@/components/alert-delivery'
 import { LoadingBackdrop } from '@/components/auth/loading-backdrop'
 import { PlatformValidatedForm } from '@/components/forms/platform-validated-form'
 import { PlatformValidatedTextField } from '@/components/forms/platform-validated-text-field'
 import { PlatformValidatedFormSubmitButton } from '@/components/forms/platform-validated-form-submit-button'
 
-export const metadata: Metadata = {
-  description: 'Live Lawyer Web',
-}
-
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
+export default function Layout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
-      <CssBaseline>
-        <body style={{ backgroundColor: '#DDEEFF' }}>
-          <ContextManager
-            env={{
-              websiteUrl: WEBSITE_URL,
-              supabaseUrl: SUPABASE_URL,
-              supabaseAnonKey: SUPABASE_ANON_KEY,
-              backendUrl: BACKEND_URL,
-            }}
-            sessionlessComponent={<LoginRegister />}
-            alertDeliveryComponent={<AlertDelivery />}
-            platformValidatedFormComponents={{
-              Form: PlatformValidatedForm,
-              TextField: PlatformValidatedTextField,
-              FormSubmitButton: PlatformValidatedFormSubmitButton,
-            }}
-            loadingComponent={<LoadingBackdrop />}
-            uninitializedUserComponent={<CompleteRegistration />}
-          >
-            <LiveLawyerNav />
-            {children}
-          </ContextManager>
-        </body>
-      </CssBaseline>
-    </html>
+    <body style={{ backgroundColor: '#DDEEFF' }}>
+      <ContextManager
+        env={{
+          websiteUrl: WEBSITE_URL,
+          supabaseUrl: SUPABASE_URL,
+          supabaseAnonKey: SUPABASE_ANON_KEY,
+          backendUrl: BACKEND_URL,
+        }}
+        sessionlessComponent={<LoginRegister />}
+        alertDeliveryComponent={<AlertDelivery />}
+        platformValidatedFormComponents={{
+          Form: PlatformValidatedForm,
+          TextField: PlatformValidatedTextField,
+          FormSubmitButton: PlatformValidatedFormSubmitButton,
+        }}
+        loadingComponent={<LoadingBackdrop />}
+        uninitializedUserComponent={<CompleteRegistration />}
+      >
+        <LiveLawyerNav />
+        {children}
+      </ContextManager>
+    </body>
   )
 }

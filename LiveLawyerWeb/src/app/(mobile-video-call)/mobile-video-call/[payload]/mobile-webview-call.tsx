@@ -29,8 +29,6 @@ class NativeMessageReceiver {
 
 ;(window as unknown as InjectableWindow).NATIVE_MESSAGE_RECEIVER = new NativeMessageReceiver()
 
-setTimeout(() => (window as unknown as InjectableWindow).NATIVE_MESSAGE_RECEIVER.fire('test'), 5000)
-
 export interface RoomJoinData {
   token: string
   roomName: string
@@ -50,19 +48,20 @@ export function MobileWebViewCall({ payload }: MobileWebViewCallProps) {
       },
     [payload],
   )
-  const log = useCallback((msg: string) => postMessage('%' + msg), [])
 
   const videoRoomRef = useRef<TwilioVideoRoom>(new TwilioVideoRoom())
   const joinInProgressRef = useRef<boolean>(false)
   const [participants, setParticipants] = useState<Participant[]>([])
 
-  useEffect(() => {
-    log('new participants size: ' + participants.length)
-  }, [log, participants])
-
+  const log = useCallback((msg: string) => postMessage('%' + msg), [])
   const postMessage = (message: string) => {
     eval(`window.ReactNativeWebView.postMessage("${message.replaceAll('"', '\\"')}")`)
   }
+
+  useEffect(() => {
+    document.body.classList.add('hide-nextjs-error-overlay')
+    return () => document.body.classList.remove('hide-nextjs-error-overlay')
+  }, [])
 
   // Connecting to call when component mounts:
   useEffect(() => {
@@ -139,6 +138,7 @@ const styles = {
   videoContainer: {
     flex: 1,
     backgroundColor: 'black',
+    height: '100vh',
     overflow: 'hidden',
   },
   videoRemote: {

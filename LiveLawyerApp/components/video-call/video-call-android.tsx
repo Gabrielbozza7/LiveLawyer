@@ -67,6 +67,9 @@ export default function VideoCallAndroid({
       }}
       allowsInlineMediaPlayback
       mediaPlaybackRequiresUserAction={false}
+      scrollEnabled={false}
+      showsVerticalScrollIndicator={false}
+      showsHorizontalScrollIndicator={false}
       style={styles.flexContainer}
     />
   )
