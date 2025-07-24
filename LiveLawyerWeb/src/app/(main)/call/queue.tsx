@@ -12,13 +12,10 @@ import {
   useSupabaseClient,
   useUserType,
 } from 'livelawyerlibrary/context-manager'
-import Card from '@mui/material/Card'
-import CardContent from '@mui/material/CardContent'
 import Typography from '@mui/material/Typography'
-import Grid from '@mui/material/Grid'
 import Button from '@mui/material/Button'
-import Stack from '@mui/material/Stack'
 import { Call, RoomJoinData } from './call'
+import { PageContent } from '@/components/ui/page-content'
 
 export function Queue() {
   const env = usePublicEnv()
@@ -137,22 +134,13 @@ export function Queue() {
   }, [sessionRef, supabaseRef])
 
   return (
-    <Grid
-      container
-      alignItems="center"
-      justifyContent="center"
-      display="flex"
-      sx={{ width: '100%' }}
-      minHeight="85vh"
-    >
+    <>
       {!(userType === 'Observer' || userType === 'Lawyer') ? (
-        <Card>
-          <CardContent>
-            <Typography>
-              You must be either an observer or a lawyer to take calls on the website!
-            </Typography>
-          </CardContent>
-        </Card>
+        <PageContent title="Blocked Page">
+          <Typography>
+            You must be either an observer or a lawyer to take calls on the website!
+          </Typography>
+        </PageContent>
       ) : roomJoinData !== undefined ? (
         <Call
           loadingState={[loading, setLoading]}
@@ -161,45 +149,39 @@ export function Queue() {
           roomJoinDataState={[roomJoinData, setRoomJoinData]}
         />
       ) : (
-        <Grid size={4}>
-          <Card>
-            <CardContent>
-              <Stack spacing={2} alignItems="center" direction="column">
-                {inQueueOrCall ? (
-                  <>
-                    <Typography>
-                      You are now in the queue, waiting for{' '}
-                      {userType === 'Lawyer' ? 'an observer to summon you' : 'a client'}!
-                    </Typography>
-                    <Button
-                      disabled={loading}
-                      variant="contained"
-                      color="warning"
-                      onClick={onExitQueueClick}
-                    >
-                      Exit Queue
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    {userType !== null && (
-                      <Button
-                        disabled={loading}
-                        variant="contained"
-                        color="primary"
-                        onClick={onJoinQueueClick}
-                      >
-                        Join Queue as {userType}
-                      </Button>
-                    )}
-                    {permissionNotice && <Typography>{permissionNotice}</Typography>}
-                  </>
-                )}
-              </Stack>
-            </CardContent>
-          </Card>
-        </Grid>
+        <PageContent title="Video Call Queue" alignItems="center">
+          {inQueueOrCall ? (
+            <>
+              <Typography>
+                You are now in the queue, waiting for{' '}
+                {userType === 'Lawyer' ? 'an observer to summon you' : 'a client'}!
+              </Typography>
+              <Button
+                disabled={loading}
+                variant="contained"
+                color="warning"
+                onClick={onExitQueueClick}
+              >
+                Exit Queue
+              </Button>
+            </>
+          ) : (
+            <>
+              {userType !== null && (
+                <Button
+                  disabled={loading}
+                  variant="contained"
+                  color="primary"
+                  onClick={onJoinQueueClick}
+                >
+                  Join Queue as {userType}
+                </Button>
+              )}
+              {permissionNotice && <Typography>{permissionNotice}</Typography>}
+            </>
+          )}
+        </PageContent>
       )}
-    </Grid>
+    </>
   )
 }

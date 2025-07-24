@@ -71,9 +71,9 @@ export default function TwilioParticipant({ participant, room }: TwilioVideoPart
   }, [participant, room, tracks])
 
   return (
-    <Paper sx={{ width: '80%', height: '80%' }}>
-      <Stack spacing={2} alignItems="center" direction="column">
-        <Typography style={{ fontWeight: 'bold', marginBottom: 5 }}>
+    <Paper variant="elevation" elevation={3} sx={{ flex: 1, padding: 3 }}>
+      <Stack spacing={3} display="flex" flex={1} direction="column">
+        <Typography variant="overline">
           {twilioIdentityToInfo(participant.identity).userType}
         </Typography>
 

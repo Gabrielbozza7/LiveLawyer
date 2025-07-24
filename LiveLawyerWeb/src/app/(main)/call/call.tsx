@@ -1,6 +1,5 @@
 import TwilioVideoRoom from '@/classes/TwilioVideoRoom'
 import TwilioParticipant from '@/components/TwilioParticipant'
-import Button from '@mui/material/Button'
 import Grid from '@mui/material/Grid'
 import Stack from '@mui/material/Stack'
 import { twilioIdentityToInfo, UserType } from 'livelawyerlibrary'
@@ -12,6 +11,9 @@ import {
 import { Dispatch, RefObject, SetStateAction, useEffect, useRef, useState } from 'react'
 import { Socket } from 'socket.io-client'
 import { Participant } from 'twilio-video'
+import CallEndIcon from '@mui/icons-material/CallEnd'
+import GavelIcon from '@mui/icons-material/Gavel'
+import Fab from '@mui/material/Fab'
 
 export interface RoomJoinData {
   token: string
@@ -145,38 +147,40 @@ export function Call({
 
   return (
     <>
-      <Grid size={4} justifyItems="center" alignItems="center">
-        {clientParticipant && (
-          <TwilioParticipant room={videoRoomRef.current} participant={clientParticipant} />
+      <Grid container alignItems="center" justifyContent="center" display="flex">
+        {[clientParticipant, observerParticipant, lawyerParticipant].map((participant, index) => (
+          <Grid key={index} size={4} justifyItems="stretch" alignItems="stretch" padding={3}>
+            {participant && (
+              <TwilioParticipant room={videoRoomRef.current} participant={participant} />
+            )}
+          </Grid>
+        ))}
+      </Grid>
+      <Stack
+        width="100%"
+        position="absolute"
+        bottom={0}
+        justifyContent="center"
+        spacing={12}
+        direction="row"
+        padding={3}
+      >
+        <Fab disabled={loading} variant="extended" color="warning" onClick={onEndCallClick}>
+          <CallEndIcon sx={{ marginRight: 1 }} />
+          End Call
+        </Fab>
+        {userType === 'Observer' && (
+          <Fab
+            disabled={loading || hasLawyerInCall}
+            variant="extended"
+            color="success"
+            onClick={onSummonLawyerClick}
+          >
+            <GavelIcon sx={{ marginRight: 1 }} />
+            Summon Lawyer
+          </Fab>
         )}
-      </Grid>
-      <Grid size={4} justifyItems="center" alignItems="center">
-        {observerParticipant && (
-          <TwilioParticipant room={videoRoomRef.current} participant={observerParticipant} />
-        )}
-      </Grid>
-      <Grid size={4} justifyItems="center" alignItems="center">
-        {lawyerParticipant && (
-          <TwilioParticipant room={videoRoomRef.current} participant={lawyerParticipant} />
-        )}
-      </Grid>
-      <Grid size={12}>
-        <Stack justifyContent="center" spacing={12} direction="row">
-          <Button disabled={loading} variant="contained" color="warning" onClick={onEndCallClick}>
-            End Call
-          </Button>
-          {userType === 'Observer' && (
-            <Button
-              disabled={loading || hasLawyerInCall}
-              variant="contained"
-              color="success"
-              onClick={onSummonLawyerClick}
-            >
-              Summon Lawyer
-            </Button>
-          )}
-        </Stack>
-      </Grid>
+      </Stack>
     </>
   )
 }

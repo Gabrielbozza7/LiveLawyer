@@ -4,6 +4,7 @@ import VolumeDown from '@mui/icons-material/VolumeDown'
 import VolumeUp from '@mui/icons-material/VolumeUp'
 import { useEffect, useRef, useState } from 'react'
 import { AudioTrack, Track, VideoTrack } from 'twilio-video'
+import Box from '@mui/material/Box'
 
 interface TwilioTrackProps {
   track: Track
@@ -42,38 +43,36 @@ export default function TwilioTrack({ track }: TwilioTrackProps) {
       console.log(`Unsupported track type: ${track.kind}`)
     }
   }, [track])
+
   return (
     <>
-      <div
-        hidden={trackType !== 'video'}
-        style={{
-          width: 320,
-          height: 520,
+      <Box
+        sx={{
+          display: trackType === 'video' ? 'flex' : 'none',
+          width: '100%',
+          aspectRatio: 1,
           overflow: 'hidden',
-          position: 'relative',
-          margin: 5,
+          borderRadius: 10,
         }}
       >
-        <div
+        <video
+          ref={videoRef}
           style={{
-            position: 'absolute',
-            top: 0,
-            left: '50%',
-            transform: 'translateX(-50%)',
+            width: '100%',
             height: '100%',
+            objectFit: 'cover',
+            objectPosition: 'center',
           }}
-        >
-          <video ref={videoRef} />
-        </div>
-      </div>
-      <div hidden={trackType !== 'audio'}>
+        />
+      </Box>
+      <Box sx={{ display: trackType === 'audio' ? 'flex' : 'none' }}>
         <audio ref={audioRef} />
-        <Stack spacing={2} direction="row" sx={{ alignItems: 'center', mb: 1 }}>
+        <Stack spacing={3} display="flex" flex={1} direction="row" alignItems={'center'}>
           <VolumeDown />
-          <Slider value={volume} onChange={handleChangeVolume} sx={{ minWidth: 250 }} />
+          <Slider value={volume} onChange={handleChangeVolume} sx={{ flex: 1 }} />
           <VolumeUp />
         </Stack>
-      </div>
+      </Box>
     </>
   )
 }
