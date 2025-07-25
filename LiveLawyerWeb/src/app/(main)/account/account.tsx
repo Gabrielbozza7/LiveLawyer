@@ -4,11 +4,11 @@ import Tabs from '@mui/material/Tabs'
 import Tab from '@mui/material/Tab'
 import { PageContent } from '@/components/ui/page-content'
 import General from './general'
-import Sensitive from './sensitive'
+import Settings from './settings'
 
 const POSSIBLE_TABS = {
   General: 'Profile Data',
-  Sensitive: 'Sensitive Account Data',
+  Settings: 'Sensitive Account Data',
 } as const
 type ActiveTab = keyof typeof POSSIBLE_TABS
 
@@ -32,7 +32,7 @@ export default function Legal() {
         </Tabs>
       }
     >
-      {activeTab === 'General' ? <General /> : activeTab === 'Sensitive' ? <Sensitive /> : <></>}
+      {activeTab === 'General' ? <General /> : activeTab === 'Settings' ? <Settings /> : <></>}
     </PageContent>
   )
 }

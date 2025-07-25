@@ -19,7 +19,7 @@ import Box from '@mui/material/Box'
 
 type PossibleDialog = 'Email' | 'Password' | null
 
-export default function Sensitive() {
+export default function Settings() {
   const alerterRef = useAlerter()
   const supabaseRef = useSupabaseClient()
   const [currentEmail, setCurrentEmail] = useState<string | null | undefined>(undefined)

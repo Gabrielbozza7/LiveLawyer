@@ -1,5 +1,5 @@
 import General from '@/components/account/general'
-import Sensitive from '@/components/account/sensitive'
+import Settings from '@/components/account/settings'
 import { FabWithConfirmation } from '@/components/ui/fab-with-confirmation'
 import { StandalonePage } from '@/components/ui/standalone-page'
 import { newStyles } from '@/constants/Styles'
@@ -8,7 +8,7 @@ import { useState } from 'react'
 import { ScrollView, StyleSheet, View } from 'react-native'
 import { SegmentedButtons } from 'react-native-paper'
 
-type ActiveTab = 'General' | 'Sensitive'
+type ActiveTab = 'General' | 'Settings'
 
 export default function LoginRegister() {
   const supabaseRef = useSupabaseClient()
@@ -35,8 +35,8 @@ export default function LoginRegister() {
               label: 'General',
             },
             {
-              value: 'Sensitive',
-              label: 'Sensitive',
+              value: 'Settings',
+              label: 'Settings',
             },
           ]}
           density="small"
@@ -45,8 +45,8 @@ export default function LoginRegister() {
         <View style={activeTab !== 'General' && styles.inactiveTab}>
           <General />
         </View>
-        <View style={activeTab !== 'Sensitive' && styles.inactiveTab}>
-          <Sensitive />
+        <View style={activeTab !== 'Settings' && styles.inactiveTab}>
+          <Settings />
         </View>
       </ScrollView>
       <FabWithConfirmation
