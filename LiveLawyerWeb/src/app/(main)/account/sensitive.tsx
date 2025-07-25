@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useAlerter, useSupabaseClient } from 'livelawyerlibrary/context-manager'
 import CircularProgress from '@mui/material/CircularProgress'
 import Alert from '@mui/material/Alert'
@@ -10,16 +10,20 @@ import DialogTitle from '@mui/material/DialogTitle'
 import { ValidatedForm } from 'livelawyerlibrary/forms/validated-form'
 import { ValidatedTextField } from 'livelawyerlibrary/forms/validated-text-field'
 import EmailIcon from '@mui/icons-material/Email'
-import { validateEmail } from 'livelawyerlibrary/input-validation'
+import KeyIcon from '@mui/icons-material/Key'
+import { validateEmail, validatePassword } from 'livelawyerlibrary/input-validation'
 import { ValidatedFormSubmitButton } from 'livelawyerlibrary/forms/validated-form-submit-button'
 import Container from '@mui/material/Container'
 import DialogContent from '@mui/material/DialogContent'
+import Box from '@mui/material/Box'
+
+type PossibleDialog = 'Email' | 'Password' | null
 
 export default function Sensitive() {
   const alerterRef = useAlerter()
   const supabaseRef = useSupabaseClient()
   const [currentEmail, setCurrentEmail] = useState<string | null | undefined>(undefined)
-  const [changeEmailDialogOpen, setChangeEmailDialogOpen] = useState<boolean>(false)
+  const [openDialog, setOpenDialog] = useState<PossibleDialog>(null)
 
   useEffect(() => {
     if (currentEmail === undefined) {
@@ -38,6 +42,8 @@ export default function Sensitive() {
     }
   }, [alerterRef, currentEmail, supabaseRef])
 
+  const close = () => setOpenDialog(null)
+
   return (
     <>
       {currentEmail === undefined ? (
@@ -51,14 +57,20 @@ export default function Sensitive() {
           <Container maxWidth="xl" sx={{ alignItems: 'stretch', flexGrow: 1, padding: 0 }}>
             <Grid container columnSpacing={3}>
               <Grid size={6} display="flex" justifyContent="flex-start" alignItems="center">
-                <div>
+                <Box>
                   <Typography variant="overline">Current Email</Typography>
                   <Typography variant="body1">{currentEmail}</Typography>
-                </div>
+                </Box>
               </Grid>
               <Grid size={6} display="flex" justifyContent="flex-end" alignItems="center">
-                <Button variant="contained" onClick={() => setChangeEmailDialogOpen(true)}>
+                <Button variant="contained" onClick={() => setOpenDialog('Email')}>
                   Change Email
+                </Button>
+              </Grid>
+              <Grid size={6} display="flex" justifyContent="flex-start" alignItems="center" />
+              <Grid size={6} display="flex" justifyContent="flex-end" alignItems="center">
+                <Button variant="contained" onClick={() => setOpenDialog('Password')}>
+                  Reset Password
                 </Button>
               </Grid>
             </Grid>
@@ -67,20 +79,20 @@ export default function Sensitive() {
       )}
       <ChangeEmailDialog
         currentEmail={currentEmail ?? ''}
-        open={changeEmailDialogOpen}
-        setOpen={setChangeEmailDialogOpen}
+        open={openDialog === 'Email'}
+        close={close}
       />
+      <ResetPasswordDialog open={openDialog === 'Password'} close={close} />
     </>
   )
 }
 
-interface ChangeEmailDialogProps {
-  currentEmail: string
+interface DialogProps {
   open: boolean
-  setOpen: Dispatch<SetStateAction<boolean>>
+  close: () => unknown
 }
 
-function ChangeEmailDialog({ currentEmail, open, setOpen }: ChangeEmailDialogProps) {
+function ChangeEmailDialog({ currentEmail, open, close }: { currentEmail: string } & DialogProps) {
   const alerterRef = useAlerter()
   const supabaseRef = useSupabaseClient()
   const [formModel, setFormModel] = useState<{ email: string }>({ email: '' })
@@ -94,11 +106,11 @@ function ChangeEmailDialog({ currentEmail, open, setOpen }: ChangeEmailDialogPro
     } else {
       alerterRef.current.success('Confirmation sent!')
     }
-    setOpen(false)
+    close()
   }
 
   return (
-    <Dialog onClose={() => setOpen(false)} open={open}>
+    <Dialog onClose={close} open={open}>
       <DialogTitle>Change Email</DialogTitle>
       <DialogContent>
         <ValidatedForm model={formModel} setModel={setFormModel} onSubmit={handleSubmit}>
@@ -110,12 +122,63 @@ function ChangeEmailDialog({ currentEmail, open, setOpen }: ChangeEmailDialogPro
             validator={validateEmail}
             helperText="Email must reflect the structure of a real email address."
             required
-            size={12}
           />
 
-          <ValidatedFormSubmitButton disabled={currentEmail === formModel.email} size={12}>
+          <ValidatedFormSubmitButton disabled={currentEmail === formModel.email}>
             Send Confirmation
           </ValidatedFormSubmitButton>
+        </ValidatedForm>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function ResetPasswordDialog({ open, close }: DialogProps) {
+  const alerterRef = useAlerter()
+  const supabaseRef = useSupabaseClient()
+  const [formModel, setFormModel] = useState<{ password: string; confirmPassword: string }>({
+    password: '',
+    confirmPassword: '',
+  })
+
+  const handleSubmit = async () => {
+    const { error } = await supabaseRef.current.auth.updateUser({
+      password: formModel.password,
+    })
+    if (error) {
+      alerterRef.current.error('Something went wrong when trying to reset your password!')
+    } else {
+      alerterRef.current.success('Password reset successfully!')
+    }
+    close()
+  }
+
+  return (
+    <Dialog onClose={close} open={open}>
+      <DialogTitle>Reset Password</DialogTitle>
+      <DialogContent>
+        <ValidatedForm model={formModel} setModel={setFormModel} onSubmit={handleSubmit}>
+          <ValidatedTextField
+            name="password"
+            type="password"
+            icon={<KeyIcon />}
+            label="New Password"
+            validator={validatePassword}
+            helperText="Passwords must be at least 8 characters long."
+            required
+          />
+
+          <ValidatedTextField
+            name="confirmPassword"
+            type="password"
+            icon={<KeyIcon />}
+            label="Confirm New Password"
+            validator={() => formModel.password === formModel.confirmPassword}
+            helperText="Passwords must match."
+            required
+          />
+
+          <ValidatedFormSubmitButton>Reset Password</ValidatedFormSubmitButton>
         </ValidatedForm>
       </DialogContent>
     </Dialog>
