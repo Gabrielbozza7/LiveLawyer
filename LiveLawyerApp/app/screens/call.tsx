@@ -16,6 +16,7 @@ import { useWindowDimensions } from 'react-native'
 export interface RoomJoinData {
   token: string
   roomName: string
+  aspectRatio: number
   callback: (acknowledged: boolean) => void
 }
 
@@ -37,10 +38,10 @@ export default function Call() {
   const aspectRatio = width / height
 
   const onSendToRoom = async (
-    { token, roomName }: { token: string; roomName: string },
+    { token, roomName, aspectRatio }: { token: string; roomName: string; aspectRatio: number },
     callback: (acknowledged: boolean) => void,
   ) => {
-    setInCall({ token, roomName, callback })
+    setInCall({ token, roomName, aspectRatio, callback })
     callback(true)
   }
 

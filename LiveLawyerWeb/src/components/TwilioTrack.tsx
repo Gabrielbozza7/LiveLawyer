@@ -62,7 +62,7 @@ export default function TwilioTrack({
           width: '100%',
           aspectRatio: isClient ? aspectRatio : aspectRatio * Math.max(1, participantCount - 1),
           overflow: 'hidden',
-          borderRadius: 10,
+          borderRadius: 5,
         }}
       >
         <video

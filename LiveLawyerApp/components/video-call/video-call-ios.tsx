@@ -9,6 +9,7 @@ import { PlatformVideoCallProps, VideoCallProps } from './video-call'
 import { useAlerter } from 'livelawyerlibrary/context-manager'
 import { useRouter } from 'expo-router'
 import { Colors } from '@/constants/Colors'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 interface VideoTrackInfo {
   participantSid: string
@@ -64,7 +65,7 @@ export default function VideoCallIos({
   }, [])
 
   return (
-    <View style={styles.videoContainer}>
+    <>
       <TwilioVideo
         ref={twilioVideo}
         onRoomDidConnect={() => setLoading(false)}
@@ -93,42 +94,51 @@ export default function VideoCallIos({
           })
         }}
       />
-      <View style={styles.videoContainer}>
+      <View style={styles.videoContainerRemote}>
         {Array.from(videoTracks, ([trackSid, trackIdentifier]) => {
           return (
             <TwilioVideoParticipantView
               key={trackSid}
               trackIdentifier={trackIdentifier}
-              style={styles.videoRemote}
+              style={[
+                styles.video,
+                { aspectRatio: roomInfo.aspectRatio * Math.max(1, videoTracks.size) },
+              ]}
             />
           )
         })}
-        <TwilioVideoLocalView enabled={true} style={styles.videoLocal} />
       </View>
-    </View>
+      <SafeAreaView style={styles.videoContainerLocal}>
+        <TwilioVideoLocalView
+          enabled={true}
+          style={[styles.video, styles.videoLocal, { aspectRatio: roomInfo.aspectRatio }]}
+        />
+      </SafeAreaView>
+    </>
   )
 }
 
 const styles = StyleSheet.create({
-  videoContainer: {
+  videoContainerRemote: {
     flex: 1,
     backgroundColor: Colors.black,
   },
-  videoRemote: {
-    flex: 1,
+  video: {
+    width: '100%',
     backgroundColor: Colors.gray,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  videoLocal: {
+  videoContainerLocal: {
     position: 'absolute',
     width: '35%',
-    height: '30%',
-    bottom: 45,
-    right: 15,
-    backgroundColor: Colors.gray,
     justifyContent: 'center',
     alignItems: 'center',
+    margin: 18,
+    bottom: 0,
+    right: 0,
+  },
+  videoLocal: {
     borderRadius: 10,
     overflow: 'hidden',
   },
