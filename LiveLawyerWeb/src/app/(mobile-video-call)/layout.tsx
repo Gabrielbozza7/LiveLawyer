@@ -1,3 +1,3 @@
 export default function Layout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <body style={{ backgroundColor: 'black' }}>{children}</body>
+  return <body style={{ display: 'flex', backgroundColor: 'black' }}>{children}</body>
 }

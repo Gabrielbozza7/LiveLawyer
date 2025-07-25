@@ -43,7 +43,7 @@ export default function VideoCallAndroid({
     <WebView
       ref={webViewRef}
       source={{
-        uri: `${env.websiteUrl}mobile-video-call/${encodeURIComponent(btoa(JSON.stringify({ token: roomInfo.token, roomName: roomInfo.roomName })))}`,
+        uri: `${env.websiteUrl}mobile-video-call/${encodeURIComponent(btoa(JSON.stringify({ token: roomInfo.token, roomName: roomInfo.roomName, aspectRatio: roomInfo.aspectRatio })))}`,
       }}
       onMessage={event => {
         switch (event.nativeEvent.data) {

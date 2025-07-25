@@ -1,12 +1,22 @@
+import Box from '@mui/material/Box'
 import { CSSProperties, useEffect, useRef, useState } from 'react'
 import { AudioTrack, Track, VideoTrack } from 'twilio-video'
 
 interface WvTrackProps {
   track: Track
+  participantCount: number
+  aspectRatio: number
+  isClient: boolean
   style?: CSSProperties
 }
 
-export default function WvTrack({ track, style }: WvTrackProps) {
+export default function WvTrack({
+  track,
+  participantCount,
+  aspectRatio,
+  isClient,
+  style,
+}: WvTrackProps) {
   const [trackType, setTrackType] = useState<'video' | 'audio' | undefined>(undefined)
 
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -33,8 +43,28 @@ export default function WvTrack({ track, style }: WvTrackProps) {
   }, [track])
   return (
     <>
-      <video ref={videoRef} hidden={trackType !== 'video'} style={style} />
-      <audio ref={audioRef} hidden={trackType !== 'audio'} />
+      <Box
+        sx={{
+          display: trackType === 'video' ? 'flex' : 'none',
+          width: '100%',
+          aspectRatio: isClient ? aspectRatio : aspectRatio * Math.max(1, participantCount - 1),
+          overflow: 'hidden',
+        }}
+      >
+        <video
+          ref={videoRef}
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            objectPosition: 'center',
+            ...style,
+          }}
+        />
+      </Box>
+      <Box sx={{ display: trackType === 'audio' ? 'flex' : 'none' }}>
+        <audio ref={audioRef} />
+      </Box>
     </>
   )
 }

@@ -7,11 +7,21 @@ import WvTrack from './wv-track'
 interface WvParticipantProps {
   participant: Participant
   room: TwilioVideoRoom
+  participantCount: number
+  aspectRatio: number
+  isClient: boolean
   style?: CSSProperties
 }
 
 // This component should be mounted when the participant joins and dismounted when the participant leaves.
-export default function WvParticipant({ participant, room, style }: WvParticipantProps) {
+export default function WvParticipant({
+  participant,
+  room,
+  participantCount,
+  aspectRatio,
+  isClient,
+  style,
+}: WvParticipantProps) {
   const initializedRef = useRef<boolean>(false)
   const [tracks, setTracks] = useState<MediaTrack[]>([])
 
@@ -70,7 +80,14 @@ export default function WvParticipant({ participant, room, style }: WvParticipan
   return (
     <>
       {tracks.map((track, index) => (
-        <WvTrack key={index} track={track} style={style} />
+        <WvTrack
+          key={index}
+          track={track}
+          participantCount={participantCount}
+          aspectRatio={aspectRatio}
+          isClient={isClient}
+          style={style}
+        />
       ))}
     </>
   )

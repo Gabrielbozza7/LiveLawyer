@@ -3,6 +3,7 @@ import TwilioVideoRoom from '@/classes/TwilioVideoRoom'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Participant } from 'twilio-video'
 import WvParticipant from './wv-participant'
+import Box from '@mui/material/Box'
 
 type Listener = (message: string) => unknown
 type InjectableWindow = { NATIVE_MESSAGE_RECEIVER: NativeMessageReceiver }
@@ -32,7 +33,7 @@ class NativeMessageReceiver {
 export interface RoomJoinData {
   token: string
   roomName: string
-  callback: (acknowledged: boolean) => void
+  aspectRatio: number
 }
 
 interface MobileWebViewCallProps {
@@ -40,12 +41,8 @@ interface MobileWebViewCallProps {
 }
 
 export function MobileWebViewCall({ payload }: MobileWebViewCallProps) {
-  const roomInfo = useMemo(
-    () =>
-      JSON.parse(atob(decodeURIComponent(payload))) as {
-        token: string
-        roomName: string
-      },
+  const roomInfo: RoomJoinData = useMemo(
+    () => JSON.parse(atob(decodeURIComponent(payload))) as RoomJoinData,
     [payload],
   )
 
@@ -101,50 +98,55 @@ export function MobileWebViewCall({ payload }: MobileWebViewCallProps) {
   }, [])
 
   return (
-    <div style={styles.videoContainer}>
-      {participants
-        .filter(x => x !== videoRoomRef.current.room?.localParticipant)
-        .map(participant => (
+    <>
+      <Box sx={styles.videoContainerRemote}>
+        {participants
+          .filter(x => x !== videoRoomRef.current.room?.localParticipant)
+          .map(participant => (
+            <WvParticipant
+              key={participant.identity}
+              room={videoRoomRef.current}
+              participantCount={participants.length}
+              aspectRatio={roomInfo.aspectRatio}
+              isClient={false}
+              participant={participant}
+              style={styles.video}
+            />
+          ))}
+      </Box>
+      <Box sx={styles.videoContainerLocal}>
+        {videoRoomRef.current.room?.localParticipant && (
           <WvParticipant
-            key={participant.identity}
             room={videoRoomRef.current}
-            participant={participant}
-            style={styles.videoRemote}
+            participantCount={participants.length}
+            aspectRatio={roomInfo.aspectRatio}
+            isClient={true}
+            participant={videoRoomRef.current.room.localParticipant}
+            style={{ ...styles.video, ...styles.videoLocal }}
           />
-        ))}
-      {videoRoomRef.current.room?.localParticipant && (
-        <WvParticipant
-          room={videoRoomRef.current}
-          participant={videoRoomRef.current.room.localParticipant}
-          style={{
-            position: 'absolute',
-            width: '35%',
-            height: '30%',
-            bottom: 45,
-            right: 15,
-            backgroundColor: 'gray',
-            justifyContent: 'center',
-            alignItems: 'center',
-            borderRadius: 10,
-            overflow: 'hidden',
-          }}
-        />
-      )}
-    </div>
+        )}
+      </Box>
+    </>
   )
 }
 
 const styles = {
-  videoContainer: {
+  videoContainerRemote: {
     flex: 1,
     backgroundColor: 'black',
-    height: '100vh',
-    overflow: 'hidden',
   },
-  videoRemote: {
-    flex: 1,
+  video: {
     backgroundColor: 'gray',
-    justifyContent: 'center',
-    alignItems: 'center',
+  },
+  videoContainerLocal: {
+    position: 'absolute',
+    width: '35%',
+    margin: 3,
+    bottom: 0,
+    right: 0,
+  },
+  videoLocal: {
+    borderRadius: 10,
+    overflow: 'hidden',
   },
 }
