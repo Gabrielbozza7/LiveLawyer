@@ -146,12 +146,12 @@ export default class TwilioManager {
       .insert({
         callId: room.callId,
         userId,
-        action: 'Token Issued',
+        action: 'Invited',
         timestamp,
       })
       .single()
     if (error) {
-      console.log(`Critical error: Unable to document call event (Token Issued): ${error.message}`)
+      console.log(`Critical error: Unable to document call event (Invited): ${error.message}`)
     }
 
     // Creating an access token and room-specific video grant:
