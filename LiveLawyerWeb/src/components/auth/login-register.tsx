@@ -36,8 +36,7 @@ export default function LoginRegister() {
   })
 
   // Logging in or signing up based on new account model when a form is submitted:
-  const handleSubmit = async (model: object) => {
-    const formModel = model as FormModel
+  const handleSubmit = async () => {
     setLoading(true)
     switch (activeTab) {
       case 'Login': {

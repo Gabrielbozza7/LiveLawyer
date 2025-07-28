@@ -2,7 +2,6 @@ import { ContextManager } from 'livelawyerlibrary/context-manager'
 import LoginRegister from '@/components/auth/login-register'
 import { BACKEND_URL, SUPABASE_ANON_KEY, SUPABASE_URL, WEBSITE_URL } from 'livelawyerlibrary/env'
 import CompleteRegistration from '@/components/auth/complete-registration'
-import LiveLawyerNav from '@/components/LiveLawyerNav'
 import AlertDelivery from '@/components/alert-delivery'
 import { LoadingBackdrop } from '@/components/auth/loading-backdrop'
 import { PlatformValidatedForm } from '@/components/forms/platform-validated-form'
@@ -29,7 +28,6 @@ export default function Layout({ children }: Readonly<{ children: React.ReactNod
         loadingComponent={<LoadingBackdrop />}
         uninitializedUserComponent={<CompleteRegistration />}
       >
-        <LiveLawyerNav />
         {children}
       </ContextManager>
     </body>
