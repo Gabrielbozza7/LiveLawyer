@@ -1,6 +1,6 @@
 'use client'
-import { useState } from 'react'
-import { useAlerter, useSupabaseClient } from 'livelawyerlibrary/context-manager'
+import { useEffect, useState } from 'react'
+import { useAlerter, usePublicEnv, useSupabaseClient } from 'livelawyerlibrary/context-manager'
 import { validateEmail, validatePassword } from 'livelawyerlibrary/input-validation'
 import EmailIcon from '@mui/icons-material/Email'
 import KeyIcon from '@mui/icons-material/Key'
@@ -13,6 +13,11 @@ import Container from '@mui/material/Container'
 import { ValidatedForm } from 'livelawyerlibrary/forms/validated-form'
 import { ValidatedTextField } from 'livelawyerlibrary/forms/validated-text-field'
 import { ValidatedFormSubmitButton } from 'livelawyerlibrary/forms/validated-form-submit-button'
+import Button from '@mui/material/Button'
+import Dialog from '@mui/material/Dialog'
+import DialogTitle from '@mui/material/DialogTitle'
+import DialogContent from '@mui/material/DialogContent'
+import Grid from '@mui/material/Grid'
 
 const POSSIBLE_TABS = ['Login', 'Register'] as const
 type ActiveTab = (typeof POSSIBLE_TABS)[number]
@@ -28,12 +33,33 @@ export default function LoginRegister() {
   const alerterRef = useAlerter()
   const [activeTab, setActiveTab] = useState<ActiveTab>('Login')
   const [loading, setLoading] = useState<boolean>(false)
+  const [resetPasswordDialogOpen, setResetPasswordDialogOpen] = useState<boolean>(false)
 
   const [formModel, setFormModel] = useState<FormModel>({
     email: '',
     password: '',
     confirmPassword: '',
   })
+
+  // Dealing with OTP parameters:
+  useEffect(() => {
+    let fragment = ''
+    if (typeof window !== 'undefined') {
+      fragment = window.location.hash
+    }
+    if (fragment !== '') {
+      fragment = '?' + fragment.substring(1)
+      const fragmentAsQueryParams = new URLSearchParams(fragment)
+      const accessToken = fragmentAsQueryParams.get('access_token')
+      const refreshToken = fragmentAsQueryParams.get('refresh_token')
+      if (accessToken !== null && refreshToken !== null) {
+        supabaseRef.current.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        })
+      }
+    }
+  }, [supabaseRef])
 
   // Logging in or signing up based on new account model when a form is submitted:
   const handleSubmit = async () => {
@@ -126,6 +152,12 @@ export default function LoginRegister() {
             required
           />
 
+          {activeTab === 'Login' && (
+            <Grid display="flex" flex={1} flexDirection="row" justifyContent="right">
+              <Button onClick={() => setResetPasswordDialogOpen(true)}>Forgot password?</Button>
+            </Grid>
+          )}
+
           {activeTab === 'Register' && (
             <ValidatedTextField
               name="confirmPassword"
@@ -141,6 +173,63 @@ export default function LoginRegister() {
           <ValidatedFormSubmitButton>{activeTab}</ValidatedFormSubmitButton>
         </ValidatedForm>
       </PageContent>
+      <ResetPasswordDialog
+        open={resetPasswordDialogOpen}
+        close={() => setResetPasswordDialogOpen(false)}
+      />
     </>
+  )
+}
+
+interface DialogProps {
+  open: boolean
+  close: () => unknown
+}
+
+function ResetPasswordDialog({ open, close }: DialogProps) {
+  const env = usePublicEnv()
+  const alerterRef = useAlerter()
+  const supabaseRef = useSupabaseClient()
+  const [loading, setLoading] = useState<boolean>(false)
+  const [formModel, setFormModel] = useState<{ email: string }>({ email: '' })
+
+  const handleSubmit = async () => {
+    setLoading(true)
+    const { error } = await supabaseRef.current.auth.resetPasswordForEmail(formModel.email, {
+      redirectTo: env.websiteUrl + 'reset/password',
+    })
+    if (error) {
+      alerterRef.current.error('Something went wrong when trying to send the reset email!')
+    } else {
+      alerterRef.current.success('Reset email sent!')
+    }
+    setLoading(false)
+    close()
+  }
+
+  return (
+    <Dialog onClose={close} open={open}>
+      <DialogTitle>Send Password Reset Email</DialogTitle>
+      <DialogContent>
+        <ValidatedForm
+          disabled={loading}
+          model={formModel}
+          setModel={setFormModel}
+          onSubmit={handleSubmit}
+        >
+          <ValidatedTextField
+            name="email"
+            type="email"
+            icon={<EmailIcon />}
+            label="Current Email"
+            validator={validateEmail}
+            helperText="Email must reflect the structure of a real email address."
+            required
+          />
+
+          <ValidatedFormSubmitButton>Send Reset Email</ValidatedFormSubmitButton>
+        </ValidatedForm>
+      </DialogContent>
+    </Dialog>
   )
 }
