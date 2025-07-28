@@ -3,14 +3,16 @@ import { useEffect, useRef } from 'react'
 import { WebView } from 'react-native-webview'
 import { PlatformVideoCallProps, VideoCallProps } from './video-call'
 import { StyleSheet } from 'react-native'
-import { usePublicEnv } from 'livelawyerlibrary/context-manager'
+import { useAlerter, usePublicEnv } from 'livelawyerlibrary/context-manager'
 
 export default function VideoCallAndroid({
   roomInfo,
   socketRef,
-  loadingState: [, setLoading],
+  flippedCamera,
+  loadingState: [loading, setLoading],
 }: VideoCallProps & PlatformVideoCallProps) {
   const env = usePublicEnv()
+  const alerterRef = useAlerter()
   const router = useRouter()
   const webViewRef = useRef<WebView>(null)
 
@@ -23,6 +25,12 @@ export default function VideoCallAndroid({
       console.log('Found null WebView ref, unable to send message!')
     }
   }
+
+  useEffect(() => {
+    if (!loading) {
+      postMessage(`onFlipCamera ${flippedCamera}`)
+    }
+  }, [flippedCamera])
 
   // Applying listener for when the call ends:
   useEffect(() => {
@@ -57,6 +65,9 @@ export default function VideoCallAndroid({
             break
           case 'dismount':
             router.back()
+            break
+          case 'noLocalVideoTrack':
+            alerterRef.current.error('An error occurred when trying to flip your camera!')
             break
           default:
             if (event.nativeEvent.data.startsWith('%')) {

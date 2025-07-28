@@ -67,20 +67,30 @@ export function MobileWebViewCall({ payload }: MobileWebViewCallProps) {
       videoRoomRef.current
         .joinRoom(roomInfo.token, roomInfo.roomName)
         .then(() => {
-          log('initial join THEN')
+          log('Joining room...')
           const [disconnectTrigger] = videoRoomRef.current.setupListeners(setParticipants)
           window.addEventListener('pagehide', disconnectTrigger)
           window.addEventListener('beforeunload', disconnectTrigger)
           postMessage('callback true')
         })
         .catch(error => {
-          log('initial join CATCH')
+          log('Room join error!')
           log(`The initial join error:\n${(error as Error).message}`)
           postMessage('callback false')
         })
         .finally(() => (joinInProgressRef.current = false))
     }
   }, [log, roomInfo])
+
+  const flipCamera = useCallback((flipped: boolean) => {
+    const tracks = videoRoomRef.current.room?.localParticipant.videoTracks
+    const track = tracks?.values().next().value?.track
+    if (track !== undefined) {
+      track.restart({ facingMode: flipped ? 'environment' : 'user' })
+    } else {
+      postMessage('noLocalVideoTrack')
+    }
+  }, [])
 
   useEffect(() => {
     const onMessage = (message: string) => {
@@ -90,12 +100,18 @@ export function MobileWebViewCall({ payload }: MobileWebViewCallProps) {
           setParticipants([])
           postMessage('dismount')
           break
+        case 'onFlipCamera true':
+          flipCamera(true)
+          break
+        case 'onFlipCamera false':
+          flipCamera(false)
+          break
       }
     }
 
     ;(window as unknown as InjectableWindow).NATIVE_MESSAGE_RECEIVER.on(onMessage)
     return () => (window as unknown as InjectableWindow).NATIVE_MESSAGE_RECEIVER.off(onMessage)
-  }, [])
+  }, [flipCamera])
 
   return (
     <>
