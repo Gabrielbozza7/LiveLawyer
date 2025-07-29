@@ -198,20 +198,23 @@ export type Database = {
       }
       Contact: {
         Row: {
-          id: string
-          name: string
+          consentStatus: Database['public']['Enums']['ConsentStatus']
+          name: string | null
+          nonce: number
           phoneNumber: string
           userId: string
         }
         Insert: {
-          id?: string
-          name: string
+          consentStatus?: Database['public']['Enums']['ConsentStatus']
+          name?: string | null
+          nonce: number
           phoneNumber: string
-          userId?: string
+          userId: string
         }
         Update: {
-          id?: string
-          name?: string
+          consentStatus?: Database['public']['Enums']['ConsentStatus']
+          name?: string | null
+          nonce?: number
           phoneNumber?: string
           userId?: string
         }
@@ -371,6 +374,7 @@ export type Database = {
     }
     Enums: {
       Action: 'Ended Call' | 'Invited' | 'Connected' | 'Disconnected'
+      ConsentStatus: 'Pending' | 'Accepted' | 'Rejected'
       TrackType: 'Audio' | 'Video'
       UserType: 'Uninitialized' | 'Observer' | 'Lawyer' | 'Client' | 'Dev'
       UsState:
@@ -553,6 +557,7 @@ export const Constants = {
   public: {
     Enums: {
       Action: ['Ended Call', 'Invited', 'Connected', 'Disconnected'],
+      ConsentStatus: ['Pending', 'Accepted', 'Rejected'],
       TrackType: ['Audio', 'Video'],
       UserType: ['Uninitialized', 'Observer', 'Lawyer', 'Client', 'Dev'],
       UsState: [

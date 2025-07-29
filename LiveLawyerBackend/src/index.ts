@@ -5,7 +5,9 @@ import { createServer } from 'node:https'
 import { Server } from 'socket.io'
 import TwilioManager from './TwilioManager'
 import callHistoryRoutes from './routes/call-history'
+import contactsRoutes from './routes/contacts/.router'
 import lawOfficeRoutes from './routes/law-office'
+import twilioWebhooksRoutes from './routes/twilio-webhooks/.router'
 import CallCenter from './calls/CallCenter'
 import {
   ClientToServerEvents,
@@ -18,6 +20,8 @@ import { getSupabaseClient } from './database/supabase'
 import { ROUTER_CALL_HISTORY } from 'livelawyerlibrary/api/types/call-history'
 import { loadGeolocationFunction } from './coord2state'
 import { ROUTER_LAW_OFFICE } from 'livelawyerlibrary/api/types/law-office'
+import { ROUTER_TWILIO_WEBHOOKS } from './routes/twilio-webhooks/.router'
+import { ROUTER_CONTACTS } from 'livelawyerlibrary/api/types/contacts'
 
 async function main() {
   await loadGeolocationFunction()
@@ -158,8 +162,10 @@ async function main() {
   })
 
   // DB routes
-  app.use(ROUTER_LAW_OFFICE, lawOfficeRoutes)
   app.use(ROUTER_CALL_HISTORY, callHistoryRoutes)
+  app.use(ROUTER_CONTACTS, contactsRoutes)
+  app.use(ROUTER_LAW_OFFICE, lawOfficeRoutes)
+  app.use(ROUTER_TWILIO_WEBHOOKS, twilioWebhooksRoutes)
 
   app.post('/signup', async (req, res) => {
     const supabase = await getSupabaseClient()

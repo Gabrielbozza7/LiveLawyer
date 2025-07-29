@@ -80,7 +80,7 @@ export default class TwilioManager {
     const supabase = await getSupabaseClient()
     const { data, error } = await supabase
       .from('User')
-      .select('firstName, lastName, contacts:Contact(phoneNumber)')
+      .select('firstName, lastName, contacts:Contact(phoneNumber, consentStatus)')
       .eq('id', client.id)
       .single()
     let name: string
@@ -90,9 +90,9 @@ export default class TwilioManager {
       name = `${data.firstName} ${data.lastName}`
     }
     const link = `https://google.com/maps?q=${client.location.lat},${client.location.lon}`
-    const message = `🚨 Live Lawyer Alert: ${name} is now in a call for legal counsel. View their location here: ${link}`
+    const message = `LIVE LAWYER ALERT: ${name} is now in a call for legal counsel. View their location here: ${link}`
     if (data !== null) {
-      for (const contact of data.contacts) {
+      for (const contact of data.contacts.filter(contact => contact.consentStatus === 'Accepted')) {
         try {
           await this._twilioClient.messages.create({
             body: message,
