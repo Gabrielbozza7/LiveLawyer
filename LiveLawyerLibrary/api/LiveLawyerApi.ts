@@ -56,9 +56,16 @@ export default class LiveLawyerApi {
     route: string,
     bodyParams: B,
   ): Promise<R> {
+    const encodedBodyParams = JSON.stringify({
+      accessToken: this._accessTokenFetcher(),
+      ...bodyParams,
+    })
     const response = await fetch(this._baseUrl + `${router + route}`, {
       method: 'POST',
-      body: JSON.stringify(bodyParams),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: encodedBodyParams,
     })
     const json = (await response.json()) as ApiResponse<R>
     if (json.success) {
@@ -93,7 +100,7 @@ export default class LiveLawyerApi {
 
   public async modifyContact(
     phoneNumber: string,
-    name: string,
+    name: string | null,
   ): Promise<RequestResponseContactsModify> {
     return await this.postToApi<RequestBodyContactsModify, RequestResponseContactsModify>(
       ROUTER_CONTACTS,

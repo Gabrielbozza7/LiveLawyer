@@ -53,6 +53,7 @@ async function main() {
 
   app.use(cors())
   app.use(express.json())
+  app.use(express.urlencoded({ extended: true }))
 
   app.get('/test', async (req, res) => {
     res.status(200).json({ it: 'works' })

@@ -1,15 +1,37 @@
 import { Router } from 'express'
 import { Request } from 'express'
-import { ROUTE_TWILIO_WEBHOOKS_RECEIVE_SMS } from './.router'
 import twilio from 'twilio'
 import { getSupabaseClient } from '../../database/supabase'
 const { MessagingResponse } = twilio.twiml
 
-type RequestTwilioWebhooksReceiveSms = Request<never, never, { Body: string; From: string }, never>
+interface TwilioWebookReceiveSmsBody {
+  ToCountry: string
+  ToState: string
+  SmsMessageSid: string
+  NumMedia: string
+  ToCity: string
+  FromZip: string
+  SmsSid: string
+  FromState: string
+  SmsStatus: string
+  FromCity: string
+  Body: string
+  FromCountry: string
+  To: string
+  MessagingServiceSid: string
+  ToZip: string
+  NumSegments: string
+  MessageSid: string
+  AccountSid: string
+  From: string
+  ApiVersion: string
+}
+
+type RequestTwilioWebhooksReceiveSms = Request<never, never, TwilioWebookReceiveSmsBody, never>
 
 export default function registerRoute(router: Router) {
   router.post(
-    ROUTE_TWILIO_WEBHOOKS_RECEIVE_SMS,
+    '/receive-sms', // <-- Necessary to avoid a type error for some reason?
     /**
      * Receive incoming SMS messages
      */
@@ -20,7 +42,7 @@ export default function registerRoute(router: Router) {
       const supabase = await getSupabaseClient()
 
       const responseString = await (async (): Promise<string> => {
-        const matches = message.match(/\s*(ACCEPT|REJECT|STOP)\s*([1-9]{\d}{4})\s*/i)
+        const matches = message.match(/^\s*(ACCEPT|REJECT|STOP)\s*([1-9]\d{4})\s*$/i)
         if (!(matches && matches[1] && matches[2])) {
           return 'Live Lawyer App - Emergency Contacts System: Your reply was not in the expected format and has not been processed as a result. You can try again.'
         }

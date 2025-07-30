@@ -76,6 +76,20 @@ export default class TwilioManager {
     return this._recordingProcessor
   }
 
+  public async promptContactForConsent(clientName: string, nonce: number, phoneNumber: string) {
+    const message = `Live Lawyer App - Emergency Contacts System: ${clientName} has requested to send emergency contact notifications to this phone number. Reply with "ACCEPT ${nonce}" to subscribe or with "REJECT ${nonce}" to reject. By subscribing, you grant Live Lawyer App consent to send you notifications. Message/data rates may apply.`
+    try {
+      await this._twilioClient.messages.create({
+        body: message,
+        from: this._twilioPhoneNumber,
+        to: phoneNumber,
+      })
+    } catch (error) {
+      console.log('An error occurred while trying to send an emergency contact notification:')
+      console.error(error)
+    }
+  }
+
   public async notifyEmergencyContacts(client: ConnectedClientIdentity) {
     const supabase = await getSupabaseClient()
     const { data, error } = await supabase

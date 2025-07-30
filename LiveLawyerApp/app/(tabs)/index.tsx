@@ -38,7 +38,7 @@ export default function Index() {
           if (status === 'granted') {
             missing.delete('Precise Location Access')
           }
-          // Camera and Microphone Access
+          // Camera and Microphone Access:
           const platformRequester = Platform.select({
             android: async () => {
               const status = await PermissionsAndroid.requestMultiple([

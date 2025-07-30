@@ -7,6 +7,7 @@ import {
   ROUTE_CONTACTS_MODIFY,
 } from 'livelawyerlibrary/api/types/contacts'
 import { authenticate, getSupabaseClient } from '../../database/supabase'
+import TwilioManager from '../../TwilioManager'
 
 type RequestContactsModify = Request<
   never,
@@ -51,8 +52,14 @@ export default function registerRoute(router: Router) {
 
       if (existingContact !== null) {
         // Update/"delete" the contact:
-        const { error } = await supabase.from('Contact').update({ name }).single()
+        const { error } = await supabase
+          .from('Contact')
+          .update({ name })
+          .eq('phoneNumber', phoneNumber)
+          .single()
         if (error) {
+          console.log('Error when updating contact:')
+          console.error(error)
           res.status(500).json({ success: false, error: 'Database error' })
           return
         }
@@ -67,6 +74,8 @@ export default function registerRoute(router: Router) {
           .select('nonce')
           .eq('phoneNumber', phoneNumber)
         if (noncesError) {
+          console.log("Error when fetching a phone number's nonces:")
+          console.error(noncesError)
           res.status(500).json({ success: false, error: 'Database error' })
           return
         }
@@ -82,6 +91,30 @@ export default function registerRoute(router: Router) {
           nonce: newNonce,
         })
         if (error) {
+          console.log('Error when creating new contact:')
+          console.error(noncesError)
+          res.status(500).json({ success: false, error: 'Database error' })
+          return
+        }
+        // TODO: Avoid creating a new TwilioManager and doing a client name fetch.
+        const { data: clientNameData, error: clientNameError } = await supabase
+          .from('User')
+          .select('firstName, lastName')
+          .eq('id', userId)
+          .single()
+        if (clientNameError) {
+          console.log('Error when fetching client name for consent request:')
+          console.error(clientNameError)
+          res.status(500).json({ success: false, error: 'Database error' })
+          return
+        }
+        try {
+          await new TwilioManager().promptContactForConsent(
+            `${clientNameData.firstName} ${clientNameData.lastName}`,
+            newNonce,
+            phoneNumber,
+          )
+        } catch {
           res.status(500).json({ success: false, error: 'Database error' })
           return
         }

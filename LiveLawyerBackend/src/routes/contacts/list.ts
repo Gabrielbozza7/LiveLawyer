@@ -5,7 +5,7 @@ import {
   ContactSingle,
   RequestParamsContactsList,
   RequestResponseContactsList,
-  ROUTE_CONTACTS_MODIFY,
+  ROUTE_CONTACTS_LIST,
 } from 'livelawyerlibrary/api/types/contacts'
 import { authenticate, getSupabaseClient } from '../../database/supabase'
 
@@ -18,9 +18,9 @@ type RequestContactsList = Request<
 
 export default function registerRoute(router: Router) {
   router.get(
-    ROUTE_CONTACTS_MODIFY,
+    ROUTE_CONTACTS_LIST,
     /**
-     * Enable a client to create an emergency contact
+     * Fetch a client's contacts
      */
     async (req: RequestContactsList, res) => {
       const supabase = await getSupabaseClient()

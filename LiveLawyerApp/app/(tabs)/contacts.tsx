@@ -1,16 +1,17 @@
 import { newStyles } from '@/constants/Styles'
 import { Linking, FlatList } from 'react-native'
-import { Database } from 'livelawyerlibrary/database-types'
 import { useEffect, useState } from 'react'
 import { router, useLocalSearchParams, useRouter } from 'expo-router'
-import { useSession, useSupabaseClient } from 'livelawyerlibrary/context-manager'
+import { useApi } from 'livelawyerlibrary/context-manager'
 import { ActivityIndicator, Avatar, Card, FAB, IconButton, Text } from 'react-native-paper'
 import { TabPage } from '@/components/ui/tab-page'
 import { placeholderLogo } from './lawyers'
 import { ErrorBanner } from '@/components/ui/error-banner'
 import { useIsFocused } from '@react-navigation/native'
+import { ContactSingle } from 'livelawyerlibrary/api/types/contacts'
+import { formatPhoneNumberUsOrDefault } from 'livelawyerlibrary'
 
-function ContactDisplay({ entry }: { entry: Database['public']['Tables']['Contact']['Row'] }) {
+function ContactDisplay({ entry }: { entry: ContactSingle }) {
   const handleCall = () => {
     Linking.openURL(`tel:${entry.phoneNumber}`)
   }
@@ -18,11 +19,15 @@ function ContactDisplay({ entry }: { entry: Database['public']['Tables']['Contac
   return (
     <Card
       style={newStyles.spacedCard}
-      onPress={() => router.push(`/screens/edit-contact?id=${entry.id}`)}
+      onPress={() =>
+        router.push(`/screens/edit-contact?data=${encodeURIComponent(JSON.stringify(entry))}`)
+      }
     >
       <Card.Title
         title={<Text variant="titleMedium">{entry.name}</Text>}
-        subtitle={<Text variant="bodySmall">{entry.phoneNumber}</Text>}
+        subtitle={
+          <Text variant="bodySmall">{formatPhoneNumberUsOrDefault(entry.phoneNumber)}</Text>
+        }
         left={({ size }) => <Avatar.Image size={size} source={placeholderLogo} />}
         right={({ size }) => (
           <IconButton
@@ -38,12 +43,9 @@ function ContactDisplay({ entry }: { entry: Database['public']['Tables']['Contac
 }
 
 export default function Contacts() {
-  const supabaseRef = useSupabaseClient()
-  const sessionRef = useSession()
+  const apiRef = useApi()
   const router = useRouter()
-  const [contacts, setContacts] = useState<
-    Database['public']['Tables']['Contact']['Row'][] | null | undefined
-  >(undefined)
+  const [contacts, setContacts] = useState<ContactSingle[] | null | undefined>(undefined)
 
   // Allowing refreshing when contacts change:
   const focused = useIsFocused()
@@ -61,16 +63,13 @@ export default function Contacts() {
   useEffect(() => {
     if (contacts === undefined) {
       ;(async () => {
-        const { data, error } = await supabaseRef.current
-          .from('Contact')
-          .select()
-          .eq('userId', sessionRef.current.user.id)
-        if (data) {
-          setContacts(data)
-        }
-        if (error) {
+        try {
+          const response = await apiRef.current.fetchContacts()
+          setContacts(response.contacts)
+        } catch (error) {
           console.log((error as Error).message)
           setContacts(null)
+          return
         }
       })()
     }
@@ -86,7 +85,7 @@ export default function Contacts() {
         <FlatList
           data={contacts}
           renderItem={entry => <ContactDisplay entry={entry.item} />}
-          keyExtractor={entry => entry.id}
+          keyExtractor={entry => entry.phoneNumber}
         />
       )}
       <FAB

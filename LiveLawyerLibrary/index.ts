@@ -1,3 +1,4 @@
+import { parsePhoneNumberFromString } from 'libphonenumber-js'
 import { Database } from './database-types'
 
 /**
@@ -92,4 +93,13 @@ export const STATE_CODES_TO_NAMES = {
   WV: 'West Virginia',
   WI: 'Wisconsin',
   WY: 'Wyoming',
+}
+
+export function formatPhoneNumberUsOrDefault(phoneNumber: string) {
+  const parsed = parsePhoneNumberFromString(phoneNumber, 'US')
+  if (parsed !== undefined) {
+    return parsed.formatNational()
+  } else {
+    return phoneNumber
+  }
 }
