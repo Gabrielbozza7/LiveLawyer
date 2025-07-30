@@ -79,15 +79,17 @@ router.get(ROUTE_CALL_HISTORY_LIST, async (req: RequestCallHistoryList, res) => 
       console.log(`Database error: ${(error as Error).message}`)
       return
     }
-    records = data.map(record => {
-      return {
-        id: record.id,
-        clientName: `${record.client.firstName} ${record.client.lastName}`,
-        observerName: `${record.observer.firstName} ${record.observer.lastName}`,
-        lawyerName: record.lawyer ? `${record.lawyer.firstName} ${record.lawyer.lastName}` : null,
-        startTime: record.startTime,
-      }
-    })
+    records = data
+      .map(record => {
+        return {
+          id: record.id,
+          clientName: `${record.client.firstName} ${record.client.lastName}`,
+          observerName: `${record.observer.firstName} ${record.observer.lastName}`,
+          lawyerName: record.lawyer ? `${record.lawyer.firstName} ${record.lawyer.lastName}` : null,
+          startTime: record.startTime,
+        }
+      })
+      .reverse()
     res.status(200).json({ success: true, result: { history: records } })
   } catch (error) {
     console.error(error)
