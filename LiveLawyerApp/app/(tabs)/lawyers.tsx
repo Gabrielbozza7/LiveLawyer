@@ -4,7 +4,8 @@ import { FlatList } from 'react-native'
 import { router } from 'expo-router'
 import { useSupabaseClient } from 'livelawyerlibrary/context-manager'
 import { TabPage } from '@/components/ui/tab-page'
-import { Avatar, Card, Text } from 'react-native-paper'
+import { ActivityIndicator, Avatar, Card, FAB, Text } from 'react-native-paper'
+import { ErrorBanner } from '@/components/ui/error-banner'
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 export const placeholderLogo = require('../../assets/images/main-call-image.jpeg')
@@ -31,37 +32,43 @@ function LawOfficeListing({ id, name }: LawOfficeListingProps) {
 
 export default function LawyerView() {
   const supabaseRef = useSupabaseClient()
-  const [offices, setOffices] = useState<LawOfficeListingProps[]>([])
-  const [placeholder, setPlaceholder] = useState<string | null>('Loading...')
+  const [offices, setOffices] = useState<LawOfficeListingProps[] | null | undefined>(undefined)
 
-  const refreshLawOffices = async () => {
-    const { data, error } = await supabaseRef.current.from('LawOffice').select('id, name')
-    if (data) {
-      setOffices(data)
-    }
-    if (error) {
-      console.log((error as Error).message)
-      setPlaceholder(`Something went wrong when trying to fetch the law offices! Try again later.`)
-    } else {
-      setPlaceholder(null)
-    }
-  }
-
+  // Refreshing offices:
   useEffect(() => {
-    refreshLawOffices()
-  }, [])
+    if (offices === undefined) {
+      ;(async () => {
+        const { data, error } = await supabaseRef.current.from('LawOffice').select('id, name')
+        if (data) {
+          setOffices(data)
+        } else {
+          console.log(error.message)
+          setOffices(null)
+        }
+      })()
+    }
+  }, [offices])
 
   return (
     <TabPage>
-      {placeholder === null ? (
+      {offices === undefined ? (
+        <ActivityIndicator />
+      ) : offices === null ? (
+        <ErrorBanner text="Something went wrong when trying to fetch the law offices! Try again later." />
+      ) : (
         <FlatList
           data={offices}
           renderItem={({ item }) => <LawOfficeListing id={item.id} name={item.name} />}
           keyExtractor={item => item.id}
         />
-      ) : (
-        <Text variant="bodyMedium">{placeholder}</Text>
       )}
+      <FAB
+        icon="refresh"
+        onPress={() => setOffices(undefined)}
+        mode="elevated"
+        variant="surface"
+        style={newStyles.bottomLeftFab}
+      />
     </TabPage>
   )
 }

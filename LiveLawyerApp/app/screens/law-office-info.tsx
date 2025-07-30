@@ -5,19 +5,20 @@ import { router, useLocalSearchParams } from 'expo-router'
 import { LawOfficeDetailsSingle } from 'livelawyerlibrary/api/types/law-office'
 import { useAlerter, useApi } from 'livelawyerlibrary/context-manager'
 import { StandalonePage } from '@/components/ui/standalone-page'
-import { Avatar, Card, Icon, Text } from 'react-native-paper'
+import { ActivityIndicator, Avatar, Card, Icon, Text } from 'react-native-paper'
 import { placeholderLogo } from '../(tabs)/lawyers'
+import { formatPhoneNumberUsOrDefault } from 'livelawyerlibrary'
 
 export default function LawOfficeInfo() {
   const { id }: { id: string | undefined } = useLocalSearchParams() as { id: string | undefined }
   const alerterRef = useAlerter()
   const apiRef = useApi()
-  const [officeInfo, setLawOfficeInfo] = useState<LawOfficeDetailsSingle | null>(null)
+  const [officeInfo, setLawOfficeInfo] = useState<LawOfficeDetailsSingle | undefined>(undefined)
 
   useEffect(() => {
     if (id === undefined) {
       router.back()
-    } else {
+    } else if (officeInfo === undefined) {
       ;(async () => {
         try {
           const result = await apiRef.current.fetchLawOfficeDetails(id)
@@ -30,12 +31,14 @@ export default function LawOfficeInfo() {
         }
       })()
     }
-  }, [id])
+  }, [id, officeInfo])
 
   return (
     <StandalonePage title="Office Details">
       <ScrollView>
-        {officeInfo && (
+        {officeInfo === undefined ? (
+          <ActivityIndicator />
+        ) : (
           <>
             <Avatar.Image
               source={placeholderLogo}
@@ -61,7 +64,11 @@ export default function LawOfficeInfo() {
               <TouchableOpacity onPress={() => Linking.openURL(`tel:${officeInfo.phoneNumber}`)}>
                 <Card.Title
                   title={<Text variant="titleMedium">Phone Number</Text>}
-                  subtitle={<Text variant="bodySmall">{officeInfo.phoneNumber}</Text>}
+                  subtitle={
+                    <Text variant="bodySmall">
+                      {formatPhoneNumberUsOrDefault(officeInfo.phoneNumber)}
+                    </Text>
+                  }
                   left={({ size }) => <Icon source="phone-dial" size={size} />}
                 />
               </TouchableOpacity>
