@@ -9,7 +9,6 @@ import { Platform, StyleSheet, View } from 'react-native'
 import { FAB } from 'react-native-paper'
 import { Socket } from 'socket.io-client'
 import VideoCallAndroid from './video-call-android'
-import VideoCallIos from './video-call-ios'
 import { useAlerter } from 'livelawyerlibrary/context-manager'
 import { FabWithConfirmation } from '../ui/fab-with-confirmation'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -58,15 +57,7 @@ export default function VideoCall({ roomInfo, socketRef, socketTokenRef }: Video
   return (
     <View style={styles.videoScreen}>
       {Platform.select({
-        ios: (
-          <VideoCallIos
-            roomInfo={roomInfo}
-            socketRef={socketRef}
-            socketTokenRef={socketTokenRef}
-            flippedCamera={flippedCamera}
-            loadingState={[loading, setLoading]}
-          />
-        ),
+        ios: <></>,
         android: (
           <VideoCallAndroid
             roomInfo={roomInfo}
