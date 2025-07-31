@@ -43,11 +43,11 @@
         }
       ],
       [
-       "expo-updates",
-       {
-         "fallbackToCacheTimeout": 0
-       }
-     ],
+        "expo-updates",
+        {
+        "fallbackToCacheTimeout": 0
+        }
+      ],
       "expo-router",
       [
         "expo-splash-screen",
@@ -67,7 +67,14 @@
           }
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "react-native-twilio-video-webrtc",
+        {
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
+          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
