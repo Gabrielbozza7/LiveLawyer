@@ -1,48 +1,6 @@
 # Supabase Information
 
-Supabase is the backend database solution that we used to store user data as well as call recordings and their metadata. 
-
-## Utilizing Supabase
-1. Create an account for supabase, if you haven't already.
-2. Request access to the project.
-After receiving access, you should be able to see everything in the database, most importantly the tables and the bucket storage (call recordings).
-
-## Environment Variables
-### `LiveLawyerApp/.env`
-1. On the Supabase project dashboard, click on the `Connect` button in the top.
-2. Navigate to `Mobile Frameworks`, and set the framework to `Expo React Native`.
-3. Copy the `EXPO_PUBLIC_SUPABASE_URL` and the `EXPO_PUBLIC_ANON_KEY` lines into the `LiveLawyerApp/.env` file.
-
-Example:
-```env
-EXPO_PUBLIC_SUPABASE_URL=abc123
-EXPO_PUBLIC_ANON_KEY=abc123
-```
-
-### `LiveLawyerBackend/.env`
-1. On the Supabase project dashboard, navigate to `Project Settings`. Then go to `Data API`.
-2. In the `.env` file, set `SUPABASE_URL` to the `Project URL` given.
-3. In the `.env` file, set `SUPABASE_KEY` to the `[anon][public]` key given.
-4. Navigate to the header on the Supabase Dashboard and click `Connect`.
-5. Then click on ORMS and make sure you are seeing the Prisma Credentials.
-6. In the `.env` file, set `DATABASE_URL` to the `DATABASE_URL` given.
-7. In the `.env` file, set `DIRECT_URL` to the `DIRECT_URL` given.
-
-*NOTE: The Prisma URL variables will likely follow the structure: `postgresql://postgres...`, however, you want to change it to `postgresql://prisma...`. We noticed that what Supabase provides seems to mess up and not allow the connection to formulate*
-
-The backend currently requires an account to access the database for uploading recordings. At this time, an account should be created exclusively for the backend to upload
-4. In the `.env` file, set `DATABASE_USER` to the backend account email address.
-5. In the `.env` file, set `DATABASE_PASSWORD` to the backend account password.
-
-Example:
-```env
-SUPABASE_URL=abc123
-SUPABASE_KEY=abc123
-DIRECT_URL=postgres://prisma...
-DATABASE_URL=postgres://prisma...
-DATABASE_USER=abc123
-DATABASE_PASSWORD=abc123
-```
+Note: Much of this information is out of date, especially information relating to Prisma and the information in "Table Breakdown".
 
 ## Table Breakdown
 ### User

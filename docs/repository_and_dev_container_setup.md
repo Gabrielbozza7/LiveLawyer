@@ -22,7 +22,7 @@ If you are having issues with permissions, refer to the previous guide, [GitHub 
 
 3. Make sure that you grant Docker access to host services on your network if prompted.
 
-4. Note that this setup might result in poor IO performance due to the use of a bind mount if you are not on a Linux-based host. If you want to improve performance (which is highly encouraged if you are using a non-Linux host), follow the next optional part of instructions to configure your container to use a volume (which has better IO performance) instead. If you are not going to use a volume, you can skip to [Part 3: Miscellaneous Container Configuration](#part-3-miscellaneous-container-configuration).
+4. Note that this setup might result in (potentially excruciatingly) poor IO performance due to the use of a bind mount if you are either on a non-Linux-based host or are using Docker with virtualization on a Linux-based host. If you want to improve performance (which is highly encouraged if the stated conditions match your situation), follow the next optional part of these instructions to configure your container to use a volume (which has better IO performance) instead. If you are not going to use a volume, you can skip to [Part 3: Miscellaneous Container Configuration](#part-3-miscellaneous-container-configuration).
 
 ## (Optional Part) Container Volume Setup
 
@@ -77,17 +77,22 @@ Note that this means that any future changes to the container setup (such as a n
 
 1. Create a file `.devcontainer/ip.txt` in the container with the first line being your local IPv4 address that **corresponds to the network interface that links to the same network that your mobile device will use**. This is the only line that needs to be in the file, and it should contain only the local IPv4 address (no port or IPv6 address). This file will be ignored by Git and is specifically for you. If you do not complete this step, **the container will still run, but you might run into connection issues when testing the app**. If your IPv4 address for the appropriate network interface changes, you will have to change the IP in the file (and restart the any running Bash shell in a terminal in the container for the change to be reflected).
 
-2. Add this same IP address as environment variables in certain `.env` files in the container. These `.env` files should not exist yet if you have been following the setup guides in order; create them now if they don't exist:
-    - Set the value of the variable `BACKEND_IP` in `LiveLawyerLibrary/.env` to this IP address.
-        - For example, if the IP is `192.168.192.168`, there should be a line in that file that exactly reads as `BACKEND_IP=192.168.192.168`.
-    - If you are running the backend server on a port other than `4000` (it is `4000` by default), also set the value of the variable `BACKEND_PORT` in `LiveLawyerLibrary/.env` to the server port that you are using.
-    - Set the value of the variable `EXPO_PUBLIC_BACKEND_IP` in `LiveLawyerApp/.env` to this IP address.
-        - Ideally, the IP shouldn't be duplicated so much, so it would be a great idea if someone knows how to and wants to change this to avoid redundancy! The removal of the duplication was attempted with `LiveLawyerApp/.env`, but that didn't end up working due to the inability of React Native to read other non-main `.env` files.
-    - If you are running the backend server on a port other than `4000`, also set the value of the variable `EXPO_PUBLIC_BACKEND_PORT` in `LiveLawyerApp/.env` to the server port that you are using.
+2. Add your ngrok authentication token to the container setup by running the configuration command which can be found [here](https://dashboard.ngrok.com/get-started/setup/linux) after signing in. You don't have to perform the agent installation because the container builds with it already installed. The command should start with `ngrok config add-authtoken`, and you should run it inside the container. On that same page of the website, click the "Static Domain" tab under "Deploy your app online" and claim a static domain. Then, run `ngrok config check` and open the file at the displayed path.
+    - Paste the following into it (after the existing contents), replacing the first value for `url` with the newly claimed static domain (which should be specified with the HTTPS protocol):
+    ```yaml
+    endpoints:
+      - name: website
+        url: https://abc123.ngrok-free.app
+        upstream:
+          url: https://localhost:3000/
+    ```
+    - Note that you will have to replace this configuration every time the container is rebuilt with the current container setup.
 
-3. *(Optional)* Create an empty text file `.devcontainer/.bash_history` in the container. If this file exists, it will carry over your `bash` history from commands executed inside the container between container restarts. This file will be ignored by Git and is specifically for you.
+3. Run `create-certificates`. This will generate self-signed certificates for hosting services over HTTPS within the container.
 
-4. *(Optional)* If you are planning to use Git from within the container, you should configure your local repository's settings appropriately by running these commands in the container, replacing `GITHUB_USERNAME` and `GITHUB_EMAIL` with your GitHub username and email, respectively:
+4. *(Optional)* Create an empty text file `.devcontainer/.bash_history` in the container. If this file exists, it will carry over your `bash` history from commands executed inside the container between container restarts. This file will be ignored by Git and is specifically for you.
+
+5. *(Optional)* If you are planning to use Git from within the container, you should configure your local repository's settings appropriately by running these commands in the container, replacing `GITHUB_USERNAME` and `GITHUB_EMAIL` with your GitHub username and email, respectively:
 
 ```bash
 git config user.name GITHUB_USERNAME
@@ -97,7 +102,7 @@ git config pull.rebase false
 git config core.autocrlf input
 ```
 
-5. *(Optional)* In the container, create a directory `.devcontainer/bind` with an arbitrary `bash` script `startup.sh` of your choice inside it. The environment variable `BIND_DIR` will be accessible in the script (which contains the path to the `.devcontainer/bind` directory), and the script will run the first time you open a terminal in the container each time the container starts. The script will be run by your user, `dev`. The `bind` directory will be ignored by Git and is specifically for you. This might be handy if you want to do something such as passing an SSH key into the container for authentication with GitHub inside the container.
+6. *(Optional)* In the container, create a directory `.devcontainer/bind` with an arbitrary `bash` script `startup.sh` of your choice inside it. The environment variable `BIND_DIR` will be accessible in the script (which contains the path to the `.devcontainer/bind` directory), and the script will run the first time you open a terminal in the container each time the container starts. The script will be run by your user, `dev`. The `bind` directory will be ignored by Git and is specifically for you. This might be handy if you want to do something such as passing an SSH key into the container for authentication with GitHub inside the container.
     - If you do want to add a `startup.sh` script that will allow you to authenticate with GitHub from within the container, follow these additional steps:
         - Copy your private key file into `.devcontainer/bind`. In the next steps, replace `KEY_NAME` with the name of this file that contains your private key.
         - Set the contents of `.devcontainer/bind/startup.sh` to the following:
@@ -106,14 +111,16 @@ git config core.autocrlf input
         cp "$BIND_DIR"/KEY_NAME ~/.ssh
         chmod 600 ~/.ssh/KEY_NAME
         ```
-        - Run the command `git config core.sshCommand "ssh -i ~/.ssh/KEY_NAME`.
+        - Run the command `git config core.sshCommand "ssh -i ~/.ssh/KEY_NAME"`.
         - Rebuild the container. You will know that you have performed this key setup correctly if after rebuilding and running `ssh -T git@github.com` you encounter a message that ends with `You've successfully authenticated, but GitHub does not provide shell access.`.
 
 ## Part 4: Installing Dependencies and Running Services
 
 1. From anywhere in the container, run `setup` (a custom command created for this container). This will use NPM to install the subprojects' dependencies to the proper place. You will have to repeat this step if the dependencies change (as you would normally have to with `npm install`).
 
-At this point, you should be good to start running services! You can run `run` (another custom command) from any directory to get a list of subcommands to run any of the subprojects' services. Each of the three services should be running for a proper testing environment.
+2. Run `ngrok start --all` to run the reverse proxy. This should be running alongside the other services, and you should visit the website through the reserved static domain from ngrok instead of through `localhost` when possible.
+
+At this point, you should be good to start running services! You can run `run` (another custom command) from any directory to get a list of subcommands to run any of the subprojects' services. Each of the three services (along with the reverse proxy) should be running for a proper testing environment.
 - If you are looking to edit one of the custom commands or make a new one, take a look at `.devcontainer/bin`. Note that `.devcontainer/bin/__add_bin.sh` runs when the container is rebuilt, so you should edit that file to register new commands. Existing custom commands are in the same directory.
 
-If you have been following the setup guides in order, you don't have all of the configuration ready yet, but that will be explained over the course of the next few guides.
+If you have been following the setup guides in order, you don't have all of the configuration ready yet (meaning that the services won't really work), but that will be explained over the course of the next few guides.
