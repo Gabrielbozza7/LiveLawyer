@@ -70,7 +70,7 @@ export default function CompleteRegistration() {
   }
 
   return (
-    <StandalonePage title="Complete New Account Registration" disableBackButton={true}>
+    <StandalonePage title="Complete Registration" disableBackButton={true}>
       <ScrollView>
         <View style={newStyles.logoContainer}>
           <Image style={newStyles.logo} source={placeholderLogo} resizeMode="contain" />

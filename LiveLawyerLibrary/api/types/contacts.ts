@@ -22,7 +22,7 @@ export interface RequestBodyContactsModify {
 }
 
 export interface RequestResponseContactsModify {
-  action: 'CREATED' | 'NAME_UPDATED' | 'DELETED'
+  action: 'CREATED' | 'RECREATED' | 'NAME_UPDATED' | 'DELETED'
 }
 
 // Data:

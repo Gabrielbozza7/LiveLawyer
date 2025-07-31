@@ -41,7 +41,7 @@ export default function registerRoute(router: Router) {
       // Checking if the contact already exists:
       const { data: existingContact, error: existingContactError } = await supabase
         .from('Contact')
-        .select('userId, phoneNumber')
+        .select('userId, name, phoneNumber')
         .eq('userId', userId)
         .eq('phoneNumber', phoneNumber)
         .maybeSingle()
@@ -55,6 +55,7 @@ export default function registerRoute(router: Router) {
         const { error } = await supabase
           .from('Contact')
           .update({ name })
+          .eq('userId', userId)
           .eq('phoneNumber', phoneNumber)
           .single()
         if (error) {
@@ -63,9 +64,17 @@ export default function registerRoute(router: Router) {
           res.status(500).json({ success: false, error: 'Database error' })
           return
         }
-        res
-          .status(200)
-          .json({ success: true, result: { action: name !== null ? 'NAME_UPDATED' : 'DELETED' } })
+        res.status(200).json({
+          success: true,
+          result: {
+            action:
+              name !== null
+                ? existingContact.name === null
+                  ? 'RECREATED'
+                  : 'NAME_UPDATED'
+                : 'DELETED',
+          },
+        })
         return
       } else {
         // Create the contact:

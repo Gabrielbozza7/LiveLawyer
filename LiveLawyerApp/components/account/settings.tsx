@@ -160,7 +160,7 @@ function ResetPasswordDialog({ open, close }: DialogProps) {
             <ValidatedTextField
               name="password"
               type="password"
-              icon={<TextInput.Icon icon="key" />}
+              icon={<TextInput.Icon icon="key" style={newStyles.textInputIcon} />}
               label="New Password"
               validator={validatePassword}
               helperText="Passwords must be at least 8 characters long."
@@ -170,7 +170,7 @@ function ResetPasswordDialog({ open, close }: DialogProps) {
             <ValidatedTextField
               name="confirmPassword"
               type="password"
-              icon={<TextInput.Icon icon="key" />}
+              icon={<TextInput.Icon icon="key" style={newStyles.textInputIcon} />}
               label="Confirm New Password"
               validator={() => formModel.password === formModel.confirmPassword}
               helperText="Passwords must match."

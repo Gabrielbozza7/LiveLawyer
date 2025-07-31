@@ -10,6 +10,7 @@ import { ValidatedForm } from 'livelawyerlibrary/forms/validated-form'
 import { ValidatedTextField } from 'livelawyerlibrary/forms/validated-text-field'
 import { ValidatedFormSubmitButton } from 'livelawyerlibrary/forms/validated-form-submit-button'
 import { ContactSingle } from 'livelawyerlibrary/api/types/contacts'
+import { ScrollView } from 'react-native'
 
 interface FormModel {
   name: string
@@ -57,6 +58,7 @@ export default function EditContact() {
       )
       const messageMap: { [K in typeof action]: string } = {
         CREATED: 'created',
+        RECREATED: 'recreated',
         NAME_UPDATED: 'name updated',
         DELETED: 'deleted',
       }
@@ -78,38 +80,84 @@ export default function EditContact() {
 
   return (
     <StandalonePage title={existingContact === undefined ? 'New Contact' : 'Edit Contact'}>
-      <ValidatedForm
-        disabled={loading}
-        model={formModel}
-        setModel={setFormModel}
-        onSubmit={handleSave}
-      >
-        <ValidatedTextField
-          name="name"
-          type="text"
-          icon={<TextInput.Icon icon="account" />}
-          label="Name"
-          defaultValue={prefilledFormModel?.name}
-          validator={notEmpty}
-          helperText="Value must not be empty."
-          required
-        />
-        <ValidatedTextField
-          name="phoneNumber"
-          type="tel"
-          icon={<TextInput.Icon icon="phone" />}
-          label="Phone Number"
-          defaultValue={prefilledFormModel?.phoneNumber ?? '+1'}
-          validator={validatePhoneNumber}
-          helperText="Type the 10 digits without punctuation (US numbers only)."
-          required
-        />
-        <ValidatedFormSubmitButton
-          disabled={JSON.stringify(prefilledFormModel) === JSON.stringify(formModel)}
+      <ScrollView>
+        <ValidatedForm
+          disabled={loading}
+          model={formModel}
+          setModel={setFormModel}
+          onSubmit={handleSave}
         >
-          <Text>Save</Text>
-        </ValidatedFormSubmitButton>
-      </ValidatedForm>
+          <ValidatedTextField
+            name="name"
+            type="text"
+            icon={<TextInput.Icon icon="account" />}
+            label="Name"
+            defaultValue={prefilledFormModel?.name}
+            validator={notEmpty}
+            helperText="Value must not be empty."
+            required
+          />
+          <ValidatedTextField
+            name="phoneNumber"
+            type="tel"
+            icon={<TextInput.Icon icon="phone" />}
+            label="Phone Number"
+            defaultValue={prefilledFormModel?.phoneNumber ?? '+1'}
+            validator={validatePhoneNumber}
+            helperText="Type the 10 digits without punctuation (US numbers only)."
+            required
+          />
+          <ValidatedFormSubmitButton
+            disabled={JSON.stringify(prefilledFormModel) === JSON.stringify(formModel)}
+          >
+            <Text>Save</Text>
+          </ValidatedFormSubmitButton>
+        </ValidatedForm>
+        {existingContact && (
+          <>
+            {existingContact.consentStatus === 'Pending' ? (
+              <Banner
+                visible={true}
+                icon="alert-circle"
+                elevation={2}
+                theme={{ colors: { elevation: { level2: 'rgb(253, 253, 181)' } } }}
+                style={newStyles.spacedCard}
+              >
+                <Text variant="bodyMedium">
+                  This contact has not granted or denied consent to be notified by us yet. You can
+                  tell them to text "ACCEPT {existingContact.nonce}" to the number that prompted
+                  them in order to grant consent.
+                </Text>
+              </Banner>
+            ) : existingContact.consentStatus === 'Accepted' ? (
+              <Banner
+                visible={true}
+                icon="message-check"
+                elevation={2}
+                theme={{ colors: { elevation: { level2: 'rgba(142, 227, 138, 1)' } } }}
+                style={newStyles.spacedCard}
+              >
+                <Text variant="bodyMedium">
+                  This contact has granted consent to receive notifications.
+                </Text>
+              </Banner>
+            ) : (
+              <Banner
+                visible={true}
+                icon="message-off"
+                elevation={2}
+                theme={{ colors: { elevation: { level2: 'rgb(255, 175, 175)' } } }}
+                style={newStyles.spacedCard}
+              >
+                <Text variant="bodyMedium">
+                  This contact has denied consent to receive notifications and won't be notified
+                  when you place a call for legal counsel.
+                </Text>
+              </Banner>
+            )}
+          </>
+        )}
+      </ScrollView>
       {existingContact !== undefined && (
         <FabWithConfirmation
           disabled={loading}
@@ -119,50 +167,6 @@ export default function EditContact() {
           animateFrom="right"
           style={newStyles.bottomRightFab}
         />
-      )}
-      {existingContact && (
-        <>
-          {existingContact.consentStatus === 'Pending' ? (
-            <Banner
-              visible={true}
-              icon="alert-circle"
-              elevation={2}
-              theme={{ colors: { elevation: { level2: 'rgb(253, 253, 181)' } } }}
-              style={newStyles.spacedCard}
-            >
-              <Text variant="bodyMedium">
-                This contact has not granted or denied consent to be notified by us yet. You can
-                tell them to text "ACCEPT {existingContact.nonce}" to the number that prompted them
-                in order to grant consent.
-              </Text>
-            </Banner>
-          ) : existingContact.consentStatus === 'Accepted' ? (
-            <Banner
-              visible={true}
-              icon="message-check"
-              elevation={2}
-              theme={{ colors: { elevation: { level2: 'rgba(142, 227, 138, 1)' } } }}
-              style={newStyles.spacedCard}
-            >
-              <Text variant="bodyMedium">
-                This contact has granted consent to receive notifications.
-              </Text>
-            </Banner>
-          ) : (
-            <Banner
-              visible={true}
-              icon="message-off"
-              elevation={2}
-              theme={{ colors: { elevation: { level2: 'rgb(255, 175, 175)' } } }}
-              style={newStyles.spacedCard}
-            >
-              <Text variant="bodyMedium">
-                This contact has denied consent to receive notifications and won't be notified when
-                you place a call for legal counsel.
-              </Text>
-            </Banner>
-          )}
-        </>
       )}
     </StandalonePage>
   )

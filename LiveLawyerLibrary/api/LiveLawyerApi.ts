@@ -33,6 +33,9 @@ export default class LiveLawyerApi {
 
   constructor(backendUrl: string, accessTokenFetcher: () => string) {
     this._baseUrl = backendUrl
+    if (this._baseUrl.endsWith('/')) {
+      this._baseUrl = this._baseUrl.substring(0, this._baseUrl.length - 1)
+    }
     this._accessTokenFetcher = accessTokenFetcher
   }
 

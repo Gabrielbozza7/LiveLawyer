@@ -58,7 +58,7 @@ export async function authenticate(accessToken: string): Promise<string> {
     throw new Error('No token provided')
   }
   const supabase = await getSupabaseClient()
-  let {
+  const {
     data: { user },
     error,
   } = await supabase.auth.getUser(accessToken)
