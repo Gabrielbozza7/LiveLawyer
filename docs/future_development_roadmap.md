@@ -10,7 +10,9 @@ Despite a major factor in deciding to use Supabase and Twilio being scalability,
 
 ### Serverless Queues
 
-The queues for observers and lawyers are currently held on the backend server. This means that for the logic to work successfully in the deployed Heroku dynos, the participants of some particular call must be connected to the same dyno and must not stay in the call long enough to trigger Heroku's serverless/stateless scaling operations that can corrupt the queue. Resolving this would involve using a message broker or a similar solution that works in scalable serverless architectures that handles the queues outside of the servers that handle the rest of the call logic.
+The queues for observers and lawyers are currently held on the backend server. This means that for the logic to work successfully in the deployed Heroku dynos, the participants of some particular call must be connected to the same dyno and must not stay in the call long enough to trigger Heroku's serverless/stateless scaling operations that can corrupt the queue. Resolving this would involve using a message broker like Redis, RabbitMQ, or Supabase Realtime, or a similar solution that works in scalable serverless architectures that handles the queues outside of the servers that handle the rest of the call logic.
+
+For example, if a client is connected to dyno A and their lawyer is routed to dyno B, the backend queues may become inconsistent, breaking the pairing logic. This is because each dyno maintains its own memory, and there's no shared queue store.
 
 ### Supabase Security
 
@@ -22,7 +24,7 @@ The logic for reconnecting a call in the event of a network disconnection is kno
 
 ### Automated Testing
 
-As part of the Capstone team, we originally planned to write automated tests, but that never ended up happening. Having these is critical for putting the service into production, but it wouldn't hurt to have some basic sanity-checking automated tests before starting the test runs on a bigger scale.
+At minimum, the project should implement unit tests for call lifecycle logic, integration tests for API endpoints (especially recording and queue behavior), and E2E tests for the full client-to-lawyer call flow.
 
 ### Database Schema Migrations and/or Versioning
 
