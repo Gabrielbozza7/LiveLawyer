@@ -21,14 +21,16 @@ The variables in this section should be entered into `LiveLawyerBackend/.env` re
     - Set the value of the `DATABASE_USER` variable to the user's email address.
     - Set the value of the `DATABASE_PASSWORD` variable to the user's password.
 
-To make sure that you didn't miss a step, check that your `LiveLawyerBackend/.env` file contains the the following key-value pairs (with different values though, of course):
+To make sure that you didn't miss a step, check that your `LiveLawyerBackend/.env` file contains the following key-value pairs (with different values though, of course):
 
 ```env
-TWILIO_ACCOUNT_SID=abc123
-TWILIO_AUTH_TOKEN=abc123
-TWILIO_PHONE_NUMBER=abc123
-TWILIO_API_KEY_SID=abc123
-TWILIO_API_KEY_SECRET=abc123
+TWILIO_ACCOUNT_SID=abc123             # Found on Twilio dashboard
+TWILIO_AUTH_TOKEN=abc123              # For REST API auth
+TWILIO_PHONE_NUMBER=+1234567890       # Used for sending SMS
+
+TWILIO_API_KEY_SID=abc123             # Used for generating access tokens
+TWILIO_API_KEY_SECRET=abc123          # Found on the Twilio Account(Speak with the project manager for it,
+                                      # it only ever appears once per account)
 
 SUPABASE_URL=https://abc.123/
 SUPABASE_KEY=abc123
@@ -54,7 +56,7 @@ SUPABASE_URL=https://abc.123/
 SUPABASE_ANON_KEY=abc123
 ```
 
-For compatibility reasons, the app currently has a separate `LiveLawyerApp/.env` file relative to the root of the repository whose values match the values of `LiveLawyerLibrary/.env`. If that file doesn't already exist (which is the likely case if you are going through the regular setup process), create it. Then, copy the contents from `LiveLawyerLibrary/.env` into it and append `EXPO_PUBLIC_` to the beginning of each key. The app's `.env` file should now have this structure:
+For compatibility reasons, the app currently has a separate `LiveLawyerApp/.env` file relative to the root of the repository whose values match the values of `LiveLawyerLibrary/.env`. If that file doesn't already exist (which is the likely case if you are going through the regular setup process), create it. Then, copy the contents from `LiveLawyerLibrary/.env` into it and append `EXPO_PUBLIC_` to the beginning of each key. This is required because environment variables in Expo must be prefixed with EXPO_PUBLIC_ to be embedded into the bundle at build time. The app's `.env` file should now have this structure:
 
 ```env
 EXPO_PUBLIC_WEBSITE_URL=https://abc123.ngrok-free.app/
