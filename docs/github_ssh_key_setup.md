@@ -46,6 +46,9 @@ Later in the setup process, you have to clone the repository in a specific way t
 eval `ssh-agent -s`
 ```
 
+Alternatively if this fails, try this command for more modern shells:
+eval "$(ssh-agent -s)"
+
 3. Run the following command, replacing `KEY_PATH` with the path to your private key.
 
 ```bash
