@@ -27,7 +27,7 @@ This is a prerequisite to initiating cloud builds on EAS.
 1. Ensure the following:
     - That you are in the directory for the app (`LiveLawyerApp` relative to the root of the repository)
     - That you are authenticated with EAS from the CLI (details: [Authenticating with EAS](#authenticating-with-eas))
-2. Run `eas build --profile development --platform android`.
+2. Run `eas build --profile development --platform android`. We use `eas build` at the development level in order to use native modules not supported by Expo Go. Such modules include and are not limited to TwilioVideo so we do not reccommend attempting to modify this part of the process.
 3. As the build is running, if you haven't already, download and install [Expo Orbit](https://expo.dev/orbit) on your host. After opening it, in "Settings...", sign in to your Expo account and ensure that Android is enabled under "Platforms".
 4. In the main Expo Orbit menu, click on the new emulator that you just created under "Android" to select it if it is not already selected. If selected, the icon background next to the name becomes blue.
 5. After the build finishes, in the main Expo Orbit menu, under "Projects", click "LiveLawyerApp". Login to the website if prompted, and then select the latest Android build (which should be the one that just finished).
